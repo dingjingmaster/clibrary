@@ -324,6 +324,15 @@
 #define false                                                   (0)
 #endif
 
+/**
+ * @brief bool
+ */
+#ifdef __cplusplus
+#else 
+#ifndef bool
+typedef int                                                     bool
+#endif
+#endif
 
 /**
  * @brief
@@ -335,6 +344,15 @@
 #undef true
 #define true                                                    (!false)
 #endif
+
+/**
+ * @brief
+ *  一些常用基础类型的简写
+ */
+typedef unsigned char                                           cuchar;
+typedef unsigned short                                          cushort;
+typedef unsigned long                                           culong;
+typedef unsigned int                                            cuint;
 
 
 /**
