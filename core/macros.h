@@ -369,7 +369,7 @@
 #ifdef __cplusplus
 #else 
 #ifndef bool
-typedef int                                                     bool
+typedef int                                                     bool;
 #endif
 #endif
 
