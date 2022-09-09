@@ -24,6 +24,23 @@
 #define C_EXTENSION
 #endif
 
+#ifdef __has_feature
+#define c_macro__has_feature                                    __has_feature
+#else
+#define c_macro__has_feature(x)                                 0
+#endif
+
+#ifdef __has_builtin
+#define c_macro__has_builtin                                    __has_builtin
+#else
+#define c_macro__has_builtin(x)                                 0
+#endif
+
+#ifdef __has_extension
+#define c_macro__has_extension                                  __has_extension
+#else
+#define c_macro__has_extension(x)                               0
+#endif
 
 #ifdef __has_attribute
 #define c_macro__has_attribute                                  __has_attribute
@@ -298,6 +315,28 @@
 #define C_BEGIN_EXTERN_C
 #define C_END_EXTERN_C
 #endif
+
+
+#ifndef __GI_SCANNER__ /* The static assert macro really confuses the introspection parser */
+#define C_PASTE_ARGS(identifier1,identifier2)                   identifier1 ## identifier2
+#define C_PASTE(identifier1,identifier2)                        C_PASTE_ARGS (identifier1, identifier2)
+#if !defined(__cplusplus) && defined(__STDC_VERSION__) && \
+    (__STDC_VERSION__ >= 201112L || c_macro__has_feature(c_static_assert) || c_macro__has_extension(c_static_assert))
+#define C_STATIC_ASSERT(expr)                                   _Static_assert (expr, "Expression evaluates to false")
+#elif (defined(__cplusplus) && __cplusplus >= 201103L) || \
+      (defined(__cplusplus) && defined (_MSC_VER) && (_MSC_VER >= 1600)) || \
+      (defined (_MSC_VER) && (_MSC_VER >= 1800))
+#define C_STATIC_ASSERT(expr)                                   static_assert (expr, "Expression evaluates to false")
+#else
+#ifdef __COUNTER__
+#define C_STATIC_ASSERT(expr)                                   typedef char C_PASTE (_GStaticAssertCompileTimeAssertion_, __COUNTER__)[(expr) ? 1 : -1] C_UNUSED
+#else
+#define C_STATIC_ASSERT(expr)                                   typedef char C_PASTE (_GStaticAssertCompileTimeAssertion_, __LINE__)[(expr) ? 1 : -1] C_UNUSED
+#endif
+#endif /* __STDC_VERSION__ */
+#define C_STATIC_ASSERT_EXPR(expr)                              ((void) sizeof (char[(expr) ? 1 : -1]))
+#endif /* !__GI_SCANNER__ */
+
 
 
 /**
