@@ -27,13 +27,6 @@ C_BEGIN_EXTERN_C
 #define C_LOG_LEVEL    C_LOG_LEVEL_INFO
 #endif
 
-#define C_LOG_ERROR(...)    c_log_print(C_LOG_LEVEL_ERR,      C_LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__)
-#define C_LOG_CRIT(...)     c_log_print(C_LOG_LEVEL_CRIT,     C_LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__)
-#define C_LOG_WARNING(...)  c_log_print(C_LOG_LEVEL_WARNING,  C_LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__)
-#define C_LOG_INFO(...)     c_log_print(C_LOG_LEVEL_INFO,     C_LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__)
-#define C_LOG_DEBUG(...)    c_log_print(C_LOG_LEVEL_DEBUG,    C_LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__)
-#define C_LOG_VERB(...)     c_log_print(C_LOG_LEVEL_VERB,     C_LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__)
-#define C_LOG_RAW(level, tag, file, line, fun, ...)      c_log_print(level, tag, file, line, fun, __VA_ARGS__)
 
 #define C_LOG_INIT_IF_NOT_INIT \
 { \
@@ -41,6 +34,49 @@ C_BEGIN_EXTERN_C
         c_log_init (C_LOG_TYPE_FILE, C_LOG_LEVEL, C_LOG_SIZE, C_LOG_DIR, C_LOG_TAG, "log", false); \
     } \
 };
+
+
+#define C_LOG_ERROR(...) \
+{ \
+    C_LOG_INIT_IF_NOT_INIT \
+    c_log_print(C_LOG_LEVEL_ERR, C_LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__); \
+}
+
+#define C_LOG_CRIT(...) \
+{ \
+    C_LOG_INIT_IF_NOT_INIT \
+    c_log_print(C_LOG_LEVEL_CRIT, C_LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__); \
+}
+
+#define C_LOG_WARNING(...) \
+{ \
+    C_LOG_INIT_IF_NOT_INIT \
+    c_log_print(C_LOG_LEVEL_WARNING, C_LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__); \
+}
+
+#define C_LOG_INFO(...) \
+{ \
+    C_LOG_INIT_IF_NOT_INIT \
+    c_log_print(C_LOG_LEVEL_INFO, C_LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__); \
+}
+
+#define C_LOG_DEBUG(...) \
+{ \
+    C_LOG_INIT_IF_NOT_INIT \
+    c_log_print(C_LOG_LEVEL_DEBUG, C_LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__); \
+}
+
+#define C_LOG_VERB(...) \
+{ \
+    C_LOG_INIT_IF_NOT_INIT \
+    c_log_print(C_LOG_LEVEL_VERB, C_LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__); \
+}
+
+#define C_LOG_RAW(level, tag, file, line, fun, ...) \
+{ \
+    C_LOG_INIT_IF_NOT_INIT \
+    c_log_print(level, tag, file, line, fun, __VA_ARGS__); \
+}
 
 
 /**

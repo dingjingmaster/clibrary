@@ -4,15 +4,148 @@
 > Mail    : dingjing@live.cn
 > Created Time: Wed 07 Sep 2022 21:09:31 PM CST
  ************************************************************************/
-#ifndef _MACROS_H
-#define _MACROS_H
+#ifndef CLIBRARY_MACROS_H
+#define CLIBRARY_MACROS_H
+#include <errno.h>
+#include <stdlib.h>
 #include <stddef.h>
+#include <string.h>
 
 
-#ifdef __GNUC__
-#define C_GNUC_CHECK_VERSION(major, minor)                           ((__GNUC__ > (major)) || ((__GNUC__ == (major)) && (__GNUC_MINOR__ >= (minor))))
+/**************************** 调试相关 ***********************************/
+#ifdef DEBUG
+#define C_DEBUG_INFO(str)               C_LOG_DEBUG(#str)
 #else
-#define C_GNUC_CHECK_VERSION(major, minor)                           0
+#define C_DEBUG_INFO(str)
+#endif
+
+/**************************** 基础类型 ***********************************/
+/**
+ * @brief
+ *  提供 NULL 定义
+ */
+#ifndef NULL
+#ifdef __cplusplus
+#define NULL                                                    (nullptr)
+#else
+#define NULL                                                    ((void*)0)
+#endif
+#endif
+
+/**
+ * @brief
+ *  定义 false
+ */
+
+#ifdef __cplusplus
+#define false                                                   false
+#else
+#undef false
+#define false                                                   (0)
+#endif
+
+/**
+ * @brief bool
+ */
+#ifdef __cplusplus
+#else
+#ifndef bool
+typedef int                                                     bool;
+#endif
+#endif
+
+/**
+ * @brief
+ *  定义 true
+ */
+#ifdef __cplusplus
+#define true                                                    true
+#else
+#undef true
+#define true                                                    (!false)
+#endif
+
+/**
+ * @brief
+ *  一些常用基础类型的简写
+ */
+typedef signed char                                             cint8;
+typedef unsigned char                                           cuint8;
+
+typedef signed short                                            cint16;
+typedef unsigned short                                          cuint16;
+
+typedef signed int                                              cint32;
+typedef unsigned int                                            cuint32;
+
+typedef signed long                                             cint64;
+typedef unsigned long                                           cuint64;
+
+typedef char                                                    cchar;
+typedef short                                                   cshort;
+typedef long                                                    clong;
+typedef int                                                     cint;
+typedef cint                                                    cboolean;
+
+typedef unsigned char                                           cuchar;
+typedef unsigned short                                          cushort;
+typedef unsigned long                                           culong;
+typedef unsigned int                                            cuint;
+
+typedef float                                                   cfloat;
+typedef double                                                  cdouble;
+
+#define C_CINT64_CONSTANT(val)	                                (val##L)
+#define C_CUINT64_CONSTANT(val)	                                (val##UL)
+
+
+#define C_CINT16_MODIFIER                                       "h"
+#define C_CINT16_FORMAT                                         "hi"
+#define C_CUINT16_FORMAT                                        "hu"
+
+#define C_CINT32_MODIFIER                                       ""
+#define C_CINT32_FORMAT                                         "i"
+#define C_CUINT32_FORMAT                                        "u"
+
+#define C_CINT64_MODIFIER                                       "l"
+#define C_CINT64_FORMAT                                         "li"
+#define C_CUINT64_FORMAT                                        "lu"
+
+#define C_MAX_INT8                                              ((cint8) 0x7F)
+#define C_MAX_UINT8                                             ((cuint8) 0xFF)
+#define C_MIN_INT8                                              ((cint8) (-C_MAX_INT8) - 1)
+
+#define C_MAX_INT16                                             ((cint16) 0x7FFF)
+#define C_MAX_UINT16                                            ((cuint16) 0xFFFF)
+#define C_MIN_INT16                                             ((cint16) (-C_MAX_INT16) - 1)
+
+#define C_MAX_INT32                                             ((cint32) 0x7FFFFFFF)
+#define C_MAX_UINT32                                            ((cuint32) 0xFFFFFFFF)
+#define C_MIN_INT32                                             ((cint32) (-C_MAX_INT32) - 1)
+
+#define C_MAX_INT64                                             ((cint64) C_CINT64_CONSTANT(0x7FFFFFFFFFFFFFFF))
+#define C_MAX_UINT64                                            ((cuint64) C_CUINT64_CONSTANT(0xFFFFFFFFFFFFFFFF))
+#define C_MIN_INT64                                             ((cint64) (-C_MAX_INT64) - C_CINT64_CONSTANT(1))
+
+
+/**
+ * @brief 定义常量
+ */
+#define C_E                                                     2.7182818284590452353602874713526624977572470937000
+#define C_LN2                                                   0.69314718055994530941723212145817656807550013436026
+#define C_LN10                                                  2.3025850929940456840179914546843642076011014886288
+#define C_PI                                                    3.1415926535897932384626433832795028841971693993751
+#define C_PI_2                                                  1.5707963267948966192313216916397514420985846996876
+#define C_PI_4                                                  0.78539816339744830961566084581987572104929234984378
+#define C_SQRT2                                                 1.4142135623730950488016887242096980785696718753769
+
+
+/** @NOTE **/
+/********************************* 宏定义 ***************************************/
+#ifdef __GNUC__
+#define C_GNUC_CHECK_VERSION(major, minor)                      ((__GNUC__ > (major)) || ((__GNUC__ == (major)) && (__GNUC_MINOR__ >= (minor))))
+#else
+#define C_GNUC_CHECK_VERSION(major, minor)                      0
 #endif
 
 
@@ -24,6 +157,30 @@
 #define C_GNUC_EXTENSION                                        __extension__
 #else
 #define C_GNUC_EXTENSION
+#endif
+
+
+/**
+ * @brief 函数可见性，gcc可见性分为以下几种情况(__attribute__((visibility(""))))：
+ *  1. default：默认可见（函数在程序的任何地方可见）
+ *  2. hidden：隐藏可见性。函数在链接时候不可见，对于外部链接的符号，将无法从其它目标文件中引用
+ *  3. protected：受保护可见。函数在链接时候可见，但只能被其所在的目标文件或具有相同共享库的目标文件引用
+ */
+#if (defined(_WIN32) || defined(__CYGWIN__))
+#define C_SYMBOL_EXPORT __declspec(dllexport)
+#define C_SYMBOL_IMPORT __declspec(dllimport)
+#define C_SYMBOL_HIDDEN
+#define C_SYMBOL_PROTECTED
+#elif __GNUC__ >= 4
+#define C_SYMBOL_IMPORT
+#define C_SYMBOL_HIDDEN     __attribute__((visibility("hidden")))
+#define C_SYMBOL_EXPORT     __attribute__((visibility("default")))
+#define C_SYMBOL_PROTECTED  __attribute__((visibility("protected")))
+#else
+#define C_SYMBOL_EXPORT
+#define C_SYMBOL_IMPORT
+#define C_SYMBOL_HIDDEN
+#define C_SYMBOL_PROTECTED
 #endif
 
 
@@ -414,7 +571,7 @@
 
 
 #if C_GNUC_CHECK_VERSION(2, 0) && defined(__OPTIMIZE__)
-#define _C_BOOLEAN_EXPR_IMPL(uniq, expr) \
+#define C_BOOLEAN_EXPR_IMPL(uniq, expr) \
     C_GNUC_EXTENSION ({ \
         int C_PASTE (_c_boolean_var_, uniq); \
         if (expr) \
@@ -423,133 +580,13 @@
             C_PASTE (_c_boolean_var_, uniq) = 0; \
         C_PASTE (_c_boolean_var_, uniq); \
     })
-#define _C_BOOLEAN_EXPR(expr) _C_BOOLEAN_EXPR_IMPL (__COUNTER__, expr)
-#define C_LIKELY(expr) (__builtin_expect (_C_BOOLEAN_EXPR(expr), 1))
-#define C_UNLIKELY(expr) (__builtin_expect (_C_BOOLEAN_EXPR(expr), 0))
+#define C_BOOLEAN_EXPR(expr) C_BOOLEAN_EXPR_IMPL (__COUNTER__, expr)
+#define C_LIKELY(expr) (__builtin_expect (C_BOOLEAN_EXPR(expr), 1))
+#define C_UNLIKELY(expr) (__builtin_expect (C_BOOLEAN_EXPR(expr), 0))
 #else
 #define C_LIKELY(expr) (expr)
 #define C_UNLIKELY(expr) (expr)
 #endif
-
-
-/**
- * @brief 
- *  提供 NULL 定义
- */
-#ifndef NULL
-#ifdef __cplusplus
-#define NULL                                                    (nullptr)
-#else
-#define NULL                                                    ((void*)0)
-#endif
-#endif
-
-/**
- * @brief
- *  定义 false
- */
-
-#ifdef __cplusplus
-#define false                                                   false 
-#else
-#undef false
-#define false                                                   (0)
-#endif
-
-/**
- * @brief bool
- */
-#ifdef __cplusplus
-#else 
-#ifndef bool
-typedef int                                                     bool;
-#endif
-#endif
-
-/**
- * @brief
- *  定义 true
- */
-#ifdef __cplusplus
-#define true                                                    true
-#else
-#undef true
-#define true                                                    (!false)
-#endif
-
-/**
- * @brief
- *  一些常用基础类型的简写
- */
-typedef signed char                                             cint8;
-typedef unsigned char                                           cuint8;
-
-typedef signed short                                            cint16;
-typedef unsigned short                                          cuint16;
-
-typedef signed int                                              cint32;
-typedef unsigned int                                            cuint32;
-
-typedef signed long                                             cint64;
-typedef unsigned long                                           cuint64;
-
-typedef char                                                    cchar;
-typedef short                                                   cshort;
-typedef long                                                    clong;
-typedef int                                                     cint;
-typedef cint                                                    cboolean;
-
-typedef unsigned char                                           cuchar;
-typedef unsigned short                                          cushort;
-typedef unsigned long                                           culong;
-typedef unsigned int                                            cuint;
-
-typedef float                                                   cfloat;
-typedef double                                                  cdouble;
-
-#define C_CINT64_CONSTANT(val)	                                (val##L)
-#define C_CUINT64_CONSTANT(val)	                                (val##UL)
-
-
-#define C_CINT16_MODIFIER                                       "h"
-#define C_CINT16_FORMAT                                         "hi"
-#define C_CUINT16_FORMAT                                        "hu"
-
-#define C_CINT32_MODIFIER                                       ""
-#define C_CINT32_FORMAT                                         "i"
-#define C_CUINT32_FORMAT                                        "u"
-
-#define C_CINT64_MODIFIER                                       "l"
-#define C_CINT64_FORMAT                                         "li"
-#define C_CUINT64_FORMAT                                        "lu"
-
-#define C_MAX_INT8                                              ((cint8) 0x7F)
-#define C_MAX_UINT8                                             ((cuint8) 0xFF)
-#define C_MIN_INT8                                              ((cint8) (-C_MAX_INT8) - 1)
-
-#define C_MAX_INT16                                             ((cint16) 0x7FFF)
-#define C_MAX_UINT16                                            ((cuint16) 0xFFFF)
-#define C_MIN_INT16                                             ((cint16) (-C_MAX_INT16) - 1)
-
-#define C_MAX_INT32                                             ((cint32) 0x7FFFFFFF)
-#define C_MAX_UINT32                                            ((cuint32) 0xFFFFFFFF)
-#define C_MIN_INT32                                             ((cint32) (-C_MAX_INT32) - 1)
-
-#define C_MAX_INT64                                             ((cint64) C_CINT64_CONSTANT(0x7FFFFFFFFFFFFFFF))
-#define C_MAX_UINT64                                            ((cuint64) C_CUINT64_CONSTANT(0xFFFFFFFFFFFFFFFF))
-#define C_MIN_INT64                                             ((cint64) (-C_MAX_INT64) - C_CINT64_CONSTANT(1))
-
-
-/**
- * @brief 定义常量
- */
-#define C_E                                                     2.7182818284590452353602874713526624977572470937000
-#define C_LN2                                                   0.69314718055994530941723212145817656807550013436026
-#define C_LN10                                                  2.3025850929940456840179914546843642076011014886288
-#define C_PI                                                    3.1415926535897932384626433832795028841971693993751
-#define C_PI_2                                                  1.5707963267948966192313216916397514420985846996876
-#define C_PI_4                                                  0.78539816339744830961566084581987572104929234984378
-#define C_SQRT2                                                 1.4142135623730950488016887242096980785696718753769
 
 
 /**
@@ -582,5 +619,31 @@ typedef double                                                  cdouble;
 #undef C_SIZE_TO_POINTER
 #define C_SIZE_TO_POINTER(s)                                    ((void*) (unsigned long) (s))
 
+
+/****************** 内存申请与释放 ********************/
+#define c_free(x)                                               { if (C_LIKELY(x)) { free (x); x = NULL; } }
+#define c_malloc(ptr, size) \
+{ \
+    if (C_LIKELY(size > 0)) { \
+        ptr = malloc (size);\
+        if (!ptr) { \
+            C_LOG_DEBUG("malloc error"); \
+            exit(-errno); \
+        } \
+        memset (ptr, 0, size); \
+    } \
+}
+
+#define c_malloc_type(ptr, type, count) \
+{ \
+    if (C_LIKELY(count > 0)) { \
+        ptr = (type*) malloc (sizeof (type) * count); \
+        if (!ptr) { \
+            C_LOG_DEBUG("malloc error"); \
+            exit(-errno); \
+        } \
+        memset (ptr, 0, sizeof (type) * count); \
+    } \
+}
 
 #endif
