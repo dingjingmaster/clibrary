@@ -116,7 +116,6 @@ GLogWriterOutput c_glog_handler (GLogLevelFlags level, const GLogField* fields, 
     if (C_UNLIKELY(!c_log_is_inited())) { \
         c_log_init (C_LOG_TYPE_FILE, C_LOG_LEVEL, C_LOG_SIZE, C_LOG_DIR, C_LOG_TAG, "log", false); \
         g_log_set_handler(NULL, G_LOG_LEVEL_MASK, c_glog_handler, NULL);                                               \
-        g_log_set_debug_enabled (true); \
     } \
 };
 
