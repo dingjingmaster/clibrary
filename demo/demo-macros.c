@@ -4,7 +4,7 @@
 > Mail    : dingjing@live.cn
 > Created Time: Thu 08 Sep 2022 09:20:21 AM CST
  ************************************************************************/
-#include "../core/macros.h"
+#include "../c/macros.h"
 #include <stdio.h>
 
 int main (C_UNUSED int argc, char* argv[])

@@ -150,6 +150,8 @@ void* (c_atomic_pointer_get) (const volatile void* atomic)
     return value;
 }
 
+
+#if 0
 void
 (g_atomic_pointer_set) (volatile void *atomic,
                         gpointer       newval)
@@ -275,8 +277,6 @@ gsize
   return oldval;
 }
 
-#endif
-
 /**
  * g_atomic_int_exchange_and_add:
  * @atomic: a pointer to a #gint
@@ -297,3 +297,4 @@ g_atomic_int_exchange_and_add (volatile gint *atomic,
   return (g_atomic_int_add) ((gint *) atomic, val);
 }
 
+#endif

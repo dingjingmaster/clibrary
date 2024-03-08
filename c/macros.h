@@ -8,21 +8,64 @@
 #define _MACROS_H
 #include <stddef.h>
 
+
 #ifdef __GNUC__
-#define C_CHECK_VERSION(major, minor)                           ((__GNUC__ > (major)) || ((__GNUC__ == (major)) && (__GNUC_MINOR__ >= (minor))))
+#define C_GNUC_CHECK_VERSION(major, minor)                           ((__GNUC__ > (major)) || ((__GNUC__ == (major)) && (__GNUC_MINOR__ >= (minor))))
 #else
-#define C_CHECK_VERSION(major, minor)                           0
+#define C_GNUC_CHECK_VERSION(major, minor)                           0
 #endif
+
 
 #define	C_STRINGIFY_ARG(contents)                               #contents
 #define C_STRINGIFY(macro_or_string)                            C_STRINGIFY_ARG (macro_or_string)
 
 
-#if C_CHECK_VERSION(2, 8)
-#define C_EXTENSION                                             __extension__
+#if C_GNUC_CHECK_VERSION(2, 8)
+#define C_GNUC_EXTENSION                                        __extension__
 #else
-#define C_EXTENSION
+#define C_GNUC_EXTENSION
 #endif
+
+
+#if !defined (__cplusplus)
+#undef C_CXX_STD_VERSION
+#define C_CXX_STD_CHECK_VERSION(version) (0)
+#if defined (__STDC_VERSION__)
+#define C_C_STD_VERSION __STDC_VERSION__
+#else
+#define C_C_STD_VERSION 199000L
+#endif /* defined (__STDC_VERSION__) */
+#define C_C_STD_CHECK_VERSION(version) \
+    ( \
+        ((version) >= 199000L && (version) <= C_C_STD_VERSION) \
+        || ((version) == 89 && C_C_STD_VERSION >= 199000L) \
+        || ((version) == 90 && C_C_STD_VERSION >= 199000L) \
+        || ((version) == 99 && C_C_STD_VERSION >= 199901L) \
+        || ((version) == 11 && C_C_STD_VERSION >= 201112L) \
+        || ((version) == 17 && C_C_STD_VERSION >= 201710L) \
+        || 0 \
+    )
+#else /* defined (__cplusplus) */
+#undef C_C_STD_VERSION
+#define C_C_STD_CHECK_VERSION(version) (0)
+#if defined (_MSVC_LANG)
+#define C_CXX_STD_VERSION (_MSVC_LANG > __cplusplus ? _MSVC_LANG : __cplusplus)
+#else
+#define C_CXX_STD_VERSION __cplusplus
+#endif /* defined(_MSVC_LANG) */
+#define C_CXX_STD_CHECK_VERSION(version) \
+    ( \
+        ((version) >= 199711L && (version) <= C_CXX_STD_VERSION) \
+        || ((version) == 98 && C_CXX_STD_VERSION >= 199711L)     \
+        || ((version) == 03 && C_CXX_STD_VERSION >= 199711L)     \
+        || ((version) == 11 && C_CXX_STD_VERSION >= 201103L)     \
+        || ((version) == 14 && C_CXX_STD_VERSION >= 201402L)     \
+        || ((version) == 17 && C_CXX_STD_VERSION >= 201703L)     \
+        || ((version) == 20 && C_CXX_STD_VERSION >= 202002L)     \
+        || 0 \
+    )
+#endif /* !defined (__cplusplus) */
+
 
 #ifdef __has_feature
 #define c_macro__has_feature                                    __has_feature
@@ -47,24 +90,22 @@
 #else
 // 针对gcc < 5 或其它不支持 __has_attribute 属性的编译器
 #define c_macro__has_attribute(x)                               c_macro__has_attribute_##x
-
-#define c_macro__has_attribute___pure__                         C_CHECK_VERSION (2, 96)
-#define c_macro__has_attribute___malloc__                       C_CHECK_VERSION (2, 96)
-#define c_macro__has_attribute___noinline__                     C_CHECK_VERSION (2, 96)
-#define c_macro__has_attribute___sentinel__                     C_CHECK_VERSION (4, 0)
-#define c_macro__has_attribute___alloc_size__                   C_CHECK_VERSION (4, 3)
-#define c_macro__has_attribute___format__                       C_CHECK_VERSION (2, 4)
-#define c_macro__has_attribute___format_arg__                   C_CHECK_VERSION (2, 4)
-#define c_macro__has_attribute___noreturn__                     (C_CHECK_VERSION (2, 8) || (0x5110 <= __SUNPRO_C))
-#define c_macro__has_attribute___const__                        C_CHECK_VERSION (2, 4)
-#define c_macro__has_attribute___unused__                       C_CHECK_VERSION (2, 4)
-#define c_macro__has_attribute___no_instrument_function__       C_CHECK_VERSION (2, 4)
-#define c_macro__has_attribute_fallthrough                      C_CHECK_VERSION (6, 0)
-#define c_macro__has_attribute___deprecated__                   C_CHECK_VERSION (3, 1)
-#define c_macro__has_attribute_may_alias                        C_CHECK_VERSION (3, 3)
-#define c_macro__has_attribute_warn_unused_result               C_CHECK_VERSION (3, 4)
-#define c_macro__has_attribute_cleanup                          C_CHECK_VERSION (3, 3)
-
+#define c_macro__has_attribute___pure__                         C_GNUC_CHECK_VERSION (2, 96)
+#define c_macro__has_attribute___malloc__                       C_GNUC_CHECK_VERSION (2, 96)
+#define c_macro__has_attribute___noinline__                     C_GNUC_CHECK_VERSION (2, 96)
+#define c_macro__has_attribute___sentinel__                     C_GNUC_CHECK_VERSION (4, 0)
+#define c_macro__has_attribute___alloc_size__                   C_GNUC_CHECK_VERSION (4, 3)
+#define c_macro__has_attribute___format__                       C_GNUC_CHECK_VERSION (2, 4)
+#define c_macro__has_attribute___format_arg__                   C_GNUC_CHECK_VERSION (2, 4)
+#define c_macro__has_attribute___noreturn__                     (C_GNUC_CHECK_VERSION (2, 8) || (0x5110 <= __SUNPRO_C))
+#define c_macro__has_attribute___const__                        C_GNUC_CHECK_VERSION (2, 4)
+#define c_macro__has_attribute___unused__                       C_GNUC_CHECK_VERSION (2, 4)
+#define c_macro__has_attribute___no_instrument_function__       C_GNUC_CHECK_VERSION (2, 4)
+#define c_macro__has_attribute_fallthrough                      C_GNUC_CHECK_VERSION (6, 0)
+#define c_macro__has_attribute___deprecated__                   C_GNUC_CHECK_VERSION (3, 1)
+#define c_macro__has_attribute_may_alias                        C_GNUC_CHECK_VERSION (3, 3)
+#define c_macro__has_attribute_warn_unused_result               C_GNUC_CHECK_VERSION (3, 4)
+#define c_macro__has_attribute_cleanup                          C_GNUC_CHECK_VERSION (3, 3)
 #endif
 
 /**
@@ -132,7 +173,7 @@
  *  [GNU C documentation](https://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html#index-Wformat-3288)
  */
 #if c_macro__has_attribute(__format__)
-#if !defined (__clang__) && C_CHECK_VERSION (4, 4)
+#if !defined (__clang__) && C_GNUC_CHECK_VERSION (4, 4)
 #define C_PRINTF( format_idx, arg_idx )                         __attribute__((__format__ (gnu_printf, format_idx, arg_idx)))
 #define C_SCANF( format_idx, arg_idx )                          __attribute__((__format__ (gnu_scanf, format_idx, arg_idx)))
 #define C_STRFTIME( format_idx )                                __attribute__((__format__ (gnu_strftime, format_idx, 0)))
@@ -316,16 +357,16 @@
 #define C_END_EXTERN_C
 #endif
 
-
 #ifndef __GI_SCANNER__ /* The static assert macro really confuses the introspection parser */
 #define C_PASTE_ARGS(identifier1,identifier2)                   identifier1 ## identifier2
 #define C_PASTE(identifier1,identifier2)                        C_PASTE_ARGS (identifier1, identifier2)
-#if !defined(__cplusplus) && defined(__STDC_VERSION__) && \
-    (__STDC_VERSION__ >= 201112L || c_macro__has_feature(c_static_assert) || c_macro__has_extension(c_static_assert))
+#if !defined(__cplusplus) \
+    && defined(__STDC_VERSION__) \
+    && (__STDC_VERSION__ >= 201112L || c_macro__has_feature(c_static_assert) || c_macro__has_extension(c_static_assert))
 #define C_STATIC_ASSERT(expr)                                   _Static_assert (expr, "Expression evaluates to false")
-#elif (defined(__cplusplus) && __cplusplus >= 201103L) || \
-      (defined(__cplusplus) && defined (_MSC_VER) && (_MSC_VER >= 1600)) || \
-      (defined (_MSC_VER) && (_MSC_VER >= 1800))
+#elif (defined(__cplusplus) && __cplusplus >= 201103L) \
+    || (defined(__cplusplus) && defined (_MSC_VER) && (_MSC_VER >= 1600)) \
+    || (defined (_MSC_VER) && (_MSC_VER >= 1800))
 #define C_STATIC_ASSERT(expr)                                   static_assert (expr, "Expression evaluates to false")
 #else
 #ifdef __COUNTER__
@@ -337,6 +378,58 @@
 #define C_STATIC_ASSERT_EXPR(expr)                              ((void) sizeof (char[(expr) ? 1 : -1]))
 #endif /* !__GI_SCANNER__ */
 
+
+/**
+ * @brief 忽略
+ */
+#ifdef __ICC
+#define C_GNUC_BEGIN_IGNORE_DEPRECATIONS \
+    _Pragma ("warning (push)") \
+    _Pragma ("warning (disable:1478)")
+#define C_GNUC_END_IGNORE_DEPRECATIONS \
+    _Pragma ("warning (pop)")
+#elif C_GNUC_CHECK_VERSION(4, 6)
+#define C_GNUC_BEGIN_IGNORE_DEPRECATIONS \
+    _Pragma ("GCC diagnostic push") \
+    _Pragma ("GCC diagnostic ignored \"-Wdeprecated-declarations\"")
+#define C_GNUC_END_IGNORE_DEPRECATIONS \
+    _Pragma ("GCC diagnostic pop")
+#elif defined (_MSC_VER) && (_MSC_VER >= 1500) && !defined (__clang__)
+#define C_GNUC_BEGIN_IGNORE_DEPRECATIONS \
+    __pragma (warning (push)) \
+    __pragma (warning (disable : 4996))
+#define C_GNUC_END_IGNORE_DEPRECATIONS \
+    __pragma (warning (pop))
+#elif defined (__clang__)
+#define C_GNUC_BEGIN_IGNORE_DEPRECATIONS \
+    _Pragma("clang diagnostic push") \
+    _Pragma("clang diagnostic ignored \"-Wdeprecated-declarations\"")
+#define C_GNUC_END_IGNORE_DEPRECATIONS \
+    _Pragma("clang diagnostic pop")
+#else
+#define C_GNUC_BEGIN_IGNORE_DEPRECATIONS
+#define C_GNUC_END_IGNORE_DEPRECATIONS
+#define C_CANNOT_IGNORE_DEPRECATIONS
+#endif
+
+
+#if C_GNUC_CHECK_VERSION(2, 0) && defined(__OPTIMIZE__)
+#define _C_BOOLEAN_EXPR_IMPL(uniq, expr) \
+    C_GNUC_EXTENSION ({ \
+        int C_PASTE (_c_boolean_var_, uniq); \
+        if (expr) \
+            C_PASTE (_c_boolean_var_, uniq) = 1; \
+        else \
+            C_PASTE (_c_boolean_var_, uniq) = 0; \
+        C_PASTE (_c_boolean_var_, uniq); \
+    })
+#define _C_BOOLEAN_EXPR(expr) _C_BOOLEAN_EXPR_IMPL (__COUNTER__, expr)
+#define C_LIKELY(expr) (__builtin_expect (_C_BOOLEAN_EXPR(expr), 1))
+#define C_UNLIKELY(expr) (__builtin_expect (_C_BOOLEAN_EXPR(expr), 0))
+#else
+#define C_LIKELY(expr) (expr)
+#define C_UNLIKELY(expr) (expr)
+#endif
 
 
 /**
@@ -388,24 +481,89 @@ typedef int                                                     bool;
  * @brief
  *  一些常用基础类型的简写
  */
+typedef signed char                                             cint8;
+typedef unsigned char                                           cuint8;
+
+typedef signed short                                            cint16;
+typedef unsigned short                                          cuint16;
+
+typedef signed int                                              cint32;
+typedef unsigned int                                            cuint32;
+
+typedef signed long                                             cint64;
+typedef unsigned long                                           cuint64;
+
+typedef char                                                    cchar;
+typedef short                                                   cshort;
+typedef long                                                    clong;
+typedef int                                                     cint;
+typedef cint                                                    cboolean;
+
 typedef unsigned char                                           cuchar;
 typedef unsigned short                                          cushort;
 typedef unsigned long                                           culong;
 typedef unsigned int                                            cuint;
+
+typedef float                                                   cfloat;
+typedef double                                                  cdouble;
+
+#define C_CINT64_CONSTANT(val)	                                (val##L)
+#define C_CUINT64_CONSTANT(val)	                                (val##UL)
+
+
+#define C_CINT16_MODIFIER                                       "h"
+#define C_CINT16_FORMAT                                         "hi"
+#define C_CUINT16_FORMAT                                        "hu"
+
+#define C_CINT32_MODIFIER                                       ""
+#define C_CINT32_FORMAT                                         "i"
+#define C_CUINT32_FORMAT                                        "u"
+
+#define C_CINT64_MODIFIER                                       "l"
+#define C_CINT64_FORMAT                                         "li"
+#define C_CUINT64_FORMAT                                        "lu"
+
+#define C_MAX_INT8                                              ((cint8) 0x7F)
+#define C_MAX_UINT8                                             ((cuint8) 0xFF)
+#define C_MIN_INT8                                              ((cint8) (-C_MAX_INT8) - 1)
+
+#define C_MAX_INT16                                             ((cint16) 0x7FFF)
+#define C_MAX_UINT16                                            ((cuint16) 0xFFFF)
+#define C_MIN_INT16                                             ((cint16) (-C_MAX_INT16) - 1)
+
+#define C_MAX_INT32                                             ((cint32) 0x7FFFFFFF)
+#define C_MAX_UINT32                                            ((cuint32) 0xFFFFFFFF)
+#define C_MIN_INT32                                             ((cint32) (-C_MAX_INT32) - 1)
+
+#define C_MAX_INT64                                             ((cint64) C_CINT64_CONSTANT(0x7FFFFFFFFFFFFFFF))
+#define C_MAX_UINT64                                            ((cuint64) C_CUINT64_CONSTANT(0xFFFFFFFFFFFFFFFF))
+#define C_MIN_INT64                                             ((cint64) (-C_MAX_INT64) - C_CINT64_CONSTANT(1))
+
+
+/**
+ * @brief 定义常量
+ */
+#define C_E                                                     2.7182818284590452353602874713526624977572470937000
+#define C_LN2                                                   0.69314718055994530941723212145817656807550013436026
+#define C_LN10                                                  2.3025850929940456840179914546843642076011014886288
+#define C_PI                                                    3.1415926535897932384626433832795028841971693993751
+#define C_PI_2                                                  1.5707963267948966192313216916397514420985846996876
+#define C_PI_4                                                  0.78539816339744830961566084581987572104929234984378
+#define C_SQRT2                                                 1.4142135623730950488016887242096980785696718753769
 
 
 /**
  * @brief
  *  定义: MAX(a, b)
  */
-#undef MAX
-#define MAX(a, b)                                               (((a) > (b)) ? (a) : (b))
+#undef C_MAX
+#define C_MAX(a, b)                                             (((a) > (b)) ? (a) : (b))
 
-#undef MIN
-#define MIN(a, b)                                               (((a) < (b)) ? (a) : (b))
+#undef C_MIN
+#define C_MIN(a, b)                                             (((a) < (b)) ? (a) : (b))
 
-#undef ABS
-#define ABS(a)                                                  (((a) < 0) ? -(a) : (a))
+#undef C_ABS
+#define C_ABS(a)                                                (((a) < 0) ? -(a) : (a))
 
 /**
  * @brief
