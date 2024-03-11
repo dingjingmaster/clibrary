@@ -19,7 +19,10 @@ int main (C_UNUSED int argc, C_UNUSED char* argv[])
     c_free(ptr);
 
     c_malloc_type(ptr, char, 10);
-    c_free(ptr);
+//    c_free(ptr);
+
+    c_free_with_func (ptr, free);
+    c_free_with_func (ptr, free);
 
     return 0;
 }

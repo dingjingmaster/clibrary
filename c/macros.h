@@ -621,7 +621,6 @@ typedef double                                                  cdouble;
 
 
 /****************** 内存申请与释放 ********************/
-#define c_free(x)                                               { if (C_LIKELY(x)) { free (x); x = NULL; } }
 #define c_malloc(ptr, size) \
 { \
     if (C_LIKELY(size > 0)) { \
@@ -643,6 +642,27 @@ typedef double                                                  cdouble;
             exit(-errno); \
         } \
         memset (ptr, 0, sizeof (type) * count); \
+    } \
+}
+
+/**
+ * @brief 释放分配的资源
+ * @note 必须写成宏函数
+ */
+#define c_free(ptr) \
+{ \
+    if (C_LIKELY(ptr)) { \
+        free (ptr); \
+        ptr = NULL; \
+    } \
+}
+
+/* void(*func) (void*)*/
+#define c_free_with_func(ptr, func) \
+{ \
+    if (C_LIKELY(ptr)) { \
+        func(ptr); \
+        ptr = NULL; \
     } \
 }
 
