@@ -10,7 +10,7 @@
 C_BEGIN_EXTERN_C
 
 #ifndef C_LOG_TAG
-#define C_LOG_TAG "clog"
+#define C_LOG_TAG      "clog"
 #endif
 
 #ifndef C_LOG_SIZE

@@ -7,9 +7,11 @@
 #ifndef CLIBRARY_MACROS_H
 #define CLIBRARY_MACROS_H
 #include <errno.h>
+#include <assert.h>
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
+#include <assert.h>
 
 
 /**************************** 调试相关 ***********************************/
@@ -94,6 +96,8 @@ typedef unsigned int                                            cuint;
 
 typedef float                                                   cfloat;
 typedef double                                                  cdouble;
+
+typedef void*                                                   cvoidptr;
 
 #define C_CINT64_CONSTANT(val)	                                (val##L)
 #define C_CUINT64_CONSTANT(val)	                                (val##UL)
@@ -384,7 +388,7 @@ typedef double                                                  cdouble;
  *  [GNU C documentation](https://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html#index-const-function-attribute) for more details.
  */
 #if c_macro__has_attribute(__const__)
-#define C_CONST                                                 __attribute__ ((__const__))
+#define C_CONST                                                 __attribute__((__const__))
 #else
 #define C_CONST
 #endif
@@ -515,8 +519,8 @@ typedef double                                                  cdouble;
 #endif
 
 #ifndef __GI_SCANNER__ /* The static assert macro really confuses the introspection parser */
-#define C_PASTE_ARGS(identifier1,identifier2)                   identifier1 ## identifier2
-#define C_PASTE(identifier1,identifier2)                        C_PASTE_ARGS (identifier1, identifier2)
+#define C_PASTE_ARGS(identifier1,identifier2)                   identifier1##identifier2
+#define C_PASTE(identifier1,identifier2)                        C_PASTE_ARGS(identifier1, identifier2)
 #if !defined(__cplusplus) \
     && defined(__STDC_VERSION__) \
     && (__STDC_VERSION__ >= 201112L || c_macro__has_feature(c_static_assert) || c_macro__has_extension(c_static_assert))
@@ -572,13 +576,15 @@ typedef double                                                  cdouble;
 
 #if C_GNUC_CHECK_VERSION(2, 0) && defined(__OPTIMIZE__)
 #define C_BOOLEAN_EXPR_IMPL(uniq, expr) \
-    C_GNUC_EXTENSION ({ \
-        int C_PASTE (_c_boolean_var_, uniq); \
-        if (expr) \
-            C_PASTE (_c_boolean_var_, uniq) = 1; \
-        else \
-            C_PASTE (_c_boolean_var_, uniq) = 0; \
-        C_PASTE (_c_boolean_var_, uniq); \
+    C_GNUC_EXTENSION({ \
+        int C_PASTE(_c_boolean_var_, uniq); \
+        if (expr) { \
+            C_PASTE(_c_boolean_var_, uniq) = 1; \
+        } \
+        else { \
+            C_PASTE(_c_boolean_var_, uniq) = 0; \
+        } \
+        C_PASTE(_c_boolean_var_, uniq); \
     })
 #define C_BOOLEAN_EXPR(expr) C_BOOLEAN_EXPR_IMPL (__COUNTER__, expr)
 #define C_LIKELY(expr) (__builtin_expect (C_BOOLEAN_EXPR(expr), 1))
@@ -587,6 +593,20 @@ typedef double                                                  cdouble;
 #define C_LIKELY(expr) (expr)
 #define C_UNLIKELY(expr) (expr)
 #endif
+
+#if !(defined (C_STMT_START) && defined (C_STMT_END))
+#define C_STMT_START  do
+#if defined (_MSC_VER) && (_MSC_VER >= 1500)
+#define C_STMT_END \
+    __pragma(warning(push)) \
+    __pragma(warning(disable:4127)) \
+    while(0) \
+    __pragma(warning(pop))
+#else
+#define C_STMT_END    while (0)
+#endif
+#endif
+
 
 
 /**
@@ -620,50 +640,185 @@ typedef double                                                  cdouble;
 #define C_SIZE_TO_POINTER(s)                                    ((void*) (unsigned long) (s))
 
 
+#define c_assert(x) \
+C_STMT_START \
+{ \
+    assert(x); \
+} \
+C_STMT_END
+
+// FIXME:// 替换为 gunlib ?
+#define _c_printf    printf
+#define _c_fprintf   fprintf
+#define _c_sprintf   sprintf
+#define _c_snprintf  snprintf
+#define _c_vprintf   vprintf
+#define _c_vfprintf  vfprintf
+#define _c_vsprintf  vsprintf
+#define _c_vsnprintf vsnprintf
+// FIXME:// -- END
+
+// ASCII 判断
+#define ISUPPER(c)              ((c) >= 'A' && (c) <= 'Z')
+#define ISLOWER(c)              ((c) >= 'a' && (c) <= 'z')
+#define ISALPHA(c)              (ISUPPER (c) || ISLOWER (c))
+#define TOUPPER(c)              (ISLOWER (c) ? (c) - 'a' + 'A' : (c))
+#define TOLOWER(c)              (ISUPPER (c) ? (c) - 'A' + 'a' : (c))
+#define ISSPACE(c)              ((c) == ' ' || (c) == '\f' || (c) == '\n' || (c) == '\r' || (c) == '\t' || (c) == '\v')
+
 /****************** 内存申请与释放 ********************/
 #define c_malloc(ptr, size) \
+C_STMT_START \
 { \
     if (C_LIKELY(size > 0)) { \
-        ptr = malloc (size);\
-        if (!ptr) { \
+        ptr = malloc (size); \
+        if (C_UNLIKELY(!ptr)) { \
             C_LOG_DEBUG("malloc error"); \
             exit(-errno); \
         } \
         memset (ptr, 0, size); \
     } \
-}
+    else { \
+        C_LOG_DEBUG("malloc error,bad size: %d", size); \
+        c_assert(false); \
+    } \
+} \
+C_STMT_END
 
 #define c_malloc_type(ptr, type, count) \
+C_STMT_START \
 { \
     if (C_LIKELY(count > 0)) { \
         ptr = (type*) malloc (sizeof (type) * count); \
-        if (!ptr) { \
+        if (C_UNLIKELY(!(ptr))) { \
             C_LOG_DEBUG("malloc error"); \
             exit(-errno); \
         } \
         memset (ptr, 0, sizeof (type) * count); \
     } \
-}
+    else { \
+        C_LOG_DEBUG("malloc error,bad size: %d", count); \
+        exit(-errno); \
+    } \
+} \
+C_STMT_END
+
+/**
+ * @brief 计算指针数组元素个数
+ */
+#define c_ptr_array_count(ptr, count) \
+C_STMT_START \
+{ \
+    if (C_LIKELY(ptr)) { \
+        int i = 0; \
+        for (i = 0; ptr[i]; ++i);     \
+        count = i; \
+    } \
+    else { \
+        count = 0; \
+    } \
+} \
+C_STMT_END
+
+/**
+ * @brief 为指针数组空间加1，并把指针元素ele放入数组中
+ */
+#define c_ptr_array_add1(ptr, type, ele) \
+C_STMT_START \
+{ \
+    cuint c = 0; \
+    if (C_LIKELY(ptr)) { \
+        c_ptr_array_count(ptr, c); \
+        type* ptrT = NULL; \
+        c_malloc(ptrT, sizeof(type) * (c + 2)); \
+        memcpy(ptrT, ptr, sizeof(type) * c + 1); \
+        ptrT[c] = ele; \
+        c_free(ptr); \
+        ptr = ptrT; \
+    } \
+    else { \
+        c = 2; \
+        c_malloc(ptr, sizeof(type) * c); \
+        ptr[0] = ele; \
+    } \
+} \
+C_STMT_END
+
+/**
+ * @brief 释放指针数组所有元素，对每个元素执行 freeFunc()
+ */
+#define c_ptr_array_free_full(ptr, freeFunc) \
+C_STMT_START \
+{ \
+    if (C_LIKELY(ptr)) { \
+        int i = 0; \
+        for (i = 0; ptr[i]; ++i) { \
+            freeFunc(ptr[i]); \
+        } \
+        c_free (ptr); \
+    } \
+} \
+C_STMT_END
+
+/**
+ * @brief 释放指针数组所有元素，对每个元素执行 c_free()
+ */
+#define c_ptr_array_free(ptr) \
+C_STMT_START \
+{ \
+    if (C_LIKELY(ptr)) { \
+        int i = 0; \
+        for (i = 0; ptr[i]; ++i) { \
+            c_free(ptr[i]); \
+        } \
+        c_free(ptr); \
+    } \
+} \
+C_STMT_END
+
 
 /**
  * @brief 释放分配的资源
- * @note 必须写成宏函数
  */
 #define c_free(ptr) \
+C_STMT_START \
 { \
     if (C_LIKELY(ptr)) { \
         free (ptr); \
         ptr = NULL; \
     } \
-}
+} \
+C_STMT_END
 
 /* void(*func) (void*)*/
 #define c_free_with_func(ptr, func) \
+C_STMT_START \
 { \
     if (C_LIKELY(ptr)) { \
         func(ptr); \
         ptr = NULL; \
     } \
-}
+} \
+C_STMT_END
+
+#define c_return_if_fail(x) \
+C_STMT_START \
+{ \
+    if (C_UNLIKELY(!(x))) { \
+        return; \
+    } \
+} \
+C_STMT_END
+
+#define c_return_val_if_fail(x, val) \
+C_STMT_START \
+{ \
+    if (C_UNLIKELY(!(x))) { \
+        return val; \
+    } \
+} \
+C_STMT_END
+
+
 
 #endif

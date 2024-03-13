@@ -6,6 +6,7 @@
 #define CLIBRARY_STR_H
 #include "macros.h"
 
+#include <stdio.h>
 #include <stdarg.h>
 
 C_BEGIN_EXTERN_C
@@ -42,52 +43,66 @@ enum _CAsciiType
     C_ASCII_XDIGIT = 1 << 10
 };
 
-C_SYMBOL_PROTECTED const cuint16* const gpAsciiTable;
+C_SYMBOL_PROTECTED extern const cuint16* const gpAsciiTable;
 
-char                  c_ascii_tolower       (char c) C_CONST;
-char                  c_ascii_toupper       (char c) C_CONST;
-int                   c_ascii_digit_value   (char c) C_CONST;
-int                   c_ascii_xdigit_value  (char c) C_CONST;
-int                   c_ascii_strcasecmp    (const char* s1, const char* s2);
-double                c_ascii_strtod        (const char* nPtr, char** endPtr);
-char*                 c_ascii_dtostr        (char* buffer, int bufLen, double d);
-char*                 c_ascii_strdown       (const char* str, cint64 len) C_MALLOC;
-char*                 c_ascii_strup         (const char* str, cint64 len) C_MALLOC;
-int                   c_ascii_strncasecmp   (const char* s1, const char* s2, cint64 n);
-cuint64               c_ascii_strtoull      (const char* nPtr, char** endPtr, cuint base);
-cint64                c_ascii_strtoll       (const char* nPtr, char** endPtr, cuint base);
-char*                 c_ascii_formatd       (char* buffer, int bufLen, const char* format, double d);
+char                  c_ascii_tolower       (char c) C_CONST;                           // OK
+char                  c_ascii_toupper       (char c) C_CONST;                           // OK
+int                   c_ascii_digit_value   (char c) C_CONST;                           // OK
+int                   c_ascii_xdigit_value  (char c) C_CONST;                           // OK
+int                   c_ascii_strcasecmp    (const char* s1, const char* s2);           // OK
+double                c_ascii_strtod        (const char* nPtr, char** endPtr);          // OK
+char*                 c_ascii_dtostr        (char* buffer, int bufLen, double d);       // OK
+char*                 c_ascii_strdown       (const char* str, cuint64 len) C_MALLOC;    // OK
+char*                 c_ascii_strup         (const char* str, cuint64 len) C_MALLOC;    // OK
+int                   c_ascii_strncasecmp   (const char* s1, const char* s2, cint64 n); // OK
+cuint64               c_ascii_strtoull      (const char* nPtr, char** endPtr, cuint base);      // OK
+cint64                c_ascii_strtoll       (const char* nPtr, char** endPtr, cuint base);      // OK
+char*                 c_ascii_formatd       (char* buffer, int bufLen, const char* format, double d);   // OK
 
-char*                 c_strchug             (char* str);
-char*                 c_strchomp            (char* str);
-char*                 c_strreverse          (char* str);
-bool                  c_str_is_ascii        (const char* str);
-void                  c_strfreev            (char** strArray);
-char**                c_strdupv             (char** strArray);
-cuint                 c_strv_length         (char** strArray);
-const char*           c_strerror            (int errNum) C_CONST;
-const char*           c_strsignal           (int signum) C_CONST;
-char*                 c_strdup              (const char* str) C_MALLOC;
-char*                 c_stpcpy              (char* dest, const char* src);
-char*                 c_strcompress         (const char* source) C_MALLOC;
-double                c_strtod              (const char* nPtr, char** endPtr);
-char*                 c_strndup             (const char* str, cint64 n) C_MALLOC;
-char*                 c_strnfill            (cint64 length, char fillChar) C_MALLOC;
-char*                 c_strrstr             (const char* haystack, const char* needle);
-cint64                c_strlcpy             (char* dest, const char* src, cint64 destSize);
-cint64                c_strlcat             (char* dest, const char* src, cint64 destSize);
-char*                 c_strjoinv            (const char* separator, char** strArray) C_MALLOC;
-char*                 c_strconcat           (const char* str1, ...) C_MALLOC C_NULL_TERMINATED;
-char*                 c_strdup_printf       (const char* format, ...) C_PRINTF (1, 2) C_MALLOC;
-char*                 c_strescape           (const char* source, const char* exceptions) C_MALLOC;
-char*                 c_strcanon            (char* str, const char* validChars, char substitutor);
-char*                 c_strdelimit          (char* str, const char* delimiters, char newDelimiter);
-char*                 c_strjoin             (const char* separator, ...) C_MALLOC C_NULL_TERMINATED;
-char**                c_strsplit            (const char* str, const char* delimiter, int maxTokens);
-char**                c_strsplit_set        (const char* str, const char* delimiters, int maxTokens);
-char*                 c_strdup_vprintf      (const char* format, va_list args) C_PRINTF(1, 0) C_MALLOC;
-char*                 c_strrstr_len         (const char* haystack, cint64 haystackLen, const char* needle);
-char*                 c_strstr_len          (const char* haystack, cint64 haystackLen, const char* needle);
+int                   c_printf              (char const* format, ...) C_PRINTF (1, 2);                  // OK
+int                   c_vprintf             (char const* format, va_list args) C_PRINTF(1, 0);          // OK
+int                   c_sprintf             (char* str, char const* format, ...) C_PRINTF (2, 3);       // OK
+int                   c_fprintf             (FILE* file, char const *format, ...) C_PRINTF (2, 3);      // OK
+int                   c_vsprintf            (char* str, char const* format, va_list args) C_PRINTF(2, 0);   // OK
+int                   c_vfprintf            (FILE* file, char const* format, va_list args) C_PRINTF(2, 0);  // OK
+int                   c_vasprintf           (char** str, char const* format, va_list args) C_PRINTF(2, 0);  // OK
+int                   c_snprintf            (char* str, culong n, char const *format, ...);             // OK
+int                   c_vsnprintf           (char* str, culong n, char const* format, va_list args);    // OK
+
+cuint64               c_printf_string_upper_bound (const char* format, va_list args) C_PRINTF(1, 0);
+
+char*                 c_strup               (char* str);                            // OK
+char*                 c_strchug             (char* str);                            // OK
+char*                 c_strchomp            (char* str);                            // OK
+char*                 c_strreverse          (char* str);                            // OK
+char*                 c_strdown             (char* str);                            // OK
+bool                  c_str_is_ascii        (const char* str);                      // OK
+void                  c_strfreev            (char** strArray);                      // OK
+char**                c_strdupv             (char** strArray);                      // OK
+cuint                 c_strv_length         (char** strArray);                      // OK
+const char*           c_strerror            (int errNum) C_CONST;                   // OK
+const char*           c_strsignal           (int signum) C_CONST;                   // OK
+char*                 c_strdup              (const char* str) C_MALLOC;             // OK
+char*                 c_stpcpy              (char* dest, const char* src);          // OK
+char*                 c_strcompress         (const char* source) C_MALLOC;          // OK
+double                c_strtod              (const char* nPtr, char** endPtr);      // OK
+char*                 c_strndup             (const char* str, cuint64 n) C_MALLOC;  // OK
+char*                 c_strnfill            (cint64 length, char fillChar) C_MALLOC;                        // OK
+char*                 c_strrstr             (const char* haystack, const char* needle);                     // OK
+cint64                c_strlcpy             (char* dest, const char* src, cint64 destSize);                 // OK
+cint64                c_strlcat             (char* dest, const char* src, cint64 destSize);                 // OK
+char*                 c_strjoinv            (const char* separator, char** strArray) C_MALLOC;              // OK
+char*                 c_strconcat           (const char* str1, ...) C_MALLOC C_NULL_TERMINATED;             // OK
+char*                 c_strdup_printf       (const char* format, ...) C_PRINTF (1, 2) C_MALLOC;             // OK
+char*                 c_strescape           (const char* source, const char* exceptions) C_MALLOC;          // OK
+char*                 c_strcanon            (char* str, const char* validChars, char substitutor);          // OK
+char*                 c_strdelimit          (char* str, const char* delimiters, char newDelimiter);         // OK
+char*                 c_strjoin             (const char* separator, ...) C_MALLOC C_NULL_TERMINATED;        // OK
+char**                c_strsplit            (const char* str, const char* delimiter, int maxTokens);        // OK
+char**                c_strsplit_set        (const char* str, const char* delimiters, int maxTokens);       // OK
+char*                 c_strdup_vprintf      (const char* format, va_list args) C_PRINTF(1, 0) C_MALLOC;     // OK
+char*                 c_strrstr_len         (const char* haystack, cuint64 haystackLen, const char* needle); // OK
+char*                 c_strstr_len          (const char* haystack, cuint64 haystackLen, const char* needle); // OK
 
 C_END_EXTERN_C
 
