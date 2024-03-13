@@ -104,6 +104,9 @@ char*                 c_strdup_vprintf      (const char* format, va_list args) C
 char*                 c_strrstr_len         (const char* haystack, cuint64 haystackLen, const char* needle); // OK
 char*                 c_strstr_len          (const char* haystack, cuint64 haystackLen, const char* needle); // OK
 
+bool                  c_str_has_suffix      (const char* str, const char* suffix);  // OK
+bool                  c_str_has_prefix      (const char* str, const char* prefix);  // OK
+
 C_END_EXTERN_C
 
 #endif //CLIBRARY_STR_H

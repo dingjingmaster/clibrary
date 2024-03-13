@@ -1348,6 +1348,32 @@ next:
     }
 }
 
+bool c_str_has_suffix (const char* str, const char* suffix)
+{
+    cuint64 strLen;
+    cuint64 suffixLen;
+
+    c_return_val_if_fail (str != NULL, false);
+    c_return_val_if_fail (suffix != NULL, false);
+
+    strLen = strlen (str);
+    suffixLen = strlen (suffix);
+
+    if (strLen < suffixLen) {
+        return false;
+    }
+
+    return strcmp (str + strLen - suffixLen, suffix) == 0;
+}
+
+bool c_str_has_prefix (const char* str, const char* prefix)
+{
+    c_return_val_if_fail (str != NULL, false);
+    c_return_val_if_fail (prefix != NULL, false);
+
+    return strncmp (str, prefix, strlen (prefix)) == 0;
+}
+
 
 // static
 static cuint64 c_parse_long_long (const char* nptr, const char** endptr, cuint base, bool* negative)
