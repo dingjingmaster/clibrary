@@ -29,6 +29,7 @@ pkg_check_modules(QT_CORE REQUIRED Qt5Core)
 pkg_check_modules(GOBJECT REQUIRED gobject-2.0)
 
 add_subdirectory(c)
-add_subdirectory(glib)
 add_subdirectory(qt5)
+add_subdirectory(glib)
 add_subdirectory(demo)
+add_subdirectory(test)
