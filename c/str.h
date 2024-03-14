@@ -26,9 +26,7 @@ C_BEGIN_EXTERN_C
 #define c_ascii_isxdigit(c)     ((gpAsciiTable[(cuchar) (c)] & C_ASCII_XDIGIT) != 0)
 
 
-typedef enum _CAsciiType    CAsciiType;
-
-enum _CAsciiType
+typedef enum
 {
     C_ASCII_ALNUM  = 1 << 0,
     C_ASCII_ALPHA  = 1 << 1,
@@ -41,7 +39,7 @@ enum _CAsciiType
     C_ASCII_SPACE  = 1 << 8,
     C_ASCII_UPPER  = 1 << 9,
     C_ASCII_XDIGIT = 1 << 10
-};
+} CAsciiType;
 
 C_SYMBOL_PROTECTED extern const cuint16* const gpAsciiTable;
 

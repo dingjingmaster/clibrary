@@ -1,6 +1,9 @@
 include(../c/c.cmake)
 
-add_executable(c-str-test c-str-test.c ${C_SRC})
-add_test(NAME c-str-test COMMAND c-str-test)
-set_property (TEST c-str-test PROPERTY PASS_REGULAR_EXPRESSION "Test passed! -- c/str")
-set_property (TEST c-str-test PROPERTY FAIL_REGULAR_EXPRESSION "Test failed! -- c/str")
+# c 测试
+add_executable(test-c-str test-c-str.c)
+target_link_libraries(test-c-str PUBLIC clibrary-c)
+target_link_directories(test-c-str PUBLIC ${CMAKE_BINARY_DIR}/c)
+add_test(NAME test-c-str COMMAND test-c-str)
+
+

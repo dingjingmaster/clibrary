@@ -45,7 +45,7 @@ GLogWriterOutput c_glog_handler(GLogLevelFlags level, const GLogField *fields, g
         } else if (0 == g_ascii_strcasecmp ("func", fields[i].key)) {
             func = fields[i].value;
         } else if (0 == g_ascii_strcasecmp ("line", fields[i].key)) {
-            line = g_strdup_printf ("%d", *((int*) (&(fields[i].value))));
+            line = g_strdup_printf ("%u", (*(const int*) (&(fields[i].value))));
         } else if (0 == g_ascii_strcasecmp ("message", fields[i].key)) {
             msg = g_strdup_printf ("%s", (char*) (fields[i].value ? fields[i].value : "<null>"));
         }

@@ -6,7 +6,6 @@
 #define CLIBRARY_CONFIG_H
 
 #ifdef DEBUG
-#include "log.h"
 #endif
 
 #endif //CLIBRARY_CONFIG_H

@@ -12,6 +12,9 @@
 #define COLOR_SUCCESS       "\033[1;32m"
 #define COLOR_NONE          "\033[0m"
 
+static unsigned long        gsSuccess;
+static unsigned long        gsFailed;
+
 double c_test_get_seconds()
 {
 #ifdef _MSC_VER
@@ -36,6 +39,15 @@ void c_test_print(CTestStatus status, const char *format, ...)
     vsnprintf(message, sizeof (message) - 1, format, args);
     va_end(args);
 
+    (status == C_TEST_SUCCESS) ? ++gsSuccess : ++gsFailed;
+
     printf ("%s[%s] %s %s\n", ((status == C_TEST_SUCCESS) ? COLOR_SUCCESS : COLOR_FAILED),
             ((status == C_TEST_SUCCESS) ? "SUCCESS" : "FAILED "), message, COLOR_NONE);
+}
+
+int c_test_result()
+{
+    printf ("\033[35mTest result: [SUCCESS]: %lu  [FAILED ]: %lu\033[0m", gsSuccess, gsFailed);
+
+    return -gsFailed;
 }

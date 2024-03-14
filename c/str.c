@@ -5,7 +5,7 @@
 
 #include <ctype.h>
 
-#include "config.h"
+#include "log.h"
 
 
 static cuint64 c_parse_long_long(const char* nPtr, const char** endPtr, cuint base, bool* negative);

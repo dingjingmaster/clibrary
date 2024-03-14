@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.27)
 project(clibrary LANGUAGES C CXX)
 
-set(DEBUG ON)
 set(PROJECT_VERSION_MAJOR 0)
 set(PROJECT_VERSION_MINOR 0)
 set(PROJECT_VERSION_PATCH 0)
@@ -13,13 +12,23 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-set(CMAKE_VERBOSE_MAKEFILE ON)
-set(FLAGS "-O3 -Wall")
+if (NOT CMAKE_BUILD_TYPE)
+    set (CMAKE_BUILD_TYPE "Debug" FORCE)
+endif ()
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${FLAGS}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(FLAGS "-O3 -Wall")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
+    add_definitions(-DDEBUG=0 -w)
+elseif (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(CMAKE_VERBOSE_MAKEFILE ON)
+    add_definitions(-g -DDEBUG=1)
+endif ()
 
-add_definitions(-g -DDEBUG=${DEBUG} -DQT_NO_KEYWORDS -DQT_MESSAGELOGCONTEXT)
+add_definitions(-DQT_NO_KEYWORDS -DQT_MESSAGELOGCONTEXT)
+
+enable_testing()
 
 find_package(PkgConfig)
 find_package(Qt5 COMPONENTS Core)

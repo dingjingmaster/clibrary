@@ -1,27 +1,27 @@
 curdir 				= $(shell pwd)
+nproc 				= $(shell [[ -f /proc/cpuinfo ]] && cat /proc/cpuinfo | grep processor | wc -l)
 
-test_src 			= $(strip $(subst $(curdir), ., $(wildcard $(curdir)/test/*.c)))
-test_target 		= $(strip $(patsubst %.c, %.run, $(test_src)))
-
-all: test
+all: prepare build test
 
 
+prepare:
+	cmake -S $(curdir) -B $(curdir)/build-all/ -DCMAKE_BUILD_TYPE=Release
 
 
-test:$(test_target)
+build: prepare
+	make -s -C $(curdir)/build-all -j$(nproc)
 
-%.run:%.o
-	cc -o $@ $^
 
-%.o:%.c
-	cc -o $@ -c $<
+test: build
+	make -C $(curdir)/build-all test
+
 
 clean:
-	@rm -f `find -name "*.o"`
-	@rm -f `find -name "*.so"`
-	@rm -f `find -name "*.run"`
+	@rm -rf $(curdir)/build-all/
+	@find -name "*.o.*" -delete
+	@find -name "*.so.*" -delete
 
 
-.PHONY:all test clean
+.PHONY:all prepare build test clean
 
 

@@ -60,6 +60,10 @@ C_BEGIN_EXTERN_C
     c_log_print(C_LOG_LEVEL_INFO, C_LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__); \
 }
 
+#if DEBUG
+#define C_LOG_DEBUG(...)
+#define C_LOG_VERB(...)
+#else
 #define C_LOG_DEBUG(...) \
 { \
     C_LOG_INIT_IF_NOT_INIT \
@@ -71,6 +75,7 @@ C_BEGIN_EXTERN_C
     C_LOG_INIT_IF_NOT_INIT \
     c_log_print(C_LOG_LEVEL_VERB, C_LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__); \
 }
+#endif
 
 #define C_LOG_RAW(level, tag, file, line, fun, ...) \
 { \

@@ -7,14 +7,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef enum _CTestStatus   CTestStatus;
 
-enum _CTestStatus
+typedef enum
 {
     C_TEST_SUCCESS = 0,
     C_TEST_FAILED,
-};
+} CTestStatus;
 
+int c_test_result();
 double c_test_get_seconds();
 void c_test_print(CTestStatus status, const char* format, ...);
 
