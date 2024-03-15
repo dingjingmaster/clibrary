@@ -27,68 +27,19 @@ do { \
     } \
 } while(0)
 
-inline void c_test_double(double i1, double i2)
-{
-    if (i1 == i2) {
-        c_test_print (C_TEST_SUCCESS, "\"%f\" == \"%f\"", i1, i2);
-        return;
-    }
-    c_test_print (C_TEST_FAILED, "\"%f\" != \"%f\"", i1, i2);
-}
+void c_test_double(double i1, double i2);
 
-inline void c_test_float(float i1, float i2)
-{
-    if (i1 == i2) {
-        c_test_print (C_TEST_SUCCESS, "\"%f\" == \"%f\"", i1, i2);
-        return;
-    }
-    c_test_print (C_TEST_FAILED, "\"%f\" != \"%f\"", i1, i2);
-}
+void c_test_float(float i1, float i2);
 
-inline void c_test_uint(unsigned int i1, unsigned int i2)
-{
-    if (i1 == i2) {
-        c_test_print (C_TEST_SUCCESS, "\"%ul\" == \"%ul\"", i1, i2);
-        return;
-    }
-    c_test_print (C_TEST_FAILED, "\"%ul\" != \"%ul\"", i1, i2);
-}
+void c_test_uint(unsigned int i1, unsigned int i2);
 
-inline void c_test_int(int i1, int i2)
-{
-    if (i1 == i2) {
-        c_test_print (C_TEST_SUCCESS, "\"%d\" == \"%d\"", i1, i2);
-        return;
-    }
-    c_test_print (C_TEST_FAILED, "\"%d\" != \"%d\"", i1, i2);
-}
+void c_test_int(int i1, int i2);
 
-inline void c_test_long(long i1, long i2)
-{
-    if (i1 == i2) {
-        c_test_print (C_TEST_SUCCESS, "\"%d\" == \"%d\"", i1, i2);
-        return;
-    }
-    c_test_print (C_TEST_FAILED, "\"%d\" != \"%d\"", i1, i2);
-}
+void c_test_long(long i1, long i2);
 
-inline void c_test_ulong(unsigned long i1, unsigned long i2)
-{
-    if (i1 == i2) {
-        c_test_print (C_TEST_SUCCESS, "\"%ul\" == \"%ul\"", i1, i2);
-        return;
-    }
-    c_test_print (C_TEST_FAILED, "\"%ul\" != \"%ul\"", i1, i2);
-}
+void c_test_ulong(unsigned long i1, unsigned long i2);
 
-inline void c_test_str_equal(const char* s1, const char* s2)
-{
-    if (s1 && s2 && (0 == strcmp (s1, s2))) {
-        c_test_print (C_TEST_SUCCESS, "\"%s\" == \"%s\"", s1, s2);
-        return;
-    }
-    c_test_print (C_TEST_FAILED, "\"%s\" != \"%s\"", s1, s2);
-}
+void c_test_str_equal(const char* s1, const char* s2);
 
 
 #endif //CLIBRARY_TEST_H

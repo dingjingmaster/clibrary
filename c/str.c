@@ -8,6 +8,7 @@
 #include "log.h"
 
 
+static char* c_stpcpy (char* dest, const char* src);
 static cuint64 c_parse_long_long(const char* nPtr, const char** endPtr, cuint base, bool* negative);
 
 
@@ -350,11 +351,11 @@ char* c_ascii_formatd (char* buffer, int bufLen, const char* format, double d)
         return NULL;
     }
 
-    if (!(formatChar == 'e' || formatChar == 'E'
-        || formatChar == 'f' || formatChar == 'F'
-        || formatChar == 'g' || formatChar == 'G')) {
-        return NULL;
-    }
+//    if (!(formatChar == 'e' || formatChar == 'E'
+//        || formatChar == 'f' || formatChar == 'F'
+//        || formatChar == 'g' || formatChar == 'G')) {
+//        return NULL;
+//    }
 
     _c_snprintf (buffer, bufLen, format, d);
 
@@ -378,11 +379,11 @@ char* c_ascii_formatd (char* buffer, int bufLen, const char* format, double d)
         if (strncmp (p, decimalPoint, decimalPointLen) == 0) {
             *p = '.';
             p++;
-            if (decimalPointLen > 1) {
-                restLen = strlen (p + (decimalPointLen - 1));
-                memmove (p, p + (decimalPointLen - 1), restLen);
-                p[restLen] = 0;
-            }
+//            if (decimalPointLen > 1) {
+//                restLen = strlen (p + (decimalPointLen - 1));
+//                memmove (p, p + (decimalPointLen - 1), restLen);
+//                p[restLen] = 0;
+//            }
         }
     }
 
@@ -494,7 +495,7 @@ cuint64 c_printf_string_upper_bound (const char* format, va_list args)
     return _c_vsnprintf (&c, 1, format, args) + 1;
 }
 
-char* c_strup (char* str)
+char* c_strup (const char* str)
 {
     cuchar *s;
 
@@ -513,7 +514,7 @@ char* c_strup (char* str)
     return (char*) strT;
 }
 
-char* c_strchug (char* str)
+char* c_strchug (const char* str)
 {
     cuchar* start = NULL;
 
@@ -521,31 +522,32 @@ char* c_strchug (char* str)
 
     for (start = (cuchar*) str; *start && c_ascii_isspace (*start); start++);
 
-    memmove (str, start, strlen ((char *) start) + 1);
-
-    return str;
+    return c_strdup ((char*) start);
 }
 
-char* c_strchomp (char* str)
+char* c_strchomp (const char* str)
 {
     cuint64 len;
 
     c_return_val_if_fail (str != NULL, NULL);
 
     len = strlen (str);
+
+    char* strT = c_strdup (str);
+
     while (len--) {
-        if (c_ascii_isspace ((cuchar) str[len])) {
-            str[len] = '\0';
+        if (c_ascii_isspace ((cuchar) strT[len])) {
+            strT[len] = '\0';
         }
         else {
             break;
         }
     }
 
-    return str;
+    return strT;
 }
 
-char* c_strreverse (char* str)
+char* c_strreverse (const char* str)
 {
     c_return_val_if_fail (str != NULL, NULL);
 
@@ -570,7 +572,7 @@ char* c_strreverse (char* str)
     return strT;
 }
 
-char* c_strdown (char* str)
+char* c_strdown (const char* str)
 {
     cuchar *s;
 
@@ -612,7 +614,7 @@ void c_strfreev (char** strArray)
     }
 }
 
-char** c_strdupv (char** strArray)
+char** c_strdupv (const char** strArray)
 {
     if (strArray) {
         cuint64 i = 0;
@@ -677,21 +679,6 @@ char* c_strdup (const char* str)
 
     return newStr;
 
-}
-
-char* c_stpcpy (char* dest, const char* src)
-{
-    char* d = dest;
-    const char* s = src;
-
-    c_return_val_if_fail (dest != NULL, NULL);
-    c_return_val_if_fail (src != NULL, NULL);
-    do {
-        *d++ = *s;
-    }
-    while (*s++ != '\0');
-
-    return d - 1;
 }
 
 char* c_strcompress (const char* source)
@@ -802,10 +789,8 @@ char* c_strndup (const char* str, cuint64 n)
     char* newStr = NULL;
     if (str) {
         c_malloc_type(newStr, char, n + 1);
-        if (newStr) {
-            strncpy (newStr, str, n);
-            newStr[n] = '\0';
-        }
+        strncpy (newStr, str, n);
+        newStr[n] = '\0';
     }
 
     return newStr;
@@ -816,10 +801,8 @@ char* c_strnfill (cint64 length, char fillChar)
     char* str = NULL;
 
     c_malloc_type(str, char, length + 1);
-    if (str) {
-        memset (str, (cuchar) fillChar, length);
-        str[length] = '\0';
-    }
+    memset (str, (cuchar) fillChar, length);
+    str[length] = '\0';
 
     return str;
 }
@@ -861,7 +844,7 @@ next:
     return NULL;
 }
 
-cint64 c_strlcpy (char* dest, const char* src, cint64 destSize)
+cuint64 c_strlcpy (char* dest, const char* src, cuint64 destSize)
 {
     char *d = dest;
     const char *s = src;
@@ -890,7 +873,7 @@ cint64 c_strlcpy (char* dest, const char* src, cint64 destSize)
     return s - src - 1;
 }
 
-cint64 c_strlcat (char* dest, const char* src, cint64 destSize)
+cuint64 c_strlcat (char* dest, const char* src, cuint64 destSize)
 {
     char *d = dest;
     cuint64 dLength = 0;
@@ -1095,7 +1078,7 @@ char* c_strescape (const char* source, const char* exceptions)
     return dest;
 }
 
-char* c_strcanon (char* str, const char* validChars, char substitutor)
+char* c_strcanon (const char* str, const char* validChars, char substitutor)
 {
     char *c;
 
@@ -1113,7 +1096,7 @@ char* c_strcanon (char* str, const char* validChars, char substitutor)
     return strT;
 }
 
-char* c_strdelimit (char* str, const char* delimiters, char newDelimiter)
+char* c_strdelimit (const char* str, const char* delimiters, char newDelimiter)
 {
     char *c;
 
@@ -1123,14 +1106,14 @@ char* c_strdelimit (char* str, const char* delimiters, char newDelimiter)
         delimiters = C_STR_DELIMITERS;
     }
 
-    for (c = str; *c; c++) {
+    char* cstr = c_strdup (str);
+    for (c = cstr; *c; c++) {
         if (strchr (delimiters, *c)) {
             *c = newDelimiter;
         }
     }
 
-    return str;
-
+    return cstr;
 }
 
 char* c_strjoin (const char* separator, ...)
@@ -1271,7 +1254,7 @@ char* c_strdup_vprintf (const char* format, va_list args)
     return str;
 }
 
-char* c_strrstr_len (const char* haystack, cuint64 haystackLen, const char* needle)
+char* c_strrstr_len (const char* haystack, cint64 haystackLen, const char* needle)
 {
     c_return_val_if_fail (haystack != NULL, NULL);
     c_return_val_if_fail (needle != NULL, NULL);
@@ -1309,7 +1292,7 @@ next:
     }
 }
 
-char* c_strstr_len (const char* haystack, cuint64 haystackLen, const char* needle)
+char* c_strstr_len (const char* haystack, cint64 haystackLen, const char* needle)
 {
     c_return_val_if_fail (haystack != NULL, NULL);
     c_return_val_if_fail (needle != NULL, NULL);
@@ -1376,6 +1359,22 @@ bool c_str_has_prefix (const char* str, const char* prefix)
 
 
 // static
+
+static char* c_stpcpy (char* dest, const char* src)
+{
+    char* d = dest;
+    const char* s = src;
+
+    c_return_val_if_fail (dest != NULL, NULL);
+    c_return_val_if_fail (src != NULL, NULL);
+    do {
+        *d++ = *s;
+    }
+    while (*s++ != '\0');
+
+    return d - 1;
+}
+
 static cuint64 c_parse_long_long (const char* nptr, const char** endptr, cuint base, bool* negative)
 {
     bool overflow;

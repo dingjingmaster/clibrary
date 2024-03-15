@@ -43,67 +43,287 @@ typedef enum
 
 C_SYMBOL_PROTECTED extern const cuint16* const gpAsciiTable;
 
-char                  c_ascii_tolower       (char c) C_CONST;                           // OK
-char                  c_ascii_toupper       (char c) C_CONST;                           // OK
-int                   c_ascii_digit_value   (char c) C_CONST;                           // OK
-int                   c_ascii_xdigit_value  (char c) C_CONST;                           // OK
-int                   c_ascii_strcasecmp    (const char* s1, const char* s2);           // OK
-double                c_ascii_strtod        (const char* nPtr, char** endPtr);          // OK
-char*                 c_ascii_dtostr        (char* buffer, int bufLen, double d);       // OK
-char*                 c_ascii_strdown       (const char* str, cuint64 len) C_MALLOC;    // OK
-char*                 c_ascii_strup         (const char* str, cuint64 len) C_MALLOC;    // OK
-int                   c_ascii_strncasecmp   (const char* s1, const char* s2, cint64 n); // OK
-cuint64               c_ascii_strtoull      (const char* nPtr, char** endPtr, cuint base);      // OK
-cint64                c_ascii_strtoll       (const char* nPtr, char** endPtr, cuint base);      // OK
-char*                 c_ascii_formatd       (char* buffer, int bufLen, const char* format, double d);   // OK
+/**
+ * @brief ASCII 字母转为小写
+ * @return
+ */
+char                  c_ascii_tolower       (char c) C_CONST;
 
-int                   c_printf              (char const* format, ...) C_PRINTF (1, 2);                  // OK
-int                   c_vprintf             (char const* format, va_list args) C_PRINTF(1, 0);          // OK
-int                   c_sprintf             (char* str, char const* format, ...) C_PRINTF (2, 3);       // OK
-int                   c_fprintf             (FILE* file, char const *format, ...) C_PRINTF (2, 3);      // OK
-int                   c_vsprintf            (char* str, char const* format, va_list args) C_PRINTF(2, 0);   // OK
-int                   c_vfprintf            (FILE* file, char const* format, va_list args) C_PRINTF(2, 0);  // OK
-int                   c_vasprintf           (char** str, char const* format, va_list args) C_PRINTF(2, 0);  // OK
-int                   c_snprintf            (char* str, culong n, char const *format, ...);             // OK
-int                   c_vsnprintf           (char* str, culong n, char const* format, va_list args);    // OK
+/**
+ * @brief ASCII 字母转为大写
+ * @return
+ */
+char                  c_ascii_toupper       (char c) C_CONST;
+
+/**
+ * @brief ASCII 字母转为数字
+ * @return 失败返回 -1
+ */
+int                   c_ascii_digit_value   (char c) C_CONST;
+
+/**
+ * @brief ASCII 中十六进制字符转为数字
+ * @return 失败返回 -1
+ */
+int                   c_ascii_xdigit_value  (char c) C_CONST;
+
+/**
+ * @brief 字符串忽略大小写比较
+ * @return 同 strcmp 返回值
+ */
+int                   c_ascii_strcasecmp    (const char* s1, const char* s2);
+
+/**
+ * @brief 字符串中数字部分转为浮点型
+ * @return 失败返回0
+ */
+double                c_ascii_strtod        (const char* nPtr, char** endPtr);
+
+/**
+ * @brief 数字转为字符串
+ * @return 返回字符串
+ * @note 无须释放资源, char* == buffer
+ */
+char*                 c_ascii_dtostr        (char* buffer, int bufLen, double d);
+
+/**
+ * @brief 字符串转为小写
+ * @return 返回转换的字符串
+ * @note 须释放资源
+ */
+char*                 c_ascii_strdown       (const char* str, cuint64 len) C_MALLOC;
+
+/**
+ * @brief 字符串转为大写
+ * @return 返回转换的字符串
+ * @note 须释放资源
+ */
+char*                 c_ascii_strup         (const char* str, cuint64 len) C_MALLOC;
+
+/**
+ * @brief 字符串忽略大小写后比较大小
+ * @return 同 strcmp
+ */
+int                   c_ascii_strncasecmp   (const char* s1, const char* s2, cint64 n);
+
+/**
+ * @brief 字符串转无符号整型
+ * @return 返回被转换的整型
+ */
+cuint64               c_ascii_strtoull      (const char* nPtr, char** endPtr, cuint base);
+
+/**
+ * @brief 字符串转数字
+ * @return 返回被转换的整型数字
+ */
+cint64                c_ascii_strtoll       (const char* nPtr, char** endPtr, cuint base);
+
+/**
+ * @brief 数字(double)转字符串
+ * @return 返回被转换的字符串
+ * @note 无须释放资源
+ */
+char*                 c_ascii_formatd       (char* buffer, int bufLen, const char* format, double d);
+
+/**
+ * @brief 输出
+ */
+int                   c_printf              (char const* format, ...) C_PRINTF (1, 2);
+int                   c_vprintf             (char const* format, va_list args) C_PRINTF(1, 0);
+int                   c_sprintf             (char* str, char const* format, ...) C_PRINTF (2, 3);
+int                   c_fprintf             (FILE* file, char const *format, ...) C_PRINTF (2, 3);
+int                   c_vsprintf            (char* str, char const* format, va_list args) C_PRINTF(2, 0);
+int                   c_vfprintf            (FILE* file, char const* format, va_list args) C_PRINTF(2, 0);
+int                   c_vasprintf           (char** str, char const* format, va_list args) C_PRINTF(2, 0);
+int                   c_snprintf            (char* str, culong n, char const *format, ...);
+int                   c_vsnprintf           (char* str, culong n, char const* format, va_list args);
 
 cuint64               c_printf_string_upper_bound (const char* format, va_list args) C_PRINTF(1, 0);
 
-char*                 c_strup               (char* str);                            // OK
-char*                 c_strchug             (char* str);                            // OK
-char*                 c_strchomp            (char* str);                            // OK
-char*                 c_strreverse          (char* str);                            // OK
-char*                 c_strdown             (char* str);                            // OK
-bool                  c_str_is_ascii        (const char* str);                      // OK
-void                  c_strfreev            (char** strArray);                      // OK
-char**                c_strdupv             (char** strArray);                      // OK
-cuint                 c_strv_length         (char** strArray);                      // OK
-const char*           c_strerror            (int errNum) C_CONST;                   // OK
-const char*           c_strsignal           (int signum) C_CONST;                   // OK
-char*                 c_strdup              (const char* str) C_MALLOC;             // OK
-char*                 c_stpcpy              (char* dest, const char* src);          // OK
-char*                 c_strcompress         (const char* source) C_MALLOC;          // OK
-double                c_strtod              (const char* nPtr, char** endPtr);      // OK
-char*                 c_strndup             (const char* str, cuint64 n) C_MALLOC;  // OK
-char*                 c_strnfill            (cint64 length, char fillChar) C_MALLOC;                        // OK
-char*                 c_strrstr             (const char* haystack, const char* needle);                     // OK
-cint64                c_strlcpy             (char* dest, const char* src, cint64 destSize);                 // OK
-cint64                c_strlcat             (char* dest, const char* src, cint64 destSize);                 // OK
-char*                 c_strjoinv            (const char* separator, char** strArray) C_MALLOC;              // OK
-char*                 c_strconcat           (const char* str1, ...) C_MALLOC C_NULL_TERMINATED;             // OK
-char*                 c_strdup_printf       (const char* format, ...) C_PRINTF (1, 2) C_MALLOC;             // OK
-char*                 c_strescape           (const char* source, const char* exceptions) C_MALLOC;          // OK
-char*                 c_strcanon            (char* str, const char* validChars, char substitutor);          // OK
-char*                 c_strdelimit          (char* str, const char* delimiters, char newDelimiter);         // OK
-char*                 c_strjoin             (const char* separator, ...) C_MALLOC C_NULL_TERMINATED;        // OK
-char**                c_strsplit            (const char* str, const char* delimiter, int maxTokens);        // OK
-char**                c_strsplit_set        (const char* str, const char* delimiters, int maxTokens);       // OK
-char*                 c_strdup_vprintf      (const char* format, va_list args) C_PRINTF(1, 0) C_MALLOC;     // OK
-char*                 c_strrstr_len         (const char* haystack, cuint64 haystackLen, const char* needle); // OK
-char*                 c_strstr_len          (const char* haystack, cuint64 haystackLen, const char* needle); // OK
+/**
+ * @brief 字符串转为大写
+ * @return 返回转换的字符串
+ * @note 须释放资源
+ */
+char*                 c_strup               (const char* str);
 
-bool                  c_str_has_suffix      (const char* str, const char* suffix);  // OK
-bool                  c_str_has_prefix      (const char* str, const char* prefix);  // OK
+/**
+ * @brief 去掉字符串前的空格
+ * @return 返回去掉前边空格的字符串
+ * @note 须释放资源
+ */
+char*                 c_strchug             (const char* str);
+
+/**
+ * @brief 去掉字符串后的空格
+ * @return 返回去掉后边空格的字符串
+ * @note 须释放资源
+ */
+char*                 c_strchomp            (const char* str);
+
+/**
+ * @brief 字符串反转
+ * @return 返回反转后的字符串
+ * @note 须释放资源
+ */
+char*                 c_strreverse          (const char* str);
+
+/**
+ * @brief 字符串转小写
+ * @return 返回转换为小写的字符串
+ * @note 须释放资源
+ */
+char*                 c_strdown             (const char* str);
+
+/**
+ * @brief 检查是否是 ascii 字符串
+ * @return
+ */
+bool                  c_str_is_ascii        (const char* str);
+
+/**
+ * @brief 释放字符串数组资源（先释放每个元素资源直到遇到NULL、再释放整个数组资源）
+ * @return void
+ */
+void                  c_strfreev            (char** strArray);
+
+/**
+ * @brief 复制字符串数组
+ * @return 返回复制后的字符串数组
+ * @note 需要使用 c_strfreev 释放资源
+ */
+char**                c_strdupv             (const char** strArray);
+
+/**
+ * @brief 计算字符串数组的长度
+ * @return 返回字符串数组的长度
+ */
+cuint                 c_strv_length         (char** strArray);
+
+/**
+ * @brief 根据错误码，返回描述信息
+ * @return 返回描述信息字符串
+ */
+const char*           c_strerror            (int errNum) C_CONST;
+
+/**
+ * @brief 根据信号码返回描述信息
+ */
+const char*           c_strsignal           (int signum) C_CONST;
+
+/**
+ * @brief 复制字符串并返回
+ */
+char*                 c_strdup              (const char* str) C_MALLOC;
+
+/**
+ * @brief 将转义字符替换为等效的单字节字符(处理\\n、\"这种)
+ */
+char*                 c_strcompress         (const char* source) C_MALLOC;
+
+/**
+ * @brief 字符串转 double 数字
+ */
+double                c_strtod              (const char* nPtr, char** endPtr);
+
+/**
+ * @brief 复制字符串前N个字节
+ * @return 返回复制后的字符串
+ * @note 需要释放资源
+ */
+char*                 c_strndup             (const char* str, cuint64 n) C_MALLOC;
+
+/**
+ * @brief 申请 length 长度字符串，并用 fillChar 填充申请的每个字节
+ * @return 返回申请的内存
+ * @note 需要释放资源
+ */
+char*                 c_strnfill            (cint64 length, char fillChar) C_MALLOC;
+
+/**
+ * @brief 查找子串
+ * @note 无须释放资源
+ */
+char*                 c_strrstr             (const char* haystack, const char* needle);
+
+/**
+ * @brief 复制指定长度的字符串到 dest
+ * @return 返回src剩余未复制到dest的字节数
+ */
+cuint64               c_strlcpy             (char* dest, const char* src, cuint64 destSize);
+
+/**
+ * @brief 将 src 字符串追加到 dest
+ * @return 返回追加后字符串总长度
+ */
+cuint64               c_strlcat             (char* dest, const char* src, cuint64 destSize);
+
+/**
+ * @brief 将字符串数组拼接为一个长字符串
+ * @return 返回拼接后的字符串
+ * @note 需要释放资源
+ */
+char*                 c_strjoinv            (const char* separator, char** strArray) C_MALLOC;
+
+/**
+ * @brief 追加字符串
+ * @return 返回拼接后的字符串
+ * @note 需要释放资源
+ */
+char*                 c_strconcat           (const char* str1, ...) C_MALLOC C_NULL_TERMINATED;
+
+/**
+ * @brief 格式化字符串
+ * @note 需要释放资源
+ */
+char*                 c_strdup_printf       (const char* format, ...) C_PRINTF (1, 2) C_MALLOC;
+
+/**
+ * @brief 字符串转为转义后的字符串
+ * @note 需要释放资源
+ */
+char*                 c_strescape           (const char* source, const char* exceptions) C_MALLOC;
+
+/**
+ * @brief 处理字符串，将 str 中不在 validChars 中的字符替换为 substitutor
+ * @note 需要释放资源
+ */
+char*                 c_strcanon            (const char* str, const char* validChars, char substitutor);
+
+/**
+ * @brief 处理字符串，将 str 中指定 delimiters 字符替换为 newDelimiter 字符
+ * @note 需要释放资源
+ */
+char*                 c_strdelimit          (const char* str, const char* delimiters, char newDelimiter);
+
+/**
+ * @brief 将所有子串用 separator 分隔符连接
+ * @note 需要释放资源
+ */
+char*                 c_strjoin             (const char* separator, ...) C_MALLOC C_NULL_TERMINATED;
+
+/**
+ * @brief 将字符串切割为字符串数组
+ * @note 需要释放资源
+ */
+char**                c_strsplit            (const char* str, const char* delimiter, int maxTokens);
+
+/**
+ * @brief 字符串切割，delimiters 指定多个切割字符
+ * @note 需要释放资源
+ */
+char**                c_strsplit_set        (const char* str, const char* delimiters, int maxTokens);
+
+/**
+ * @brief 复制字符串
+ * @note 需要释放资源
+ */
+char*                 c_strdup_vprintf      (const char* format, va_list args) C_PRINTF(1, 0) C_MALLOC;
+char*                 c_strrstr_len         (const char* haystack, cint64 haystackLen, const char* needle);
+char*                 c_strstr_len          (const char* haystack, cint64 haystackLen, const char* needle);
+
+bool                  c_str_has_suffix      (const char* str, const char* suffix);
+bool                  c_str_has_prefix      (const char* str, const char* prefix);
 
 C_END_EXTERN_C
 
