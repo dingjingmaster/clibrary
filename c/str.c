@@ -683,8 +683,8 @@ char* c_strdup (const char* str)
 
 char* c_strcompress (const char* source)
 {
-    char *q = NULL;
-    char *dest = NULL;
+    char* q = NULL;
+    char* dest = NULL;
     const char *p = source, *octal = NULL;
 
     c_return_val_if_fail (source != NULL, NULL);

@@ -253,7 +253,7 @@ cuchar* c_base64_decode_inplace (char* text, cuint64* outLen)
     c_return_val_if_fail (text != NULL, NULL);
     c_return_val_if_fail (outLen != NULL, NULL);
 
-    inputLength = strlen (text);
+    inputLength = (int) strlen (text);
 
     c_return_val_if_fail (inputLength > 1, NULL);
 

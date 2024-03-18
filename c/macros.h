@@ -576,20 +576,8 @@ typedef void*                                                   cvoidptr;
 
 
 #if C_GNUC_CHECK_VERSION(2, 0) && defined(__OPTIMIZE__)
-#define C_BOOLEAN_EXPR_IMPL(uniq, expr) \
-    C_GNUC_EXTENSION({ \
-        int C_PASTE(_c_boolean_var_, uniq); \
-        if (expr) { \
-            C_PASTE(_c_boolean_var_, uniq) = 1; \
-        } \
-        else { \
-            C_PASTE(_c_boolean_var_, uniq) = 0; \
-        } \
-        C_PASTE(_c_boolean_var_, uniq); \
-    })
-#define C_BOOLEAN_EXPR(expr) C_BOOLEAN_EXPR_IMPL (__COUNTER__, expr)
-#define C_LIKELY(expr) (__builtin_expect (C_BOOLEAN_EXPR(expr), 1))
-#define C_UNLIKELY(expr) (__builtin_expect (C_BOOLEAN_EXPR(expr), 0))
+#define C_LIKELY(expr) (__builtin_expect(!!(expr), 1))
+#define C_UNLIKELY(expr) (__builtin_expect(!!(expr), 0))
 #else
 #define C_LIKELY(expr) (expr)
 #define C_UNLIKELY(expr) (expr)
