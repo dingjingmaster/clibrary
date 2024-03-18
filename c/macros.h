@@ -14,6 +14,7 @@
 #include <assert.h>
 
 
+
 /**************************** 调试相关 ***********************************/
 #ifdef DEBUG
 #define C_DEBUG_INFO(str)               C_LOG_DEBUG(#str)
@@ -672,14 +673,10 @@ C_STMT_START \
 { \
     if (C_LIKELY(size > 0)) { \
         ptr = malloc (size); \
-        if (C_UNLIKELY(!ptr)) { \
-            C_LOG_DEBUG("malloc error"); \
-            exit(-errno); \
-        } \
+        c_assert(ptr); \
         memset (ptr, 0, size); \
     } \
     else { \
-        C_LOG_DEBUG("malloc error,bad size: %d", size); \
         c_assert(false); \
     } \
 } \
@@ -690,14 +687,10 @@ C_STMT_START \
 { \
     if (C_LIKELY(count > 0)) { \
         ptr = (type*) malloc (sizeof (type) * count); \
-        if (C_UNLIKELY(!(ptr))) { \
-            C_LOG_DEBUG("malloc error"); \
-            exit(-errno); \
-        } \
+        c_assert(ptr); \
         memset (ptr, 0, sizeof (type) * count); \
     } \
     else { \
-        C_LOG_DEBUG("malloc error,bad size: %d", count); \
         exit(-errno); \
     } \
 } \
@@ -818,7 +811,5 @@ C_STMT_START \
     } \
 } \
 C_STMT_END
-
-
 
 #endif

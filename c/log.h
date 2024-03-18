@@ -27,6 +27,8 @@ C_BEGIN_EXTERN_C
 #define C_LOG_LEVEL    C_LOG_LEVEL_INFO
 #endif
 
+typedef enum _CLogLevel CLogLevel;
+
 
 #define C_LOG_INIT_IF_NOT_INIT \
 { \
@@ -96,7 +98,7 @@ typedef enum
 /**
  * @brief 日志级别
  */
-typedef enum
+enum _CLogLevel
 {
     C_LOG_LEVEL_ERROR       = 0,
     C_LOG_LEVEL_CRIT        = 1,
@@ -104,7 +106,7 @@ typedef enum
     C_LOG_LEVEL_INFO        = 3,
     C_LOG_LEVEL_DEBUG       = 4,
     C_LOG_LEVEL_VERB        = 5,
-} CLogLevel;
+} ;
 
 /**
  * @brief 初始化 log 参数
