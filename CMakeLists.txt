@@ -2,8 +2,9 @@ cmake_minimum_required(VERSION 3.27)
 project(clibrary LANGUAGES C CXX)
 
 set(PROJECT_VERSION_MAJOR 0)
-set(PROJECT_VERSION_MINOR 0)
+set(PROJECT_VERSION_MINOR 1)
 set(PROJECT_VERSION_PATCH 0)
+set(PROJECT_VERSION_TWEAK 0)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 11)
@@ -26,7 +27,8 @@ elseif (CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_definitions(-g -DDEBUG=1)
 endif ()
 
-add_definitions(-DQT_NO_KEYWORDS -DQT_MESSAGELOGCONTEXT)
+include_directories(${CMAKE_SOURCE_DIR})
+add_definitions(-DQT_NO_KEYWORDS -DQT_MESSAGELOGCONTEXT -D__CLIB_H_INSIDE__)
 
 enable_testing()
 
@@ -42,3 +44,5 @@ add_subdirectory(qt5)
 add_subdirectory(glib)
 add_subdirectory(demo)
 add_subdirectory(test)
+
+include(data/data.cmake)

@@ -1,7 +1,7 @@
 curdir 				= $(shell pwd)
 nproc 				= $(shell [[ -f /proc/cpuinfo ]] && cat /proc/cpuinfo | grep processor | wc -l)
 
-all: prepare build test
+all: prepare build test 
 
 
 prepare:
@@ -15,6 +15,8 @@ build: prepare
 test: build
 	make -C $(curdir)/build-all test
 
+install: test
+	make -C $(curdir)/build-all install
 
 clean:
 	@rm -rf $(curdir)/build-all/
@@ -22,6 +24,5 @@ clean:
 	@find -name "*.so.*" -delete
 
 
-.PHONY:all prepare build test clean
-
+.PHONY:all prepare build test clean install
 

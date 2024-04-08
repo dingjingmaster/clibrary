@@ -4,6 +4,9 @@
 
 #ifndef CLIBRARY_TEST_H
 #define CLIBRARY_TEST_H
+#if !defined (__CLIB_H_INSIDE__) && !defined (CLIB_COMPILATION)
+#error "Only <clib.h> can be included directly."
+#endif
 #include <stdlib.h>
 #include <string.h>
 

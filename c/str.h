@@ -4,6 +4,9 @@
 
 #ifndef CLIBRARY_STR_H
 #define CLIBRARY_STR_H
+#if !defined (__CLIB_H_INSIDE__) && !defined (CLIB_COMPILATION)
+#error "Only <clib.h> can be included directly."
+#endif
 #include "macros.h"
 
 #include <stdio.h>

@@ -13,3 +13,10 @@ file(GLOB C_SRC
         ${CMAKE_SOURCE_DIR}/c/base64.h
         ${CMAKE_SOURCE_DIR}/c/base64.c
 )
+
+file(GLOB C_HEADERS
+        ${CMAKE_SOURCE_DIR}/c/log.h
+        ${CMAKE_SOURCE_DIR}/c/str.h
+        ${CMAKE_SOURCE_DIR}/c/clib.h
+        ${CMAKE_SOURCE_DIR}/c/test.h
+)

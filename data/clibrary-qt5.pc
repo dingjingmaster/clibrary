@@ -1,0 +1,11 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: clibrary-qt5
+Description: Qt5 Library
+Version: 0.7.6
+Requires: Qt5Core
+Libs: -L${libdir} -lclibrary-qt5
+Cflags: -I${includedir}/clibrary/

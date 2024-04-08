@@ -5,7 +5,7 @@
 #ifndef CLIBRARY_GLOG_H
 #define CLIBRARY_GLOG_H
 #include <glib.h>
-#include "../c/log.h"
+#include <c/clib.h>
 
 #ifndef C_LOG_TAG
 #define C_LOG_TAG "glog"

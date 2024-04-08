@@ -6,7 +6,7 @@
 #define CLIBRARY_QLOG_H
 #include <QDebug>
 
-#include "../c/log.h"
+#include <c/clib.h>
 
 #ifndef C_LOG_TAG
 #define C_LOG_TAG       "qlog"
