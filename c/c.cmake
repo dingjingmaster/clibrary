@@ -10,6 +10,9 @@ file(GLOB C_SRC
         ${CMAKE_SOURCE_DIR}/c/test.h
         ${CMAKE_SOURCE_DIR}/c/test.c
 
+        ${CMAKE_SOURCE_DIR}/c/slist.h
+        ${CMAKE_SOURCE_DIR}/c/slist.c
+
         ${CMAKE_SOURCE_DIR}/c/base64.h
         ${CMAKE_SOURCE_DIR}/c/base64.c
 )

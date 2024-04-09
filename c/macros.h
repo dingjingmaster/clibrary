@@ -13,7 +13,9 @@
 #include <string.h>
 #include <assert.h>
 
-
+#if !defined (__CLIB_H_INSIDE__) && !defined (CLIB_COMPILATION)
+#error "Only <clib.h> can be included directly."
+#endif
 
 /**************************** 调试相关 ***********************************/
 #ifdef DEBUG
@@ -143,6 +145,22 @@ typedef void*                                                   cvoidptr;
 #define C_PI_2                                                  1.5707963267948966192313216916397514420985846996876
 #define C_PI_4                                                  0.78539816339744830961566084581987572104929234984378
 #define C_SQRT2                                                 1.4142135623730950488016887242096980785696718753769
+
+
+/****************************  类型  *************************************/
+typedef cint            (*CCompareFunc)         (void* data1, void* data2);
+typedef cint            (*CCompareDataFunc)     (void* data1, void* data2, void* udata);
+typedef bool            (*CEqualFunc)           (const void* data1, const void* data2);
+typedef bool            (*CEqualFuncFull)       (const void* data1, const void* data2, void* udata);
+
+typedef void            (*CDestroyNotify)       (void* data);
+typedef void            (*CFunc)                (void* data, void* udata);
+
+typedef cuint           (*CHashFunc)            (const void* key);
+typedef void            (*CHFunc)               (void* key, void* value, void* udata);
+typedef void*           (*CCopyFunc)            (const void* src, void* udata);
+typedef void            (*CFreeFunc)            (void* data);
+typedef const char*     (*CTranslateFunc)       (const char* str, void* udata);
 
 
 /** @NOTE **/
