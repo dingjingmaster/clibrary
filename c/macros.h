@@ -674,6 +674,7 @@ C_STMT_END
 #define ISSPACE(c)              ((c) == ' ' || (c) == '\f' || (c) == '\n' || (c) == '\r' || (c) == '\t' || (c) == '\v')
 
 /****************** 内存申请与释放 ********************/
+void* c_malloc0 (cuint64 size);
 #define c_malloc(ptr, size) \
 C_STMT_START \
 { \

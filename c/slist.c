@@ -14,9 +14,10 @@ static CSList* c_slist_insert_sorted_real (CSList* list, void* data, CFunc func,
 
 CSList* c_slist_alloc (void)
 {
-    CSList* ls = NULL;
+    CSList* ls = c_malloc0 (sizeof(CSList));
 
-    c_malloc(ls, sizeof(CSList));
+    ls->next = NULL;
+    ls->data = NULL;
 
     return ls;
 }
