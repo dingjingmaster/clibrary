@@ -70,7 +70,7 @@ cint     c_list_index                   (CList* list, const void* data);
 CList*   c_list_last                    (CList* list);
 CList*   c_list_first                   (CList* list);
 cuint    c_list_length                  (CList* list);
-void     c_list_foreach                 (CList* list, CFunc func, void* u_data);
+void     c_list_foreach                 (CList* list, CFunc func, void* udata);
 CList*   c_list_sort                    (CList* list, CCompareFunc compareFunc) C_WARN_UNUSED_RESULT;
 CList*   c_list_sort_with_data          (CList* list, CCompareDataFunc  compareFunc, void* udata)  C_WARN_UNUSED_RESULT;
 void*    c_list_nth_data                (CList* list, cuint n);

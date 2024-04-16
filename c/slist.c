@@ -280,7 +280,7 @@ CSList* c_slist_find_custom (CSList* list, const void* data, CCompareFunc func)
     CSList* node = NULL;
 
     for (node = list; node; node = node->next) {
-        if (0 == func (node->data, data)) {
+        if (0 == func (node->data, (void*) data)) {
             break;
         }
     }
