@@ -715,7 +715,7 @@ C_STMT_END
 /**
  * @brief 计算指针数组元素个数
  */
-#define c_ptr_array_count(ptr, count) \
+#define c_ptr_array_count0(ptr, count) \
 C_STMT_START \
 { \
     if (C_LIKELY(ptr)) { \
@@ -732,12 +732,12 @@ C_STMT_END
 /**
  * @brief 为指针数组空间加1，并把指针元素ele放入数组中
  */
-#define c_ptr_array_add1(ptr, type, ele) \
+#define c_ptr_array_add1_0(ptr, type, ele) \
 C_STMT_START \
 { \
     cuint c = 0; \
     if (C_LIKELY(ptr)) { \
-        c_ptr_array_count(ptr, c); \
+        c_ptr_array_count0(ptr, c); \
         type* ptrT = NULL; \
         c_malloc(ptrT, sizeof(type) * (c + 2)); \
         memcpy(ptrT, ptr, sizeof(type) * c + 1); \
@@ -756,7 +756,7 @@ C_STMT_END
 /**
  * @brief 释放指针数组所有元素，对每个元素执行 freeFunc()
  */
-#define c_ptr_array_free_full(ptr, freeFunc) \
+#define c_ptr_array_free_full0(ptr, freeFunc) \
 C_STMT_START \
 { \
     if (C_LIKELY(ptr)) { \
@@ -772,7 +772,7 @@ C_STMT_END
 /**
  * @brief 释放指针数组所有元素，对每个元素执行 c_free()
  */
-#define c_ptr_array_free(ptr) \
+#define c_ptr_array_free0(ptr) \
 C_STMT_START \
 { \
     if (C_LIKELY(ptr)) { \

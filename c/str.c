@@ -650,7 +650,7 @@ char** c_strdupv (const char** strArray)
 cuint c_strv_length (char** strArray)
 {
     cuint64 count;
-    c_ptr_array_count(strArray, count);
+    c_ptr_array_count0(strArray, count);
 
     return count;
 }
@@ -1196,13 +1196,13 @@ char** c_strsplit (const char* str, const char* delimiter, int maxTokens)
             cuint64 len = 0;
             len = s - remainder;
             char* sstr = c_strndup (remainder, len);
-            c_ptr_array_add1(strList, char*, sstr);
+            c_ptr_array_add1_0(strList, char*, sstr);
             remainder = s + delimiterLen;
             s = strstr (remainder, delimiter);
         }
     }
     if (*str) {
-        c_ptr_array_add1(strList, char*, c_strdup (remainder));
+        c_ptr_array_add1_0(strList, char*, c_strdup (remainder));
     }
 
     return strList;
@@ -1240,7 +1240,7 @@ char** c_strsplit_set (const char* str, const char* delimiters, int maxTokens)
     while (*s != '\0') {
         if (delimTable[*(cuchar*)s] && nTokens + 1 < maxTokens) {
             token = c_strndup (current, s - current);
-            c_ptr_array_add1(result, char*, token);
+            c_ptr_array_add1_0(result, char*, token);
             ++nTokens;
             current = s + 1;
         }
@@ -1248,7 +1248,7 @@ char** c_strsplit_set (const char* str, const char* delimiters, int maxTokens)
     }
 
     token = c_strndup (current, s - current);
-    c_ptr_array_add1(result, char*, token);
+    c_ptr_array_add1_0(result, char*, token);
     ++nTokens;
 
     return result;
