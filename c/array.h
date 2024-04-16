@@ -8,16 +8,12 @@
  */
 
 //
-// Created by dingjing on 24-4-9.
+// Created by dingjing on 24-4-16.
 //
 
-#include "macros.h"
+#ifndef CLIBRARY_ARRAY_H
+#define CLIBRARY_ARRAY_H
 
-void* c_malloc0 (cuint64 size)
-{
-    void* ptr = NULL;
 
-    c_malloc(ptr, size);
 
-    return ptr;
-}
+#endif //CLIBRARY_ARRAY_H
