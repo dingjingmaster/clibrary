@@ -17,7 +17,7 @@
 #if !defined (__CLIB_H_INSIDE__) && !defined (CLIB_COMPILATION)
 #error "Only <clib.h> can be included directly."
 #endif
-#include "macros.h"
+#include <c/macros.h>
 
 C_BEGIN_EXTERN_C
 

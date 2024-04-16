@@ -15,7 +15,12 @@
  ************************************************************************/
 #ifndef _UTILS_H
 #define _UTILS_H
-#include "macros.h"
+
+#if !defined (__CLIB_H_INSIDE__) && !defined (CLIB_COMPILATION)
+#error "Only <clib.h> can be included directly."
+#endif
+#include <c/macros.h>
+
 
 const char* c_get_tmp_dir (void);
 const char* c_get_prgname (void);

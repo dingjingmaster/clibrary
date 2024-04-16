@@ -15,7 +15,11 @@
  ************************************************************************/
 #ifndef _ATOMIC_H
 #define _ATOMIC_H
-#include "macros.h"
+
+#if !defined (__CLIB_H_INSIDE__) && !defined (CLIB_COMPILATION)
+#error "Only <clib.h> can be included directly."
+#endif
+#include <c/macros.h>
 
 C_BEGIN_EXTERN_C
 int c_atomic_int_get (const volatile int *atomic);              // ok
