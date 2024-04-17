@@ -16,6 +16,7 @@
 #ifndef CLIBRARY_MACROS_H
 #define CLIBRARY_MACROS_H
 #include <errno.h>
+#include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -109,7 +110,10 @@ typedef unsigned int                                            cuint;
 typedef float                                                   cfloat;
 typedef double                                                  cdouble;
 
+typedef unsigned long                                           csize;
+
 typedef void*                                                   cvoidptr;
+typedef cint                                                    catomicrefcount;
 
 #define C_CINT64_CONSTANT(val)	                                (val##L)
 #define C_CUINT64_CONSTANT(val)	                                (val##UL)
@@ -142,6 +146,9 @@ typedef void*                                                   cvoidptr;
 #define C_MAX_INT64                                             ((cint64) C_CINT64_CONSTANT(0x7FFFFFFFFFFFFFFF))
 #define C_MAX_UINT64                                            ((cuint64) C_CUINT64_CONSTANT(0xFFFFFFFFFFFFFFFF))
 #define C_MIN_INT64                                             ((cint64) (-C_MAX_INT64) - C_CINT64_CONSTANT(1))
+
+#define C_MAX_SIZE                                              C_MAX_UINT64
+#define C_MAX_UINT                                              C_MAX_UINT32
 
 
 /**

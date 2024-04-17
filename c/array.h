@@ -53,7 +53,7 @@ struct _CPtrArray
 #define c_ptr_array_index(array,index_)     ((array)->pdata)[index_]
 
 
-CArray* c_array_new                 (bool zeroTerminated, bool clear, cuint elementSize);
+CArray* c_array_new                 (bool zeroTerminated, bool clear, csize elementSize);
 void*   c_array_steal               (CArray* array, cuint64* len);
 CArray* c_array_sized_new           (bool zeroTerminated, bool clear, cuint elementSize, cuint reservedSize);
 CArray* c_array_copy                (CArray* array);
