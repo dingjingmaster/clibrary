@@ -17,7 +17,20 @@
 #error "Only <clib.h> can be included directly."
 #endif
 
+#include <c/poll.h>
 #include <c/macros.h>
+
+C_BEGIN_EXTERN_C
+
+typedef struct _CWakeup CWakeup;
+
+CWakeup*    c_wakeup_new            (void);
+void        c_wakeup_free           (CWakeup* wakeup);
+void        c_wakeup_get_pollfd     (CWakeup* wakeup, CPollFD* pollFd);
+void        c_wakeup_signal         (CWakeup* wakeup);
+void        c_wakeup_acknowledge    (CWakeup* wakeup);
+
+C_END_EXTERN_C
 
 
 #endif //CLIBRARY_WAKEUP_H

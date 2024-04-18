@@ -12,3 +12,20 @@
 //
 
 #include "wakeup.h"
+
+#include <fcntl.h>
+#include <sys/eventfd.h>
+
+
+struct _CWakeup
+{
+    cint fds[2];
+};
+
+
+
+CWakeup* c_wakeup_new (void);
+void c_wakeup_free (CWakeup* wakeup);
+void c_wakeup_get_pollfd (CWakeup* wakeup, CPollFD* pollFd);
+void c_wakeup_signal (CWakeup* wakeup);
+void c_wakeup_acknowledge (CWakeup* wakeup);
