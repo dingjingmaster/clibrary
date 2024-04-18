@@ -959,4 +959,6 @@ bool c_int_equal (const void* p1, const void* p2);
 bool c_int64_equal (const void* p1, const void* p2);
 bool c_double_equal (const void* p1, const void* p2);
 
+// FIXME://
+cuint32 c_random_int ();
 #endif
