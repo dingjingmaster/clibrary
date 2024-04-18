@@ -17,11 +17,12 @@
 #define CLIBRARY_MACROS_H
 #include <errno.h>
 #include <stdio.h>
-#include <assert.h>
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
 #include <assert.h>
+
+#include <sys/poll.h>
 
 #if !defined (__CLIB_H_INSIDE__) && !defined (CLIB_COMPILATION)
 #error "Only <clib.h> can be included directly."
@@ -196,6 +197,18 @@ typedef void            (*CHFunc)               (void* key, void* value, void* u
 typedef void*           (*CCopyFunc)            (const void* src, void* udata);
 typedef void            (*CFreeFunc)            (void* data);
 typedef const char*     (*CTranslateFunc)       (const char* str, void* udata);
+
+
+typedef enum
+{
+    C_IO_IN     = POLLIN,
+    C_IO_OUT    = POLLOUT,
+    C_IO_PRI    = POLLPRI,
+    C_IO_ERR    = POLLERR,
+    C_IO_HUP    = POLLHUP,
+    C_IO_NVAL   = POLLNVAL,
+} CIOCondition;
+
 
 
 /** @NOTE **/

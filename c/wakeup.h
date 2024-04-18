@@ -8,21 +8,16 @@
  */
 
 //
-// Created by dingjing on 24-4-8.
+// Created by dingjing on 24-4-18.
 //
 
-#ifndef CLIBRARY_CLIB_H
-#define CLIBRARY_CLIB_H
-#include <c/log.h>
-#include <c/str.h>
-#include <c/list.h>
-#include <c/poll.h>
-#include <c/array.h>
-#include <c/bytes.h>
-#include <c/slist.h>
-#include <c/atomic.h>
-#include <c/macros.h>
-#include <c/base64.h>
-#include <c/wakeup.h>
+#ifndef CLIBRARY_WAKEUP_H
+#define CLIBRARY_WAKEUP_H
+#if !defined (__CLIB_H_INSIDE__) && !defined (CLIB_COMPILATION)
+#error "Only <clib.h> can be included directly."
+#endif
 
-#endif //CLIBRARY_CLIB_H
+#include <c/macros.h>
+
+
+#endif //CLIBRARY_WAKEUP_H
