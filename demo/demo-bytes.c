@@ -8,24 +8,19 @@
  */
 
 //
-// Created by dingjing on 24-3-7.
+// Created by dingjing on 24-4-18.
 //
+
 #include <c/clib.h>
 
-#define DEMO_FILE 1
-
-int main (C_UNUSED int argc, C_UNUSED char* argv[])
+int main (void)
 {
-#if !DEMO_FILE
-    c_log_init (C_LOG_TYPE_CONSOLE, C_LOG_LEVEL_VERB, 10240, "/tmp/", "a", "log", true);
+    // 00
+    const char* str1 = "Hello, world!";
+    CBytes* bytes1 = c_bytes_new (str1, strlen (str1));
 
-    C_LOG_DEBUG("1111111");
-#else
-    c_log_init (C_LOG_LEVEL_VERB, 10240, "/tmp/", "a", "log", true);
-    C_LOG_DEBUG("1111111");
-#endif
+    csize len = 0;
+    printf ("%lu -- %s\n", len, (char*) c_bytes_get_data (bytes1, &len));
 
-    c_log_destroy();
-
-    return 0;
+    printf ("hash: %u\n", c_bytes_hash (bytes1));
 }

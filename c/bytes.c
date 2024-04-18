@@ -29,7 +29,7 @@ static void* try_steal_and_unref (CBytes* bytes, CDestroyNotify freeFunc, csize*
 
 CBytes* c_bytes_new (const void* data, csize size)
 {
-    c_return_val_if_fail (data != NULL || size == 0, NULL);
+    c_return_val_if_fail (data || 0 == size, NULL);
 
     return c_bytes_new_take (c_memdup(data, size), size);
 }
@@ -46,7 +46,7 @@ CBytes* c_bytes_new_static (const void* data, csize size)
 
 CBytes* c_bytes_new_with_free_func (const void* data, csize size, CDestroyNotify freeFunc, void* udata)
 {
-    c_return_val_if_fail (data != NULL || size == 0, NULL);
+    c_return_val_if_fail (data || 0 == size, NULL);
 
     CBytes* bytes = c_malloc0(sizeof(CBytes));
     bytes->data = data;
@@ -64,7 +64,6 @@ CBytes* c_bytes_new_from_bytes (CBytes* bytes, csize offset, csize length)
     c_return_val_if_fail (offset <= bytes->size, NULL);
     c_return_val_if_fail (offset + length <= bytes->size, NULL);
 
-    /* Avoid an extra GBytes if all bytes were requested */
     if (offset == 0 && length == bytes->size) {
         return c_bytes_ref (bytes);
     }
@@ -149,13 +148,13 @@ CByteArray* c_bytes_unref_to_array (CBytes* bytes)
     return c_byte_array_new_take (data, size);
 }
 
-cuint c_bytes_hash (const void* bytes)
+cuint c_bytes_hash (const CBytes* bytes)
 {
     const CBytes *a = bytes;
     const signed char *p, *e;
     cuint32 h = 5381;
 
-    c_return_val_if_fail (bytes != NULL, 0);
+    c_return_val_if_fail (bytes, 0);
 
     for (p = (signed char *)a->data, e = (signed char *)a->data + a->size; p != e; p++) {
         h = (h << 5) + h + *p;
@@ -164,7 +163,7 @@ cuint c_bytes_hash (const void* bytes)
     return h;
 }
 
-bool c_bytes_equal (const void* bytes1, const void* bytes2)
+bool c_bytes_equal (const CBytes* bytes1, const CBytes* bytes2)
 {
     const CBytes *b1 = bytes1;
     const CBytes *b2 = bytes2;
@@ -172,10 +171,10 @@ bool c_bytes_equal (const void* bytes1, const void* bytes2)
     c_return_val_if_fail (bytes1 != NULL, false);
     c_return_val_if_fail (bytes2 != NULL, false);
 
-    return b1->size == b2->size && (b1->size == 0 || memcmp (b1->data, b2->data, b1->size) == 0);
+    return (b1->size == b2->size) && ((b1->size == 0) || memcmp (b1->data, b2->data, b1->size) == 0);
 }
 
-cint c_bytes_compare (const void* bytes1, const void* bytes2)
+cint c_bytes_compare (const CBytes* bytes1, const CBytes* bytes2)
 {
     const CBytes *b1 = bytes1;
     const CBytes *b2 = bytes2;
@@ -199,10 +198,12 @@ const void* c_bytes_get_region (CBytes* bytes, csize elementSize, csize offset, 
 
     c_return_val_if_fail (elementSize > 0, NULL);
 
+    // 获取元素长度
     if (!c_size_checked_mul (&totalSize, elementSize, nElements)) {
         return NULL;
     }
 
+    //
     if (!c_size_checked_add (&endOffset, offset, totalSize)) {
         return NULL;
     }

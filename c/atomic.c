@@ -51,7 +51,7 @@ bool c_atomic_int_dec_and_test (volatile int *atomic)
     bool isZero;
 
     pthread_mutex_lock (&gsAtomicLock);
-    isZero = --(*atomic) == 0;
+    isZero = (--(*atomic) == 0);
     pthread_mutex_unlock (&gsAtomicLock);
 
     return isZero;
@@ -379,13 +379,12 @@ void c_atomic_ref_count_inc (catomicrefcount* arc)
 
 bool c_atomic_ref_count_dec (catomicrefcount* arc)
 {
-    cint oldValue;
+    bool isZero;
 
-    c_return_val_if_fail (arc != NULL, false);
-    oldValue = c_atomic_int_add (arc, -1);
-    c_return_val_if_fail (oldValue > 0, false);
+    c_return_val_if_fail (arc, false);
+    isZero = c_atomic_int_dec_and_test(arc);
 
-    return oldValue == 1;
+    return isZero;
 }
 
 bool c_atomic_ref_count_compare (catomicrefcount* arc, cint val)
