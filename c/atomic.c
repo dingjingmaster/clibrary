@@ -57,30 +57,14 @@ bool c_atomic_int_dec_and_test (volatile int *atomic)
     return isZero;
 }
 
-bool c_atomic_int_compare_and_exchange (volatile int *atomic, int oldval, int newval)
+bool c_atomic_int_compare_and_exchange (volatile int *atomic, int oldVal, int newVal)
 {
     bool success;
 
     pthread_mutex_lock (&gsAtomicLock);
 
-    if ((success = (*atomic == oldval)))
-        *atomic = newval;
-
-    pthread_mutex_unlock (&gsAtomicLock);
-
-    return success;
-}
-
-bool c_atomic_int_compare_and_exchange_full (int *atomic, int oldval, int newval, int* preval)
-{
-    bool     success;
-
-    pthread_mutex_lock (&gsAtomicLock);
-
-    *preval = *atomic;
-
-    if ((success = (*atomic == oldval))) {
-        *atomic = newval;
+    if ((success = (*atomic == oldVal))) {
+        *atomic = newVal;
     }
 
     pthread_mutex_unlock (&gsAtomicLock);
@@ -88,65 +72,82 @@ bool c_atomic_int_compare_and_exchange_full (int *atomic, int oldval, int newval
     return success;
 }
 
-int c_atomic_int_exchange (int *atomic, int newval)
+bool c_atomic_int_compare_and_exchange_full (int *atomic, int oldVal, int newVal, int* preVal)
 {
-    int *ptr = atomic;
-    int oldval;
+    bool     success;
 
     pthread_mutex_lock (&gsAtomicLock);
-    oldval = *ptr;
-    *ptr = newval;
+
+    *preVal = *atomic;
+
+    if ((success = (*atomic == oldVal))) {
+        *atomic = newVal;
+    }
+
     pthread_mutex_unlock (&gsAtomicLock);
 
-    return oldval;
+    return success;
+}
+
+int c_atomic_int_exchange (int *atomic, int newVal)
+{
+    int* ptr = atomic;
+    int oldVal;
+
+    pthread_mutex_lock (&gsAtomicLock);
+    oldVal = *ptr;
+    *ptr = newVal;
+    pthread_mutex_unlock (&gsAtomicLock);
+
+    return oldVal;
 }
 
 int c_atomic_int_add (volatile int *atomic, int val)
 {
-    int oldval;
+    int oldVal;
 
     pthread_mutex_lock (&gsAtomicLock);
-    oldval = *atomic;
-    *atomic = oldval + val;
+    oldVal = *atomic;
+    *atomic = oldVal + val;
     pthread_mutex_unlock (&gsAtomicLock);
 
-    return oldval;
+    return oldVal;
 }
 
 cuint c_atomic_int_and (volatile cuint *atomic, cuint val)
 {
-    cuint oldval;
+    cuint oldVal;
 
     pthread_mutex_lock (&gsAtomicLock);
-    oldval = *atomic;
-    *atomic = oldval & val;
+    oldVal = *atomic;
+    *atomic = oldVal & val;
     pthread_mutex_unlock (&gsAtomicLock);
 
-    return oldval;
+    return oldVal;
 }
 
 cuint c_atomic_int_or (volatile cuint *atomic, cuint val)
 {
-    cuint oldval;
+    cuint oldVal;
 
     pthread_mutex_lock (&gsAtomicLock);
-    oldval = *atomic;
-    *atomic = oldval | val;
+    oldVal = *atomic;
+    *atomic = oldVal | val;
     pthread_mutex_unlock (&gsAtomicLock);
 
-    return oldval;
+    return oldVal;
 }
 
 cuint c_atomic_int_xor (volatile cuint *atomic, cuint val)
 {
-    cuint oldval;
+    cuint oldVal;
 
     pthread_mutex_lock (&gsAtomicLock);
-    oldval = *atomic;
-    *atomic = oldval ^ val;
+    oldVal = *atomic;
+    *atomic = oldVal ^ val;
     pthread_mutex_unlock (&gsAtomicLock);
 
-    return oldval;
+    return oldVal;
 }
 
 void* c_atomic_pointer_get (const volatile void* atomic)
@@ -162,23 +163,23 @@ void* c_atomic_pointer_get (const volatile void* atomic)
 }
 
 
-void c_atomic_pointer_set (volatile void* atomic, void* newval)
+void c_atomic_pointer_set (volatile void* atomic, void* newVal)
 {
     void** ptr = (void**) atomic;
 
     pthread_mutex_lock (&gsAtomicLock);
-    *ptr = newval;
+    *ptr = newVal;
     pthread_mutex_unlock (&gsAtomicLock);
 }
 
-bool c_atomic_pointer_compare_and_exchange (volatile void* atomic, void* oldval, void* newval)
+bool c_atomic_pointer_compare_and_exchange (volatile void* atomic, void* oldVal, void* newVal)
 {
     void** ptr = (void**) atomic;
     bool success;
 
     pthread_mutex_lock (&gsAtomicLock);
-    if ((success = (*ptr == oldval))) {
-        *ptr = newval;
+    if ((success = (*ptr == oldVal))) {
+        *ptr = newVal;
     }
     pthread_mutex_unlock (&gsAtomicLock);
 
@@ -203,69 +204,69 @@ bool c_atomic_pointer_compare_and_exchange_full (void* atomic, void* oldval, voi
     return success;
 }
 
-void* c_atomic_pointer_exchange (void* atomic, void* newval)
+void* c_atomic_pointer_exchange (void* atomic, void* newVal)
 {
     void** ptr = atomic;
-    void* oldval;
+    void* oldVal;
 
     pthread_mutex_lock (&gsAtomicLock);
-    oldval = *ptr;
-    *ptr = newval;
+    oldVal = *ptr;
+    *ptr = newVal;
     pthread_mutex_unlock (&gsAtomicLock);
 
-    return oldval;
+    return oldVal;
 }
 
-cuint64 c_atomic_pointer_add (volatile void* atomic, cuint64 val)
+cuint64 c_atomic_pointer_add (volatile void* atomic, culong val)
 {
     cuint64* ptr = (cuint64*) atomic;
-    cuint64 oldval;
+    cuint64 oldVal;
 
     pthread_mutex_lock (&gsAtomicLock);
-    oldval = *ptr;
-    *ptr = oldval + val;
+    oldVal = *ptr;
+    *ptr = oldVal + val;
     pthread_mutex_unlock (&gsAtomicLock);
 
-    return oldval;
+    return oldVal;
 }
 
-cuint64 c_atomic_pointer_and (volatile void* atomic, cuint64 val)
+cuint64 c_atomic_pointer_and (volatile void* atomic, culong val)
 {
-    cuint64* ptr = (cuint64*) atomic;
-    cuint64 oldval;
+    cuint64* ptr = (culong*) atomic;
+    cuint64 oldVal;
 
     pthread_mutex_lock (&gsAtomicLock);
-    oldval = *ptr;
-    *ptr = oldval & val;
+    oldVal = *ptr;
+    *ptr = oldVal & val;
     pthread_mutex_unlock (&gsAtomicLock);
 
-    return oldval;
+    return oldVal;
 }
 
-cuint64 c_atomic_pointer_or (volatile void* atomic, cuint64 val)
+cuint64 c_atomic_pointer_or (volatile void* atomic, culong val)
 {
-    cuint64* ptr = (cuint64*) atomic;
-    cuint64 oldval;
+    cuint64* ptr = (culong*) atomic;
+    cuint64 oldVal;
 
     pthread_mutex_lock (&gsAtomicLock);
-    oldval = *ptr;
-    *ptr = oldval | val;
+    oldVal = *ptr;
+    *ptr = oldVal | val;
     pthread_mutex_unlock (&gsAtomicLock);
 
-    return oldval;
+    return oldVal;
 }
 
-cuint64 c_atomic_pointer_xor (volatile void* atomic, cuint64 val)
+cuint64 c_atomic_pointer_xor (volatile void* atomic, culong val)
 {
-    cuint64* ptr = (cuint64*) atomic;
-    cuint64 oldval;
+    cuint64* ptr = (culong*) atomic;
+    cuint64 oldVal;
 
     pthread_mutex_lock (&gsAtomicLock);
-    oldval = *ptr;
-    *ptr = oldval ^ val;
+    oldVal = *ptr;
+    *ptr = oldVal ^ val;
     pthread_mutex_unlock (&gsAtomicLock);
 
-    return oldval;
+    return oldVal;
 }
 
 cint g_atomic_int_exchange_and_add (volatile cint *atomic, cint val)
