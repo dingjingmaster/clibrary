@@ -43,7 +43,7 @@ C_BEGIN_EXTERN_C
 #define C_LOG_INIT_IF_NOT_INIT \
 { \
     if (C_UNLIKELY(!c_log_is_inited())) { \
-        c_log_init (C_LOG_TYPE_FILE, C_LOG_LEVEL, C_LOG_SIZE, C_LOG_DIR, C_LOG_TAG, "log", false); \
+        c_log_init (C_LOG_LEVEL, C_LOG_SIZE, C_LOG_DIR, C_LOG_TAG, "log", false); \
     } \
 };
 
@@ -51,7 +51,7 @@ C_BEGIN_EXTERN_C
 #define C_LOG_ERROR(...) \
 { \
     C_LOG_INIT_IF_NOT_INIT \
-    c_log_print(C_LOG_LEVEL_ERR, C_LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__); \
+    c_log_print(C_LOG_LEVEL_ERROR, C_LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__); \
 }
 
 #define C_LOG_CRIT(...) \
@@ -71,6 +71,34 @@ C_BEGIN_EXTERN_C
     C_LOG_INIT_IF_NOT_INIT \
     c_log_print(C_LOG_LEVEL_INFO, C_LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__); \
 }
+
+
+#define C_LOG_ERROR_CONSOLE(...) \
+{ \
+    c_log_print_console(C_LOG_LEVEL_ERROR, C_LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__); \
+}
+
+#define C_LOG_CRIT_CONSOLE(...) \
+{ \
+    c_log_print_console(C_LOG_LEVEL_CRIT, C_LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__); \
+}
+
+#define C_LOG_WARNING_CONSOLE(...) \
+{ \
+    c_log_print_console(C_LOG_LEVEL_WARNING, C_LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__); \
+}
+
+#define C_LOG_INFO_CONSOLE(...) \
+{ \
+    c_log_print_console(C_LOG_LEVEL_INFO, C_LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__); \
+}
+
+#define C_LOG_DEBUG_CONSOLE(...) \
+{ \
+    c_log_print_console(C_LOG_LEVEL_DEBUG, C_LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__); \
+}
+
+#define C_LOG_VERB_CONSOLE(...)
 
 #if DEBUG
 #define C_LOG_DEBUG(...)
@@ -95,6 +123,11 @@ C_BEGIN_EXTERN_C
     c_log_print(level, tag, file, line, fun, __VA_ARGS__); \
 }
 
+#define C_LOG_RAW_CONSOLE(level, tag, file, line, fun, ...) \
+{ \
+    c_log_print_console(level, tag, file, line, fun, __VA_ARGS__); \
+}
+
 
 /**
  * @brief 日志输出模式
@@ -102,7 +135,7 @@ C_BEGIN_EXTERN_C
 typedef enum
 {
     C_LOG_TYPE_FILE = 0,
-    C_LOG_TYPE_CONSOLE
+    C_LOG_TYPE_CONSOLE,
 } CLogType;
 
 /**
@@ -131,7 +164,7 @@ typedef enum
  *
  * @return 成功: 0; 失败: -1
  */
-bool c_log_init (CLogType type, CLogLevel level, cuint64 logSize, const cchar* dir, const cchar* prefix, const cchar* suffix, bool hasTime);
+bool c_log_init (CLogLevel level, cuint64 logSize, const cchar* dir, const cchar* prefix, const cchar* suffix, bool hasTime);
 
 /**
  * 销毁 log 参数
@@ -142,6 +175,8 @@ void c_log_destroy (void);
  * @brief 输出日志到文件
  */
 void c_log_print (CLogLevel level, const cchar* tag, const cchar* file, int line, const cchar* func, const cchar* fmt, ...);
+
+void c_log_print_console (CLogLevel level, const cchar* tag, const cchar* file, int line, const cchar* func, const cchar* fmt, ...);
 
 /**
  * @brief 是否完成初始化

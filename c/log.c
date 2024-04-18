@@ -74,10 +74,10 @@ static const cchar* get_dir(const cchar* path);
 static cuint64 get_file_size(const char *path);
 static cint log_open_rewrite(const char *path);
 static cint mkdir_r(const char* path, mode_t mode);
-static cint64 log_write(struct iovec *vec, cint n);
 static void log_get_time(cchar* str, cint len, cint flag);
 static const cchar* file_name(const char* path, cint64 len);
-static void log_print(CLogLevel level, const cchar* tag, const cchar* file, cint line, const cchar* func, const cchar* msg);
+static cint64 log_write(CLogType logType, struct iovec *vec, cint n);
+static void log_print(CLogType logType, CLogLevel level, const cchar* tag, const cchar* file, cint line, const cchar* func, const cchar* msg);
 
 
 static const char* gsLogLevelStr[] = {
@@ -91,7 +91,7 @@ static const char* gsLogLevelStr[] = {
 };
 
 
-static CLogType gsLogType = C_LOG_TYPE_CONSOLE;                         // 日志默认输出到控制台
+//static CLogType gsLogType = C_LOG_TYPE_CONSOLE;                         // 日志默认输出到控制台
 static unsigned long long gsLogSize = 0;                                // 日志文件大小
 static CLogLevel gsLogLevel;                                            // 输出日至级别
 static char gsLogDir[LOG_DIRNAME_LEN] = "./";                           // 日志输出文件夹
@@ -106,7 +106,7 @@ static pthread_once_t gsThreadOnce = PTHREAD_ONCE_INIT;                 // 确�
 static bool gsIsLogInit = false;                                        // 是否完成初始化
 
 
-bool c_log_init(CLogType type, CLogLevel level, cuint64 logSize, const cchar *dir, const cchar *prefix, const cchar *suffix, bool hasTime)
+bool c_log_init(CLogLevel level, cuint64 logSize, const cchar *dir, const cchar *prefix, const cchar *suffix, bool hasTime)
 {
     if (0 != pthread_once(&gsThreadOnce, log_init_once)) {
         fprintf(stderr, "pthread_once error, log_init failed\n");
@@ -118,7 +118,6 @@ bool c_log_init(CLogType type, CLogLevel level, cuint64 logSize, const cchar *di
         return false;
     }
 
-    gsLogType = type;
     gsLogLevel = level;
     gsHasTime = hasTime;
     if (logSize > 0) {
@@ -150,13 +149,8 @@ bool c_log_init(CLogType type, CLogLevel level, cuint64 logSize, const cchar *di
         strncpy(gsLogSuffix, suffix, (cuint64) C_N_ELEMENTS(gsLogSuffix) - 1);
     }
 
-    if(C_LOG_TYPE_CONSOLE == gsLogType) {
-        gsLogFd = STDOUT_FILENO;
-    }
-    else {
-        if (!open_file()) {
-            goto RET_ERR;
-        }
+    if (!open_file()) {
+        goto RET_ERR;
     }
 
     if(0 != pthread_mutex_unlock(&gsLogMutex)) {
@@ -204,7 +198,26 @@ void c_log_print(CLogLevel level, const cchar *tag, const cchar *file, cint line
         return;
     }
 
-    log_print(level, tag, file, line, func, buf);
+    log_print(C_LOG_TYPE_FILE, level, tag, file, line, func, buf);
+}
+
+void c_log_print_console (CLogLevel level, const cchar* tag, const cchar* file, int line, const cchar* func, const cchar* fmt, ...)
+{
+    va_list ap;
+    char buf[LOG_BUF_SIZE] = {0};
+    int n;
+    if (level > gsLogLevel) {
+        return;
+    }
+
+    va_start(ap, fmt);
+    n = vsnprintf(buf, LOG_BUF_SIZE, fmt, ap);
+    va_end(ap);
+    if(n < 0) {
+        return;
+    }
+
+    log_print(C_LOG_TYPE_CONSOLE, level, tag, file, line, func, buf);
 }
 
 bool c_log_is_inited()
@@ -212,7 +225,7 @@ bool c_log_is_inited()
     return gsIsLogInit;
 }
 
-static void log_print(CLogLevel level, const cchar* tag, const cchar* file, cint line, const cchar* func, const cchar* msg)
+static void log_print(CLogType logType, CLogLevel level, const cchar* tag, const cchar* file, cint line, const cchar* func, const cchar* msg)
 {
     struct iovec vec[LOG_IOVEC_MAX];
     char s_time[LOG_FILENAME_LEN] = {0};
@@ -224,7 +237,7 @@ static void log_print(CLogLevel level, const cchar* tag, const cchar* file, cint
 
     pthread_mutex_lock(&gsLogMutex);
     log_get_time(s_time, sizeof(s_time), 0);
-    if(C_UNLIKELY(STDERR_FILENO == gsLogFd || STDOUT_FILENO == gsLogFd)) {
+    if(C_LOG_TYPE_CONSOLE == logType) {
         switch(level) {
             case C_LOG_LEVEL_ERROR: {
                 snprintf (s_level, sizeof (s_level), B_RED("[%s] "), gsLogLevelStr[level]);
@@ -296,7 +309,8 @@ static void log_print(CLogLevel level, const cchar* tag, const cchar* file, cint
     vec[++i].iov_base = "\n";
     vec[i].iov_len = 1;
 
-    log_write(vec, ++i);
+    log_write(logType, vec, ++i);
+
     pthread_mutex_unlock(&gsLogMutex);
 }
 
@@ -341,17 +355,24 @@ static int log_open_rewrite(const char *path)
     return 0;
 }
 
-static cint64 log_write(struct iovec *vec, cint n)
+static cint64 log_write(CLogType logType, struct iovec *vec, cint n)
 {
-    unsigned long long tmpSize = get_file_size(gsPathName);
-    if (tmpSize >= gsLogSize) {
-        if (-1 == close(gsLogFd)) {
-            fprintf(stderr, "close file errno:%d", errno);
+    switch (logType) {
+        default: {}
+        case C_LOG_TYPE_CONSOLE: {
+            return writev(STDOUT_FILENO, vec, n);
         }
-        log_open_rewrite(gsPathName);
+        case C_LOG_TYPE_FILE: {
+            unsigned long long tmpSize = get_file_size(gsPathName);
+            if (tmpSize >= gsLogSize) {
+                if (-1 == close(gsLogFd)) {
+                    fprintf(stderr, "close file errno:%d", errno);
+                }
+                log_open_rewrite(gsPathName);
+            }
+            return writev(gsLogFd, vec, n);
+        }
     }
-
-    return writev(gsLogFd, vec, n);
 }
 
 

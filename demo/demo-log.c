@@ -21,7 +21,7 @@ int main (C_UNUSED int argc, C_UNUSED char* argv[])
 
     C_LOG_DEBUG("1111111");
 #else
-    c_log_init (C_LOG_TYPE_FILE, C_LOG_LEVEL_VERB, 10240, "/tmp/", "a", "log", true);
+    c_log_init (C_LOG_LEVEL_VERB, 10240, "/tmp/", "a", "log", true);
     C_LOG_DEBUG("1111111");
 #endif
 

@@ -27,6 +27,23 @@
 #error "Only <clib.h> can be included directly."
 #endif
 
+#define ALIGNOF_CUINT32             4
+#define ALIGNOF_CUINT64             8
+#define ALIGNOF_UNSIGNED_LONG       8
+
+#define SIZEOF_CHAR                 1
+#define SIZEOF_INT                  4
+#define SIZEOF_LONG                 8
+#define SIZEOF_LONG_LONG            8
+#define SIZEOF_SHORT                2
+#define SIZEOF_SIZE_T               8
+#define SIZEOF_SSIZE_T              8
+#define SIZEOF_VOID_P               8
+#define SIZEOF_WCHAR_T              4
+
+#define CLIB_SIZEOF_SIZE_T          8
+
+
 /**************************** 调试相关 ***********************************/
 #ifdef DEBUG
 #define C_DEBUG_INFO(str)               C_LOG_DEBUG(#str)
@@ -113,6 +130,8 @@ typedef double                                                  cdouble;
 typedef unsigned long                                           csize;
 
 typedef void*                                                   cvoidptr;
+typedef cuint*                                                  cuintptr;
+typedef cint                                                    crefcount;
 typedef cint                                                    catomicrefcount;
 
 #define C_CINT64_CONSTANT(val)	                                (val##L)
@@ -690,7 +709,6 @@ C_STMT_END
 #define ISSPACE(c)              ((c) == ' ' || (c) == '\f' || (c) == '\n' || (c) == '\r' || (c) == '\t' || (c) == '\v')
 
 /****************** 内存申请与释放 ********************/
-void* c_malloc0 (cuint64 size);
 #define c_malloc(ptr, size) \
 C_STMT_START \
 { \
@@ -834,5 +852,98 @@ C_STMT_START \
     } \
 } \
 C_STMT_END
+
+
+static inline bool _CLIB_CHECKED_ADD_UINT (cuint* dest, cuint a, cuint b)           { *dest = a + b; return *dest >= a; }
+static inline bool _CLIB_CHECKED_MUL_UINT (cuint* dest, cuint a, cuint b)           { *dest = a * b; return !a || *dest / a == b; }
+static inline bool _CLIB_CHECKED_ADD_UINT64 (cuint64* dest, cuint64 a, cuint64 b)   { *dest = a + b; return *dest >= a; }
+static inline bool _CLIB_CHECKED_MUL_UINT64 (cuint64* dest, cuint64 a, cuint64 b)   { *dest = a * b; return !a || *dest / a == b; }
+static inline bool _CLIB_CHECKED_ADD_SIZE (csize* dest, csize a, csize b)           { *dest = a + b; return *dest >= a; }
+static inline bool _CLIB_CHECKED_MUL_SIZE (csize* dest, csize a, csize b)           { *dest = a * b; return !a || *dest / a == b; }
+
+#define c_uint_checked_add(dest, a, b)      _CLIB_CHECKED_ADD_UINT(dest, a, b)
+#define c_uint_checked_mul(dest, a, b)      _CLIB_CHECKED_MUL_UINT(dest, a, b)
+
+#define c_uint64_checked_add(dest, a, b)    _CLIB_CHECKED_ADD_UINT64(dest, a, b)
+#define c_uint64_checked_mul(dest, a, b)    _CLIB_CHECKED_MUL_UINT64(dest, a, b)
+
+#define c_size_checked_add(dest, a, b)      _CLIB_CHECKED_ADD_SIZE(dest, a, b)
+#define c_size_checked_mul(dest, a, b)      _CLIB_CHECKED_MUL_SIZE(dest, a, b)
+
+
+//
+static inline void* c_steal_pointer (void* pp)
+{
+    void** ptr = (void**) pp;
+    void* ref = *ptr;
+    *ptr = NULL;
+
+    return ref;
+}
+
+static void c_free0 (void* p)
+{
+    c_free(p);
+}
+
+static inline void* c_malloc0 (cuint64 size)
+{
+    void* ptr = NULL;
+
+    c_malloc(ptr, size);
+
+    return ptr;
+}
+
+static inline void* c_memdup (const void* mem, csize byteSize)
+{
+    void* newMem = NULL;
+
+    if (mem && (0 != byteSize)) {
+        newMem = c_malloc0 (byteSize);
+        memcpy (newMem, mem, byteSize);
+    }
+
+    return newMem;
+}
+
+static inline void* c_realloc (void* ptr, csize size)
+{
+    c_return_val_if_fail(size > 0, NULL);
+
+    void* ret = realloc(ptr, size);
+
+    c_assert(ret);
+
+    return ret;
+}
+
+static inline csize c_nearest_pow (csize num)
+{
+    csize n = num - 1;
+
+    c_assert (num > 0 && num <= C_MAX_SIZE / 2);
+
+    n |= n >> 1;
+    n |= n >> 2;
+    n |= n >> 4;
+    n |= n >> 8;
+    n |= n >> 16;
+
+#if CLIB_SIZEOF_SIZE_T == 8
+    n |= n >> 32;
+#endif
+
+    return n + 1;
+}
+
+
+void c_qsort_with_data (const void* pBase, cint totalElems, csize size, CCompareDataFunc compareFunc, void* udata);
+
+bool c_direct_equal (const void* p1, const void* p2);
+bool c_str_equal (const void* p1, const void* p2);
+bool c_int_equal (const void* p1, const void* p2);
+bool c_int64_equal (const void* p1, const void* p2);
+bool c_double_equal (const void* p1, const void* p2);
 
 #endif

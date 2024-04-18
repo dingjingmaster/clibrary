@@ -16,6 +16,7 @@
 
 #include "atomic.h"
 
+#include "log.h"
 #include <pthread.h>
 
 static pthread_mutex_t gsAtomicLock = PTHREAD_MUTEX_INITIALIZER;
@@ -267,8 +268,130 @@ cuint64 c_atomic_pointer_xor (volatile void* atomic, cuint64 val)
     return oldval;
 }
 
-
 cint g_atomic_int_exchange_and_add (volatile cint *atomic, cint val)
 {
     return c_atomic_int_add ((cint*) atomic, val);
+}
+
+void c_ref_count_init (crefcount* rc)
+{
+    c_return_if_fail (rc != NULL);
+
+    /* Non-atomic refcounting is implemented using the negative range
+     * of signed integers:
+     *
+     * G_MININT                 Z¯< 0 > Z⁺                G_MAXINT
+     * |----------------------------|----------------------------|
+     *
+     * Acquiring a reference moves us towards MININT, and releasing a
+     * reference moves us towards 0.
+     */
+
+    *rc = -1;
+}
+
+void c_ref_count_inc (crefcount* rc)
+{
+    crefcount rrc;
+
+    c_return_if_fail (rc != NULL);
+
+    rrc = *rc;
+
+    c_return_if_fail (rrc < 0);
+
+    /* Check for saturation */
+    if (rrc == C_MIN_INT32) {
+        C_LOG_ERROR_CONSOLE("Reference count %p has reached saturation", rc);
+        return;
+    }
+
+    rrc -= 1;
+
+    *rc = rrc;
+}
+
+bool c_ref_count_dec (crefcount* rc)
+{
+    crefcount rrc;
+
+    c_return_val_if_fail (rc != NULL, false);
+
+    rrc = *rc;
+
+    c_return_val_if_fail (rrc < 0, false);
+
+    rrc += 1;
+    if (rrc == 0) {
+        return true;
+    }
+
+    *rc = rrc;
+
+    return false;
+}
+
+bool c_ref_count_compare (crefcount* rc, cint val)
+{
+    crefcount rrc;
+
+    c_return_val_if_fail (rc != NULL, false);
+    c_return_val_if_fail (val >= 0, false);
+
+    rrc = *rc;
+
+    if (val == C_MAX_INT32) {
+        return rrc == C_MIN_INT32;
+    }
+
+    return rrc == -val;
+}
+
+void c_atomic_ref_count_init (catomicrefcount* arc)
+{
+    c_return_if_fail (arc != NULL);
+
+    /* Atomic refcounting is implemented using the positive range
+     * of signed integers:
+     *
+     * G_MININT                 Z¯< 0 > Z⁺                G_MAXINT
+     * |----------------------------|----------------------------|
+     *
+     * Acquiring a reference moves us towards MAXINT, and releasing a
+     * reference moves us towards 0.
+     */
+    *arc = 1;
+}
+
+void c_atomic_ref_count_inc (catomicrefcount* arc)
+{
+    cint oldValue;
+
+    c_return_if_fail (arc != NULL);
+    oldValue = c_atomic_int_add (arc, 1);
+    c_return_if_fail (oldValue > 0);
+
+    if (oldValue == C_MAX_INT32) {
+        C_LOG_ERROR_CONSOLE("Reference count has reached saturation");
+        c_assert(false);
+    }
+}
+
+bool c_atomic_ref_count_dec (catomicrefcount* arc)
+{
+    cint oldValue;
+
+    c_return_val_if_fail (arc != NULL, false);
+    oldValue = c_atomic_int_add (arc, -1);
+    c_return_val_if_fail (oldValue > 0, false);
+
+    return oldValue == 1;
+}
+
+bool c_atomic_ref_count_compare (catomicrefcount* arc, cint val)
+{
+    c_return_val_if_fail (arc != NULL, false);
+    c_return_val_if_fail (val >= 0, false);
+
+    return c_atomic_int_get (arc) == val;
 }

@@ -12,6 +12,8 @@
 //
 
 #include "array.h"
+#include "bytes.h"
+#include "atomic.h"
 
 
 #define MIN_ARRAY_SIZE  16
@@ -64,8 +66,10 @@ struct _CRealPtrArray
 static cchar* array_free (CRealArray*, ArrayFreeFlags);
 static void  c_array_maybe_expand (CRealArray* array, cuint len);
 
+static void** ptr_array_free (CPtrArray*, ArrayFreeFlags);
 static void ptr_array_maybe_null_terminate (CRealPtrArray* rarray);
 static void c_ptr_array_maybe_expand (CRealPtrArray* array, cuint len);
+static void* ptr_array_remove_index (CPtrArray* array, cuint index, bool fast, bool freeElement);
 static CPtrArray* ptr_array_new (cuint reservedSize, CDestroyNotify elementFreeFunc, bool nullTerminated);
 
 
@@ -171,7 +175,7 @@ CArray* c_array_ref (CArray* array)
 {
     c_return_val_if_fail (array != NULL, NULL);
 
-    CRealArray* rarray = (CRealArray*) array
+    CRealArray* rarray = (CRealArray*) array;
 
     c_atomic_ref_count_inc (&rarray->refCount);
 
@@ -402,7 +406,7 @@ bool c_array_binary_search (CArray* array, const void* target, CCompareFunc comp
         right = _array->len - 1;
         while (left <= right) {
             middle = left + (right - left) / 2;
-            val = compareFunc (_array->data + (_array->eltSize * middle), target);
+            val = compareFunc (_array->data + (_array->eltSize * middle), (void*) target);
             if (val == 0) {
                 result = true;
                 break;
@@ -514,119 +518,409 @@ CPtrArray* c_ptr_array_new_null_terminated (cuint reservedSize, CDestroyNotify e
 }
 
 void** c_ptr_array_free (CPtrArray* array, bool freeSeg)
-{}
+{
+    CRealPtrArray* rarray = (CRealPtrArray*) array;
+    ArrayFreeFlags flags;
+
+    c_return_val_if_fail (rarray, NULL);
+
+    flags = (freeSeg ? FREE_SEGMENT : 0);
+
+    return ptr_array_free (array, flags);
+}
 
 CPtrArray* c_ptr_array_ref (CPtrArray* array)
-{}
+{
+    CRealPtrArray* rarray = (CRealPtrArray*)array;
+
+    c_return_val_if_fail(array, NULL);
+
+    c_atomic_ref_count_inc (&rarray->refCount);
+
+    return array;
+}
 
 void c_ptr_array_unref (CPtrArray* array)
-{}
+{
+    CRealPtrArray* rarray = (CRealPtrArray*) array;
+
+    c_return_if_fail (array);
+
+    if (c_atomic_ref_count_dec (&rarray->refCount)) {
+        ptr_array_free (array, FREE_SEGMENT);
+    }
+}
 
 void c_ptr_array_set_free_func (CPtrArray* array, CDestroyNotify elementFreeFunc)
 {}
 
 void c_ptr_array_set_size (CPtrArray* array, cint length)
-{}
+{
+    CRealPtrArray* rarray = (CRealPtrArray*) array;
+    cuint lengthUnsigned;
+
+    c_return_if_fail (rarray);
+    c_return_if_fail (rarray->len == 0 || (rarray->len != 0 && rarray->pdata != NULL));
+    c_return_if_fail (length >= 0);
+
+    lengthUnsigned = (cuint) length;
+
+    if (lengthUnsigned > rarray->len) {
+        cuint i;
+        if (C_UNLIKELY (rarray->nullTerminated) && lengthUnsigned - rarray->len > C_MAX_UINT - 1) {
+//            g_error ("array would overflow");
+            c_assert(false);
+        }
+
+        c_ptr_array_maybe_expand (rarray, (lengthUnsigned - rarray->len) + rarray->nullTerminated);
+
+        for (i = rarray->len; i < lengthUnsigned; i++) {
+            rarray->pdata[i] = NULL;
+        }
+        rarray->len = lengthUnsigned;
+        ptr_array_maybe_null_terminate (rarray);
+    }
+    else if (lengthUnsigned < rarray->len) {
+        c_ptr_array_remove_range (array, lengthUnsigned, rarray->len - lengthUnsigned);
+    }
+}
 
 void* c_ptr_array_remove_index (CPtrArray* array, cuint index)
-{}
+{
+    return ptr_array_remove_index (array, index, false, true);
+}
 
 void* c_ptr_array_remove_index_fast (CPtrArray* array, cuint index)
-{}
+{
+    return ptr_array_remove_index (array, index, true, true);
+}
 
 void* c_ptr_array_steal_index (CPtrArray* array, cuint index)
-{}
+{
+    return ptr_array_remove_index (array, index, false, false);
+}
 
 void* c_ptr_array_steal_index_fast (CPtrArray* array, cuint index)
-{}
+{
+    return ptr_array_remove_index (array, index, true, false);
+}
 
 bool c_ptr_array_remove (CPtrArray* array, void* data)
-{}
+{
+    cuint i;
+
+    c_return_val_if_fail (array, false);
+    c_return_val_if_fail (array->len == 0 || (array->len != 0 && array->pdata != NULL), false);
+
+    CRealPtrArray* ptrArray = (CRealPtrArray*) array;
+
+    for (i = 0; i < array->len; i += 1) {
+        if (ptrArray->pdata[i] == data) {
+            c_ptr_array_remove_index (array, i);
+            return true;
+        }
+    }
+
+    return false;
+}
 
 bool c_ptr_array_remove_fast (CPtrArray* array, void* data)
-{}
+{
+    CRealPtrArray* rarray = (CRealPtrArray*) array;
+    cuint i;
+
+    c_return_val_if_fail (rarray, false);
+    c_return_val_if_fail (rarray->len == 0 || (rarray->len != 0 && rarray->pdata != NULL), false);
+
+    for (i = 0; i < rarray->len; i += 1) {
+        if (rarray->pdata[i] == data) {
+            c_ptr_array_remove_index_fast (array, i);
+            return true;
+        }
+    }
+
+    return false;
+}
 
 CPtrArray* c_ptr_array_remove_range (CPtrArray* array, cuint index, cuint length)
-{}
+{
+    CRealPtrArray* rarray = (CRealPtrArray*) array;
+    cuint i;
+
+    c_return_val_if_fail ((rarray != NULL) && rarray->pdata, NULL);
+    c_return_val_if_fail (rarray->len == 0 || (rarray->len != 0 && rarray->pdata != NULL), NULL);
+    c_return_val_if_fail (index <= rarray->len, NULL);
+    c_return_val_if_fail (length == 0 || index + length <= rarray->len, NULL);
+
+    if (length == 0) {
+        return array;
+    }
+
+    if (rarray->elementFreeFunc != NULL) {
+        for (i = index; i < index + length; i++) {
+            rarray->elementFreeFunc (rarray->pdata[i]);
+        }
+    }
+
+    if (index + length != rarray->len) {
+        memmove (&rarray->pdata[index], &rarray->pdata[index + length], (rarray->len - (index + length)) * sizeof (void*));
+    }
+
+    rarray->len -= length;
+    ptr_array_maybe_null_terminate (rarray);
+
+    return array;
+}
 
 void c_ptr_array_add (CPtrArray* array, void* data)
-{}
+{
+    CRealPtrArray* rarray = (CRealPtrArray*) array;
+
+    c_return_if_fail (rarray);
+    c_return_if_fail (rarray->len == 0 || (rarray->len != 0 && rarray->pdata != NULL));
+
+    c_ptr_array_maybe_expand (rarray, 1u + rarray->nullTerminated);
+
+    rarray->pdata[rarray->len++] = data;
+
+    ptr_array_maybe_null_terminate (rarray);
+}
 
 void c_ptr_array_extend (CPtrArray* arrayToExtend, CPtrArray* array, CCopyFunc func, void* udata)
-{}
+{
+    CRealPtrArray *rarrayToExtend = (CRealPtrArray*) arrayToExtend;
+
+    c_return_if_fail (arrayToExtend != NULL);
+    c_return_if_fail (array != NULL);
+
+    if (array->len == 0u) {
+        return;
+    }
+
+    if (C_UNLIKELY (array->len == C_MAX_UINT) && rarrayToExtend->nullTerminated) {
+//        g_error ("adding %u to array would overflow", array->len);
+        c_assert(false);
+    }
+
+    c_ptr_array_maybe_expand (rarrayToExtend, array->len + rarrayToExtend->nullTerminated);
+
+    if (func != NULL) {
+        cuint i;
+        for (i = 0; i < array->len; i++) {
+            rarrayToExtend->pdata[i + rarrayToExtend->len] = func (rarrayToExtend->pdata[i], udata);
+        }
+    }
+    else if (array->len > 0) {
+        memcpy (rarrayToExtend->pdata + rarrayToExtend->len, array->pdata, array->len * sizeof (*array->pdata));
+    }
+
+    rarrayToExtend->len += array->len;
+
+    ptr_array_maybe_null_terminate (rarrayToExtend);
+}
 
 void c_ptr_array_extend_and_steal (CPtrArray* arrayToExtend, CPtrArray* array)
-{}
+{
+    c_ptr_array_extend (arrayToExtend, array, NULL, NULL);
 
-void c_ptr_array_insert (CPtrArray* array, cint index, void* data)
-{}
+    void** pdata = c_steal_pointer (&array->pdata);
+    array->len = 0;
+    ((CRealPtrArray*) array)->alloc = 0;
+    c_ptr_array_unref (array);
+    c_free (pdata);
+}
+
+void c_ptr_array_insert (CPtrArray* array, cuint index, void* data)
+{
+    CRealPtrArray* rarray = (CRealPtrArray*) array;
+
+    c_return_if_fail (rarray);
+    c_return_if_fail (index >= -1);
+    c_return_if_fail (index <= (cint)rarray->len);
+
+    c_ptr_array_maybe_expand (rarray, 1u + rarray->nullTerminated);
+
+    if (index < 0) {
+        index = rarray->len;
+    }
+
+    if ((cuint) index < rarray->len) {
+        memmove (&(rarray->pdata[index + 1]), &(rarray->pdata[index]), (rarray->len - index) * sizeof (void*));
+    }
+
+    rarray->len++;
+    rarray->pdata[index] = data;
+
+    ptr_array_maybe_null_terminate (rarray);
+}
 
 void c_ptr_array_sort (CPtrArray* array, CCompareFunc compareFunc)
-{}
+{
+    c_return_if_fail (array != NULL);
+
+    if (array->len > 0) {
+        c_qsort_with_data (array->pdata, array->len, sizeof (void*), (CCompareDataFunc)compareFunc, NULL);
+    }
+}
 
 void c_ptr_array_sort_with_data (CPtrArray* array, CCompareDataFunc compareFunc, void* udata)
-{}
+{
+    c_return_if_fail (array != NULL);
+
+    if (array->len > 0) {
+        c_qsort_with_data (array->pdata, array->len, sizeof (void*), (CCompareDataFunc)compareFunc, udata);
+    }
+}
 
 void c_ptr_array_foreach (CPtrArray* array, CFunc func, void* udata)
-{}
+{
+    c_return_if_fail (array);
+
+    cuint i;
+    for (i = 0; i < array->len; i++) {
+        (*func) ((((CRealPtrArray*)array))->pdata[i], udata);
+    }
+}
 
 bool c_ptr_array_find (CPtrArray* haystack, const void* needle, cuint* index)
-{}
+{
+    return c_ptr_array_find_with_equal_func (haystack, needle, NULL, index);
+}
 
 bool c_ptr_array_find_with_equal_func (CPtrArray* haystack, const void* needle, CEqualFunc equalFunc, cuint* index)
-{}
+{
+    c_return_val_if_fail (haystack != NULL, false);
+
+    cuint i;
+    if (equalFunc == NULL) {
+        equalFunc = c_direct_equal;
+    }
+
+    for (i = 0; i < haystack->len; i++) {
+        if (equalFunc (c_ptr_array_index ((CRealPtrArray*) haystack, i), needle)) {
+            if (index != NULL) {
+                *index = i;
+            }
+            return true;
+        }
+    }
+
+    return false;
+}
 
 bool c_ptr_array_is_null_terminated (CPtrArray* array)
 {}
 
 
 CByteArray* c_byte_array_new (void)
-{}
+{
+    return (CByteArray*) c_array_sized_new (false, false, 1, 0);
+}
 
 CByteArray* c_byte_array_new_take (cuint8* data, cuint64 len)
-{}
+{
+    c_return_val_if_fail (len <= C_MAX_UINT, NULL);
+
+    CByteArray* array = c_byte_array_new ();
+    CRealArray* real = (CRealArray*) array;
+
+    c_assert (real->data == NULL);
+    c_assert (real->len == 0);
+
+    real->data = data;
+    real->len = len;
+    real->eltCapacity = len;
+
+    return array;
+}
 
 cuint8* c_byte_array_steal (CByteArray* array, cuint64* len)
-{}
+{
+    return (cuint8*) c_array_steal ((CArray*) array, len);
+}
 
 CByteArray* c_byte_array_sized_new (cuint reservedSize)
-{}
+{
+    return (CByteArray*) c_array_sized_new (false, false, 1, reservedSize);
+}
 
 cuint8* c_byte_array_free (CByteArray* array, bool freeSegment)
-{}
+{
+    return (cuint8*) c_array_free ((CArray*) array, freeSegment);
+}
 
 CBytes* c_byte_array_free_to_bytes (CByteArray* array)
-{}
+{
+    c_return_val_if_fail (array != NULL, NULL);
+
+    csize length = array->len;
+
+    return c_bytes_new_take (c_byte_array_free (array, false), length);
+}
 
 CByteArray* c_byte_array_ref (CByteArray* array)
-{}
+{
+    return (CByteArray*) c_array_ref ((CArray*) array);
+}
 
 void c_byte_array_unref (CByteArray* array)
-{}
+{
+    c_array_unref ((CArray*) array);
+}
 
 CByteArray* c_byte_array_append (CByteArray* array, const cuint8* data, cuint len)
-{}
+{
+    c_array_append_vals ((CArray*) array, (cuint8*) data, len);
+
+    return array;
+}
 
 CByteArray* c_byte_array_prepend (CByteArray* array, const cuint8* data, cuint len)
-{}
+{
+    c_array_prepend_vals ((CArray*) array, (cuint8*) data, len);
+
+    return array;
+}
 
 CByteArray* c_byte_array_set_size (CByteArray* array, cuint length)
-{}
+{
+    c_array_set_size ((CArray*) array, length);
+
+    return array;
+}
 
 CByteArray* c_byte_array_remove_index (CByteArray* array, cuint index)
-{}
+{
+    c_array_remove_index ((CArray*) array, index);
+
+    return array;
+}
 
 CByteArray* c_byte_array_remove_index_fast (CByteArray* array, cuint index)
-{}
+{
+    c_array_remove_index_fast ((CArray*) array, index);
+
+    return array;
+}
 
 CByteArray* c_byte_array_remove_range (CByteArray* array, cuint index, cuint length)
-{}
+{
+    c_return_val_if_fail (array, NULL);
+    c_return_val_if_fail (index <= array->len, NULL);
+    c_return_val_if_fail (index + length <= array->len, NULL);
+
+    return (CByteArray*) c_array_remove_range ((CArray*)array, index, length);
+}
 
 void c_byte_array_sort (CByteArray* array, CCompareFunc compareFunc)
-{}
+{
+    c_array_sort ((CArray*) array, compareFunc);
+}
 
 void c_byte_array_sort_with_data (CByteArray* array, CCompareDataFunc compareFunc, void* udata)
-{}
+{
+    c_array_sort_with_data ((CArray*) array, compareFunc, udata);
+}
 
 
 static cchar* array_free (CRealArray* array, ArrayFreeFlags flags)
@@ -730,4 +1024,94 @@ static CPtrArray* ptr_array_new (cuint reservedSize, CDestroyNotify elementFreeF
     }
 
     return (CPtrArray*) array;
+}
+
+static void** ptr_array_free (CPtrArray* array, ArrayFreeFlags flags)
+{
+    CRealPtrArray *rarray = (CRealPtrArray*) array;
+
+    c_return_val_if_fail(array, NULL);
+
+    void** segment = NULL;
+
+    if (flags & FREE_SEGMENT) {
+        void** stolenPdata = c_steal_pointer (&rarray->pdata);
+        if (rarray->elementFreeFunc != NULL) {
+            cuint i;
+            for (i = 0; i < rarray->len; ++i) {
+                rarray->elementFreeFunc (stolenPdata[i]);
+            }
+        }
+
+        c_free (stolenPdata);
+        segment = NULL;
+    }
+    else {
+        segment = rarray->pdata;
+        if (!segment && rarray->nullTerminated) {
+            segment = (void**) c_malloc0(sizeof(char*));
+        }
+    }
+
+    if (flags & PRESERVE_WRAPPER) {
+        rarray->pdata = NULL;
+        rarray->len = 0;
+        rarray->alloc = 0;
+    }
+    else {
+        c_free(rarray);
+    }
+
+    return segment;
+}
+
+static void c_ptr_array_maybe_expand (CRealPtrArray* array, cuint len)
+{
+    cuint maxLen = (cuint) C_MIN (C_MAX_SIZE / 2 / sizeof (void*), C_MAX_UINT);
+
+    if C_UNLIKELY ((maxLen - array->len) < len) {
+        assert(false);
+    }
+
+    if ((array->len + len) > array->alloc) {
+        cuint oldAlloc = array->alloc;
+        csize wantAlloc = c_nearest_pow (sizeof (void*) * (array->len + len));
+        wantAlloc = C_MAX(wantAlloc, MIN_ARRAY_SIZE);
+        array->alloc = C_MIN (wantAlloc / sizeof (void*), C_MAX_UINT);
+        array->pdata = c_realloc (array->pdata, wantAlloc);
+        for ( ; oldAlloc < array->alloc; oldAlloc++) {
+            array->pdata [oldAlloc] = NULL;
+        }
+    }
+}
+
+static void* ptr_array_remove_index (CPtrArray* array, cuint index, bool fast, bool freeElement)
+{
+    CRealPtrArray* rarray = (CRealPtrArray*) array;
+    void* result = NULL;
+
+    c_return_val_if_fail (rarray && rarray->pdata, NULL);
+    c_return_val_if_fail (rarray->len == 0 || (rarray->len != 0 && rarray->pdata != NULL), NULL);
+    c_return_val_if_fail (index < rarray->len, NULL);
+
+    result = rarray->pdata[index];
+
+    if (rarray->elementFreeFunc != NULL && freeElement) {
+        rarray->elementFreeFunc (rarray->pdata[index]);
+    }
+
+    if (index != rarray->len - 1 && !fast) {
+        memmove (rarray->pdata + index, rarray->pdata + index + 1, sizeof (void*) * (rarray->len - index - 1));
+    }
+    else if (index != rarray->len - 1) {
+        rarray->pdata[index] = rarray->pdata[rarray->len - 1];
+    }
+
+    rarray->len -= 1;
+
+    if (rarray->nullTerminated) {
+        rarray->pdata[rarray->len] = NULL;
+    }
+
+    return result;
 }

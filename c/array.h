@@ -95,7 +95,7 @@ CPtrArray*  c_ptr_array_remove_range        (CPtrArray* array, cuint index, cuin
 void        c_ptr_array_add                 (CPtrArray* array, void* data);
 void        c_ptr_array_extend              (CPtrArray* arrayToExtend, CPtrArray* array, CCopyFunc func, void* udata);
 void        c_ptr_array_extend_and_steal    (CPtrArray* arrayToExtend, CPtrArray* array);
-void        c_ptr_array_insert              (CPtrArray* array, cint index, void* data);
+void        c_ptr_array_insert              (CPtrArray* array, cuint index, void* data);
 void        c_ptr_array_sort                (CPtrArray* array, CCompareFunc compareFunc);
 void        c_ptr_array_sort_with_data      (CPtrArray* array, CCompareDataFunc compareFunc, void* udata);
 void        c_ptr_array_foreach             (CPtrArray* array, CFunc func, void* udata);

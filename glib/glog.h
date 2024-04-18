@@ -50,7 +50,7 @@ C_BEGIN_EXTERN_C
 #define C_GLOG_INIT_IF_NOT_INIT \
 { \
     if (C_UNLIKELY(!c_log_is_inited())) { \
-        c_log_init (C_LOG_TYPE_FILE, C_LOG_LEVEL, C_LOG_SIZE, C_LOG_DIR, C_LOG_TAG, "log", false); \
+        c_log_init (C_LOG_LEVEL, C_LOG_SIZE, C_LOG_DIR, C_LOG_TAG, "log", false); \
         C_GLIB_ENABLE_DEBUG \
         g_log_set_writer_func(c_glog_handler, NULL, NULL); \
     } \

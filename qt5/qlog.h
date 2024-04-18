@@ -39,7 +39,7 @@
 #define C_QLOG_INIT_IF_NOT_INIT \
 { \
     if (C_UNLIKELY(!c_log_is_inited())) { \
-        c_log_init (C_LOG_TYPE_FILE, C_LOG_LEVEL, C_LOG_SIZE, C_LOG_DIR, C_LOG_TAG, "log", false); \
+        c_log_init (C_LOG_LEVEL, C_LOG_SIZE, C_LOG_DIR, C_LOG_TAG, "log", false); \
         qInstallMessageHandler(c_qlog_handler); \
     } \
 };

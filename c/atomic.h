@@ -47,6 +47,14 @@ culong  c_atomic_pointer_or                     (volatile void* atomic, culong v
 culong  c_atomic_pointer_xor                    (volatile void* atomic, culong val);
 int     c_atomic_int_exchange_and_add           (volatile int *atomic, int val);
 
+void    c_ref_count_init                        (crefcount* rc);
+void    c_ref_count_inc                         (crefcount* rc);
+bool    c_ref_count_dec                         (crefcount* rc);
+bool    c_ref_count_compare                     (crefcount* rc, cint val);
+void    c_atomic_ref_count_init                 (catomicrefcount* arc);
+void    c_atomic_ref_count_inc                  (catomicrefcount* arc);
+bool    c_atomic_ref_count_dec                  (catomicrefcount* arc);
+bool    c_atomic_ref_count_compare              (catomicrefcount* arc, cint val);
 
 C_END_EXTERN_C
 
