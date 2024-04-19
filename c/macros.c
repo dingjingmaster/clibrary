@@ -13,6 +13,9 @@
 
 #include "macros.h"
 
+#include "log.h"
+
+
 typedef struct _MSortParam          MSortParam;
 
 struct _MSortParam
@@ -28,6 +31,12 @@ struct _MSortParam
 static void msort_with_tmp (const MSortParam* p, void* b, size_t n);
 static void msort_r (void *b, cuint64 n, cuint64 s, CCompareDataFunc cmp, void *arg);
 
+void c_abort (void)
+{
+    C_LOG_WARNING_CONSOLE("c_abort!")
+
+    abort();
+}
 
 void c_qsort_with_data (const void* pBase, cint totalElems, csize size, CCompareDataFunc compareFunc, void* udata)
 {

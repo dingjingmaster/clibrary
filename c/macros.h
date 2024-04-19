@@ -224,7 +224,7 @@ typedef enum
 
 
 #if C_GNUC_CHECK_VERSION(2, 8)
-#define C_GNUC_EXTENSION                                        __extension__
+#define C_GNUC_EXTENSION __extension__
 #else
 #define C_GNUC_EXTENSION
 #endif
@@ -401,9 +401,9 @@ typedef enum
  */
 #if c_macro__has_attribute(__format__)
 #if !defined (__clang__) && C_GNUC_CHECK_VERSION (4, 4)
-#define C_PRINTF( format_idx, arg_idx )                         __attribute__((__format__ (gnu_printf, format_idx, arg_idx)))
-#define C_SCANF( format_idx, arg_idx )                          __attribute__((__format__ (gnu_scanf, format_idx, arg_idx)))
-#define C_STRFTIME( format_idx )                                __attribute__((__format__ (gnu_strftime, format_idx, 0)))
+#define C_PRINTF( format_idx, arg_idx )                         __attribute__((__format__(printf, format_idx, arg_idx)))
+#define C_SCANF( format_idx, arg_idx )                          __attribute__((__format__(scanf, format_idx, arg_idx)))
+#define C_STRFTIME( format_idx )                                __attribute__((__format__(strftime, format_idx, 0)))
 #else
 #define C_PRINTF( format_idx, arg_idx )                         __attribute__((__format__ (__printf__, format_idx, arg_idx)))
 #define C_SCANF( format_idx, arg_idx )                          __attribute__((__format__ (__scanf__, format_idx, arg_idx)))
@@ -950,6 +950,7 @@ static inline csize c_nearest_pow (csize num)
 }
 
 
+void c_abort (void);
 void c_qsort_with_data (const void* pBase, cint totalElems, csize size, CCompareDataFunc compareFunc, void* udata);
 
 bool c_direct_equal (const void* p1, const void* p2);

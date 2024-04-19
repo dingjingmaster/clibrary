@@ -26,6 +26,15 @@ file(GLOB C_SRC
         ${CMAKE_SOURCE_DIR}/c/bytes.h
         ${CMAKE_SOURCE_DIR}/c/bytes.c
 
+        ${CMAKE_SOURCE_DIR}/c/quark.h
+        ${CMAKE_SOURCE_DIR}/c/quark.c
+
+        ${CMAKE_SOURCE_DIR}/c/error.h
+        ${CMAKE_SOURCE_DIR}/c/error.c
+
+        ${CMAKE_SOURCE_DIR}/c/thread.h
+        ${CMAKE_SOURCE_DIR}/c/thread.c
+
         ${CMAKE_SOURCE_DIR}/c/atomic.h
         ${CMAKE_SOURCE_DIR}/c/atomic.c
 
@@ -37,6 +46,7 @@ file(GLOB C_SRC
 
         ${CMAKE_SOURCE_DIR}/c/wakeup.h
         ${CMAKE_SOURCE_DIR}/c/wakeup.c
+
 )
 
 file(GLOB C_HEADERS
@@ -50,6 +60,7 @@ file(GLOB C_HEADERS
         ${CMAKE_SOURCE_DIR}/c/array.h
         ${CMAKE_SOURCE_DIR}/c/bytes.h
         ${CMAKE_SOURCE_DIR}/c/slist.h
+        ${CMAKE_SOURCE_DIR}/c/thread.h
         ${CMAKE_SOURCE_DIR}/c/atomic.h
         ${CMAKE_SOURCE_DIR}/c/base64.h
         ${CMAKE_SOURCE_DIR}/c/macros.h
