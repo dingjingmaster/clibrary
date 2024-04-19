@@ -59,6 +59,56 @@ bool c_double_equal (const void* p1, const void* p2)
     return *(cdouble*) p1 == *(cdouble*) p2;
 }
 
+
+CRand* c_rand_new_with_seed (cuint32  seed)
+{}
+
+CRand* c_rand_new_with_seed_array (const cuint32 *seed, cuint seedLength)
+{}
+
+CRand* c_rand_new (void)
+{}
+
+void c_rand_free (CRand* rand)
+{}
+
+CRand* c_rand_copy (CRand* rand)
+{}
+
+void c_rand_set_seed (CRand* rand, cuint32 seed)
+{}
+
+void c_rand_set_seed_array (CRand* rand, const cuint32* seed, cuint seedLength)
+{}
+
+cuint32 c_rand_int (CRand* rand)
+{}
+
+cint32 c_rand_int_range (CRand* rand, cint32 begin, cint32 end)
+{}
+
+cdouble c_rand_double (CRand* rand)
+{}
+
+cdouble c_rand_double_range (CRand* rand, cdouble begin, cdouble end)
+{}
+
+void c_random_set_seed (cuint32 seed)
+{}
+
+cuint32 c_random_int (void)
+{}
+
+cint32 c_random_int_range (cint32 begin, cint32 end)
+{}
+
+cdouble c_random_double (void)
+{}
+
+cdouble c_random_double_range (cdouble begin, cdouble end)
+{}
+
+
 static void msort_r (void *b, cuint64 n, cuint64 s, CCompareDataFunc cmp, void *arg)
 {
     MSortParam p;

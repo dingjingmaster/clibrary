@@ -210,7 +210,6 @@ typedef enum
 } CIOCondition;
 
 
-
 /** @NOTE **/
 /********************************* 宏定义 ***************************************/
 #ifdef __GNUC__
@@ -959,6 +958,27 @@ bool c_int_equal (const void* p1, const void* p2);
 bool c_int64_equal (const void* p1, const void* p2);
 bool c_double_equal (const void* p1, const void* p2);
 
-// FIXME://
-cuint32 c_random_int ();
+
+// random
+typedef struct _CRand CRand;
+#define c_rand_boolean(rand_)   ((c_rand_int (rand_) & (1 << 15)) != 0)
+#define c_random_boolean()      ((c_random_int () & (1 << 15)) != 0)
+
+CRand*  c_rand_new_with_seed  (cuint32  seed);
+CRand*  c_rand_new_with_seed_array (const cuint32 *seed, cuint seedLength);
+CRand*  c_rand_new            (void);
+void    c_rand_free           (CRand* rand);
+CRand*  c_rand_copy           (CRand* rand);
+void    c_rand_set_seed       (CRand* rand, cuint32 seed);
+void    c_rand_set_seed_array (CRand* rand, const cuint32* seed, cuint seedLength);
+cuint32 c_rand_int            (CRand* rand);
+cint32  c_rand_int_range      (CRand* rand, cint32 begin, cint32 end);
+cdouble c_rand_double         (CRand* rand);
+cdouble c_rand_double_range   (CRand* rand, cdouble begin, cdouble end);
+void    c_random_set_seed     (cuint32 seed);
+cuint32 c_random_int          (void);
+cint32  c_random_int_range    (cint32 begin, cint32 end);
+cdouble c_random_double       (void);
+cdouble c_random_double_range (cdouble begin, cdouble end);
+
 #endif
