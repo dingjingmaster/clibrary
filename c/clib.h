@@ -15,11 +15,13 @@
 #define CLIBRARY_CLIB_H
 #include <c/log.h>
 #include <c/str.h>
+#include <c/hash.h>
 #include <c/list.h>
 #include <c/poll.h>
 #include <c/array.h>
 #include <c/bytes.h>
 #include <c/slist.h>
+#include <c/thread.h>
 #include <c/atomic.h>
 #include <c/macros.h>
 #include <c/base64.h>

@@ -693,6 +693,11 @@ typedef enum
 #undef C_SIZE_TO_POINTER
 #define C_SIZE_TO_POINTER(s)                                    ((void*) (unsigned long) (s))
 
+#undef C_POINTER_TO_UINT
+#define C_POINTER_TO_UINT(p)                                    ((unsigned int) (unsigned long) (p))
+
+#undef C_UINT_TO_POINTER
+#define C_UINT_TO_POINTER(u)	                                ((void*) (unsigned long) (u))
 
 #define c_assert(x) \
 C_STMT_START \

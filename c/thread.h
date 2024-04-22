@@ -36,6 +36,8 @@ C_BEGIN_EXTERN_C
 #define C_UNLOCK(name)                  c_mutex_unlock (&C_LOCK_NAME (name))
 #define C_TRYLOCK(name)                 c_mutex_trylock (&C_LOCK_NAME (name))
 
+#define C_THREAD_ERROR c_thread_error_quark()
+
 
 #if defined(C_ATOMIC_LOCK_FREE) && defined(__GCC_HAVE_SYNC_COMPARE_AND_SWAP_4) && defined(__ATOMIC_SEQ_CST)
 #define c_once(once, func, arg) \
@@ -146,6 +148,7 @@ struct _CThread
 
 
 
+CQuark          c_thread_error_quark            (void);
 CThread *       c_thread_ref                    (CThread* thread);
 void            c_thread_unref                  (CThread* thread);
 CThread *       c_thread_new                    (const char* name, CThreadFunc func, void* data);

@@ -150,6 +150,11 @@ cuint c_atomic_int_xor (volatile cuint *atomic, cuint val)
     return oldVal;
 }
 
+int c_atomic_int_exchange_and_add (volatile int *atomic, int val)
+{
+    return c_atomic_int_add ((cint*) atomic, val);
+}
+
 void* c_atomic_pointer_get (const volatile void* atomic)
 {
     const void** ptr = (const void**) atomic;

@@ -20,6 +20,8 @@
 #include <c/macros.h>
 
 
+typedef cuint32             CQuark;
+
 #define C_DEFINE_QUARK(QN, q_n) \
 CQuark q_n##_quark (void) \
 { \
@@ -29,9 +31,6 @@ CQuark q_n##_quark (void) \
     } \
     return q; \
 }
-
-
-typedef cuint32             CQuark;
 
 
 CQuark      c_quark_try_string          (const char* string);
