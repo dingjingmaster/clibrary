@@ -706,6 +706,13 @@ C_STMT_START \
 } \
 C_STMT_END
 
+#define c_assert_not_reached() \
+C_STMT_START \
+{ \
+    C_LOG_WARNING_CONSOLE("It's impossible"); \
+} \
+C_STMT_END
+
 // FIXME:// 替换为 gunlib ?
 #define _c_printf    printf
 #define _c_fprintf   fprintf
@@ -987,4 +994,15 @@ cint32  c_random_int_range    (cint32 begin, cint32 end);
 cdouble c_random_double       (void);
 cdouble c_random_double_range (cdouble begin, cdouble end);
 
+/* env start */
+const char* c_getenv          (const char* variable);
+bool        c_setenv          (const char* variable, const char* value, bool overwrite);
+void        c_unsetenv        (const char* variable);
+char**      c_listenv         (void);
+char**      c_get_environ     (void);
+const char* c_environ_getenv  (char** envp, const char* variable);
+char**      c_environ_setenv  (char** envp, const char* variable, const char* value, bool overwrite) C_WARN_UNUSED_RESULT;
+char**      c_environ_unsetenv(char** envp, const char* variable) C_WARN_UNUSED_RESULT;
+
+/* env end */
 #endif
