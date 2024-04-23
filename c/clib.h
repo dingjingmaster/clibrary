@@ -28,5 +28,6 @@
 #include <c/macros.h>
 #include <c/base64.h>
 #include <c/wakeup.h>
+#include <c/time-zone.h>
 
 #endif //CLIBRARY_CLIB_H

@@ -129,6 +129,7 @@ typedef float                                                   cfloat;
 typedef double                                                  cdouble;
 
 typedef unsigned long                                           csize;
+typedef signed long                                             cssize;
 
 typedef void*                                                   cvoidptr;
 typedef cuint*                                                  cuintptr;
@@ -182,6 +183,117 @@ typedef cint                                                    catomicrefcount;
 #define C_PI_4                                                  0.78539816339744830961566084581987572104929234984378
 #define C_SQRT2                                                 1.4142135623730950488016887242096980785696718753769
 
+#define C_LITTLE_ENDIAN                                         1234
+#define C_BIG_ENDIAN                                            4321
+#define C_PDP_ENDIAN                                            3412
+
+#define C_INT16_TO_LE(val)       ((cint16) (val))
+#define C_UINT16_TO_LE(val)      ((cuint16) (val))
+#define C_INT16_TO_BE(val)       ((cint16) C_UINT16_SWAP_LE_BE (val))
+#define C_UINT16_TO_BE(val)      (C_UINT16_SWAP_LE_BE (val))
+
+#define C_INT32_TO_LE(val)       ((cint32) (val))
+#define C_UINT32_TO_LE(val)      ((cuint32) (val))
+#define C_INT32_TO_BE(val)       ((cint32) C_UINT32_SWAP_LE_BE (val))
+#define C_UINT32_TO_BE(val)      (C_UINT32_SWAP_LE_BE (val))
+
+#define C_INT64_TO_LE(val)       ((cint64) (val))
+#define C_UINT64_TO_LE(val)      ((cuint64) (val))
+#define C_INT64_TO_BE(val)       ((cint64) C_UINT64_SWAP_LE_BE (val))
+#define C_UINT64_TO_BE(val)      (C_UINT64_SWAP_LE_BE (val))
+
+#define C_LONG_TO_LE(val)        ((clong) C_INT64_TO_LE (val))
+#define C_ULONG_TO_LE(val)       ((culong) C_UINT64_TO_LE (val))
+#define C_LONG_TO_BE(val)        ((clong) C_INT64_TO_BE (val))
+#define C_ULONG_TO_BE(val)       ((culong) C_UINT64_TO_BE (val))
+#define C_INT_TO_LE(val)         ((cint) C_INT32_TO_LE (val))
+#define C_UINT_TO_LE(val)        ((cuint) C_UINT32_TO_LE (val))
+#define C_INT_TO_BE(val)         ((cint) C_INT32_TO_BE (val))
+#define C_UINT_TO_BE(val)        ((cuint) C_UINT32_TO_BE (val))
+#define C_SIZE_TO_LE(val)        ((csize) C_UINT64_TO_LE (val))
+#define C_SSIZE_TO_LE(val)       ((cssize) C_INT64_TO_LE (val))
+#define C_SIZE_TO_BE(val)        ((csize) C_UINT64_TO_BE (val))
+#define C_SSIZE_TO_BE(val)       ((cssize) C_INT64_TO_BE (val))
+
+#define C_UINT16_SWAP_LE_BE_CONSTANT(val)        ((cuint16) ( \
+    (cuint16) ((cuint16) (val) >> 8) |  \
+    (cuint16) ((cuint16) (val) << 8)))
+
+#define C_UINT32_SWAP_LE_BE_CONSTANT(val)        ((cuint32) ( \
+    (((cuint32) (val) & (cuint32) 0x000000ffU) << 24) | \
+    (((cuint32) (val) & (cuint32) 0x0000ff00U) <<  8) | \
+    (((cuint32) (val) & (cuint32) 0x00ff0000U) >>  8) | \
+    (((cuint32) (val) & (cuint32) 0xff000000U) >> 24)))
+
+#define C_UINT64_SWAP_LE_BE_CONSTANT(val)        ((cuint64) ( \
+      (((cuint64) (val) &                                               \
+        (cuint64) C_CINT64_CONSTANT (0x00000000000000ffU)) << 56) |     \
+      (((cuint64) (val) &                                               \
+        (cuint64) C_CINT64_CONSTANT (0x000000000000ff00U)) << 40) |     \
+      (((cuint64) (val) &                                               \
+        (cuint64) C_CINT64_CONSTANT (0x0000000000ff0000U)) << 24) |     \
+      (((cuint64) (val) &                                               \
+        (cuint64) C_CINT64_CONSTANT (0x00000000ff000000U)) <<  8) |     \
+      (((cuint64) (val) &                                               \
+        (cuint64) C_CINT64_CONSTANT (0x000000ff00000000U)) >>  8) |     \
+      (((cuint64) (val) &                                               \
+        (cuint64) C_CINT64_CONSTANT (0x0000ff0000000000U)) >> 24) |     \
+      (((cuint64) (val) &                                               \
+        (cuint64) C_CINT64_CONSTANT (0x00ff000000000000U)) >> 40) |      \
+      (((cuint64) (val) &                                               \
+        (cuint64) C_CINT64_CONSTANT (0xff00000000000000U)) >> 56)))
+
+#define C_UINT16_SWAP_LE_BE(val)    (C_UINT16_SWAP_LE_BE_CONSTANT (val))
+#define C_UINT32_SWAP_LE_BE(val)    (C_UINT32_SWAP_LE_BE_CONSTANT (val))
+#define C_UINT64_SWAP_LE_BE(val)    (C_UINT64_SWAP_LE_BE_CONSTANT (val))
+
+#define C_INT16_FROM_LE(val)        (C_INT16_TO_LE (val))
+#define C_UINT16_FROM_LE(val)       (C_UINT16_TO_LE (val))
+#define C_INT16_FROM_BE(val)        (C_INT16_TO_BE (val))
+#define C_UINT16_FROM_BE(val)       (C_UINT16_TO_BE (val))
+#define C_INT32_FROM_LE(val)        (C_INT32_TO_LE (val))
+#define C_UINT32_FROM_LE(val)       (C_UINT32_TO_LE (val))
+#define C_INT32_FROM_BE(val)        (C_INT32_TO_BE (val))
+#define C_UINT32_FROM_BE(val)       (C_UINT32_TO_BE (val))
+
+#define C_INT64_FROM_LE(val)        (C_INT64_TO_LE (val))
+#define C_UINT64_FROM_LE(val)       (C_UINT64_TO_LE (val))
+#define C_INT64_FROM_BE(val)        (C_INT64_TO_BE (val))
+#define C_UINT64_FROM_BE(val)       (C_UINT64_TO_BE (val))
+
+#define C_LONG_FROM_LE(val)         (C_LONG_TO_LE (val))
+#define C_ULONG_FROM_LE(val)        (C_ULONG_TO_LE (val))
+#define C_LONG_FROM_BE(val)         (C_LONG_TO_BE (val))
+#define C_ULONG_FROM_BE(val)        (C_ULONG_TO_BE (val))
+
+#define C_INT_FROM_LE(val)          (C_INT_TO_LE (val))
+#define C_UINT_FROM_LE(val)         (C_UINT_TO_LE (val))
+#define C_INT_FROM_BE(val)          (C_INT_TO_BE (val))
+#define C_UINT_FROM_BE(val)         (C_UINT_TO_BE (val))
+
+#define C_SIZE_FROM_LE(val)         (C_SIZE_TO_LE (val))
+#define C_SSIZE_FROM_LE(val)        (C_SSIZE_TO_LE (val))
+#define C_SIZE_FROM_BE(val)         (C_SIZE_TO_BE (val))
+#define C_SSIZE_FROM_BE(val)        (C_SSIZE_TO_BE (val))
+
+#define c_ntohl(val)                (C_UINT32_FROM_BE (val))
+#define c_ntohs(val)                (C_UINT16_FROM_BE (val))
+#define c_htonl(val)                (C_UINT32_TO_BE (val))
+#define c_htons(val)                (C_UINT16_TO_BE (val))
+
+static inline bool _CLIB_CHECKED_ADD_UINT (cuint* dest, cuint a, cuint b)           { *dest = a + b; return *dest >= a; }
+static inline bool _CLIB_CHECKED_MUL_UINT (cuint* dest, cuint a, cuint b)           { *dest = a * b; return !a || *dest / a == b; }
+static inline bool _CLIB_CHECKED_ADD_UINT64 (cuint64* dest, cuint64 a, cuint64 b)   { *dest = a + b; return *dest >= a; }
+static inline bool _CLIB_CHECKED_MUL_UINT64 (cuint64* dest, cuint64 a, cuint64 b)   { *dest = a * b; return !a || *dest / a == b; }
+static inline bool _CLIB_CHECKED_ADD_SIZE (csize* dest, csize a, csize b)           { *dest = a + b; return *dest >= a; }
+static inline bool _CLIB_CHECKED_MUL_SIZE (csize* dest, csize a, csize b)           { *dest = a * b; return !a || *dest / a == b; }
+
+#define c_uint_checked_add(dest, a, b)          _CLIB_CHECKED_ADD_UINT(dest, a, b)
+#define c_uint_checked_mul(dest, a, b)          _CLIB_CHECKED_MUL_UINT(dest, a, b)
+#define c_uint64_checked_add(dest, a, b)        _CLIB_CHECKED_ADD_UINT64(dest, a, b)
+#define c_uint64_checked_mul(dest, a, b)        _CLIB_CHECKED_MUL_UINT64(dest, a, b)
+#define c_size_checked_add(dest, a, b)          _CLIB_CHECKED_ADD_SIZE(dest, a, b)
+#define c_size_checked_mul(dest, a, b)          _CLIB_CHECKED_MUL_SIZE(dest, a, b)
 
 /****************************  类型  *************************************/
 typedef cint            (*CCompareFunc)         (void* data1, void* data2);

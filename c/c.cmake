@@ -50,6 +50,9 @@ file(GLOB C_SRC
         ${CMAKE_SOURCE_DIR}/c/wakeup.h
         ${CMAKE_SOURCE_DIR}/c/wakeup.c
 
+        ${CMAKE_SOURCE_DIR}/c/time-zone.h
+        ${CMAKE_SOURCE_DIR}/c/time-zone.c
+
 )
 
 file(GLOB C_HEADERS
@@ -69,4 +72,5 @@ file(GLOB C_HEADERS
         ${CMAKE_SOURCE_DIR}/c/base64.h
         ${CMAKE_SOURCE_DIR}/c/macros.h
         ${CMAKE_SOURCE_DIR}/c/wakeup.h
+        ${CMAKE_SOURCE_DIR}/c/time-zone.h
 )
