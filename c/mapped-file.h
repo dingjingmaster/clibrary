@@ -8,31 +8,33 @@
  */
 
 //
-// Created by dingjing on 24-4-8.
+// Created by dingjing on 24-4-24.
 //
 
-#ifndef CLIBRARY_CLIB_H
-#define CLIBRARY_CLIB_H
-#include <c/log.h>
-#include <c/str.h>
-#include <c/date.h>
-#include <c/uuid.h>
-#include <c/hash.h>
-#include <c/list.h>
-#include <c/poll.h>
-#include <c/timer.h>
-#include <c/array.h>
-#include <c/bytes.h>
-#include <c/quark.h>
-#include <c/slist.h>
-#include <c/thread.h>
-#include <c/atomic.h>
-#include <c/macros.h>
-#include <c/base64.h>
-#include <c/wakeup.h>
-#include <c/cstring.h>
-#include <c/time-zone.h>
-#include <c/file-utils.h>
-#include <c/mapped-file.h>
+#ifndef CLIBRARY_MAPPED_FILE_H
+#define CLIBRARY_MAPPED_FILE_H
 
-#endif //CLIBRARY_CLIB_H
+#if !defined (__CLIB_H_INSIDE__) && !defined (CLIB_COMPILATION)
+#error "Only <clib.h> can be included directly."
+#endif
+
+#include <c/macros.h>
+
+C_BEGIN_EXTERN_C
+
+typedef struct _CMappedFile         CMappedFile;
+
+CMappedFile*    c_mapped_file_new          (const char* filename, bool writable, CError** error);
+CMappedFile*    c_mapped_file_new_from_fd  (cint fd, bool writable, CError** error);
+csize           c_mapped_file_get_length   (CMappedFile* file);
+char*           c_mapped_file_get_contents (CMappedFile* file);
+CBytes*         c_mapped_file_get_bytes    (CMappedFile* file);
+CMappedFile*    c_mapped_file_ref          (CMappedFile* file);
+void            c_mapped_file_unref        (CMappedFile* file);
+void            c_mapped_file_free         (CMappedFile* file);
+
+
+
+C_END_EXTERN_C
+
+#endif //CLIBRARY_MAPPED_FILE_H

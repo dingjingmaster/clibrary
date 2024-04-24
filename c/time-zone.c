@@ -17,10 +17,13 @@
 #include <bits/stat.h>
 
 #include "str.h"
+#include "date.h"
 #include "hash.h"
 #include "bytes.h"
 #include "thread.h"
 #include "atomic.h"
+#include "file-utils.h"
+#include "mapped-file.h"
 
 #define TRANSITION(n)         c_array_index (tz->transitions, Transition, n)
 #define TRANSITION_INFO(n)    c_array_index (tz->tInfo, TransitionInfo, n)

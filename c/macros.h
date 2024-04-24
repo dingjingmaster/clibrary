@@ -140,9 +140,12 @@ typedef unsigned long                                           csize;
 typedef signed long                                             cssize;
 
 typedef void*                                                   cvoidptr;
+typedef cuint32                                                 cunichar;
 typedef cuint*                                                  cuintptr;
 typedef cint                                                    crefcount;
 typedef cint                                                    catomicrefcount;
+
+typedef cuint32                                                 CQuark;
 
 #define C_CINT64_CONSTANT(val)	                                (val##L)
 #define C_CUINT64_CONSTANT(val)	                                (val##UL)
@@ -306,6 +309,70 @@ static inline bool _CLIB_CHECKED_MUL_SIZE (csize* dest, csize a, csize b)       
 #define c_size_checked_mul(dest, a, b)          _CLIB_CHECKED_MUL_SIZE(dest, a, b)
 
 /****************************  类型  *************************************/
+typedef enum
+{
+    C_IO_IN     = POLLIN,
+    C_IO_OUT    = POLLOUT,
+    C_IO_PRI    = POLLPRI,
+    C_IO_ERR    = POLLERR,
+    C_IO_HUP    = POLLHUP,
+    C_IO_NVAL   = POLLNVAL,
+} CIOCondition;
+
+typedef enum
+{
+    C_FILE_TEST_IS_REGULAR    = 1 << 0,
+    C_FILE_TEST_IS_SYMLINK    = 1 << 1,
+    C_FILE_TEST_IS_DIR        = 1 << 2,
+    C_FILE_TEST_IS_EXECUTABLE = 1 << 3,
+    C_FILE_TEST_EXISTS        = 1 << 4
+} CFileTest;
+
+typedef enum
+{
+    C_FILE_ERROR_EXIST,
+    C_FILE_ERROR_ISDIR,
+    C_FILE_ERROR_ACCES,
+    C_FILE_ERROR_NAMETOOLONG,
+    C_FILE_ERROR_NOENT,
+    C_FILE_ERROR_NOTDIR,
+    C_FILE_ERROR_NXIO,
+    C_FILE_ERROR_NODEV,
+    C_FILE_ERROR_ROFS,
+    C_FILE_ERROR_TXTBSY,
+    C_FILE_ERROR_FAULT,
+    C_FILE_ERROR_LOOP,
+    C_FILE_ERROR_NOSPC,
+    C_FILE_ERROR_NOMEM,
+    C_FILE_ERROR_MFILE,
+    C_FILE_ERROR_NFILE,
+    C_FILE_ERROR_BADF,
+    C_FILE_ERROR_INVAL,
+    C_FILE_ERROR_PIPE,
+    C_FILE_ERROR_AGAIN,
+    C_FILE_ERROR_INTR,
+    C_FILE_ERROR_IO,
+    C_FILE_ERROR_PERM,
+    C_FILE_ERROR_NOSYS,
+    C_FILE_ERROR_FAILED
+} CFileError;
+
+typedef enum
+{
+    C_FILE_SET_CONTENTS_NONE            = 0,
+    C_FILE_SET_CONTENTS_CONSISTENT      = 1 << 0,
+    C_FILE_SET_CONTENTS_DURABLE         = 1 << 1,
+    C_FILE_SET_CONTENTS_ONLY_EXISTING   = 1 << 2
+} CFileSetContentsFlags;
+
+typedef struct _CError              CError;
+typedef struct _CBytes              CBytes;
+typedef struct _CSource             CSource;
+typedef struct _CString             CString;
+typedef struct stat                 CStatBuf;
+typedef struct _CTimeVal            CTimeVal;
+
+
 typedef cint            (*CCompareFunc)         (void* data1, void* data2);
 typedef cint            (*CCompareDataFunc)     (void* data1, void* data2, void* udata);
 typedef bool            (*CEqualFunc)           (const void* data1, const void* data2);
@@ -319,17 +386,8 @@ typedef void            (*CHFunc)               (void* key, void* value, void* u
 typedef void*           (*CCopyFunc)            (const void* src, void* udata);
 typedef void            (*CFreeFunc)            (void* data);
 typedef const char*     (*CTranslateFunc)       (const char* str, void* udata);
-
-
-typedef enum
-{
-    C_IO_IN     = POLLIN,
-    C_IO_OUT    = POLLOUT,
-    C_IO_PRI    = POLLPRI,
-    C_IO_ERR    = POLLERR,
-    C_IO_HUP    = POLLHUP,
-    C_IO_NVAL   = POLLNVAL,
-} CIOCondition;
+typedef bool            (*CUnixFDSourceFunc)    (cint fd, CIOCondition condition, void* udata);
+typedef bool            (*CSourceFunc)          (void* udata);
 
 
 /** @NOTE **/
@@ -783,15 +841,6 @@ typedef enum
 #endif
 #endif
 
-typedef enum
-{
-    C_FILE_TEST_IS_REGULAR    = 1 << 0,
-    C_FILE_TEST_IS_SYMLINK    = 1 << 1,
-    C_FILE_TEST_IS_DIR        = 1 << 2,
-    C_FILE_TEST_IS_EXECUTABLE = 1 << 3,
-    C_FILE_TEST_EXISTS        = 1 << 4
-} CFileTest;
-
 
 /**
  * @brief
@@ -1017,10 +1066,6 @@ C_STMT_END
 #define c_size_checked_add(dest, a, b)      _CLIB_CHECKED_ADD_SIZE(dest, a, b)
 #define c_size_checked_mul(dest, a, b)      _CLIB_CHECKED_MUL_SIZE(dest, a, b)
 
-
-typedef struct _CError              CError;
-typedef struct stat                 CStatBuf;
-
 //
 static inline void* c_steal_pointer (void* pp)
 {
@@ -1105,6 +1150,21 @@ bool c_int_equal (const void* p1, const void* p2);
 bool c_int64_equal (const void* p1, const void* p2);
 bool c_double_equal (const void* p1, const void* p2);
 
+/* unix util start */
+
+#define C_UNIX_ERROR (c_unix_error_quark())
+CQuark          c_unix_error_quark          (void);
+bool            c_unix_open_pipe            (cint* fds, cint flags, CError** error);
+bool            c_unix_set_fd_nonblocking   (cint fd, bool nonblock, CError** error);
+CSource*        c_unix_signal_source_new    (cint signum);
+cuint           c_unix_signal_add_full      (cint priority, cint signum, CSourceFunc handler, void* udata, CDestroyNotify notify);
+cuint           c_unix_signal_add           (cint signum, CSourceFunc handler, void* udata);
+CSource*        c_unix_fd_source_new        (cint fd, CIOCondition condition);
+cuint           c_unix_fd_add_full          (cint priority, cint fd, CIOCondition condition, CUnixFDSourceFunc function, void* udata, CDestroyNotify notify);
+cuint           c_unix_fd_add               (cint fd, CIOCondition condition, CUnixFDSourceFunc function, void* udata);
+struct passwd*  c_unix_get_passwd_entry     (const char* userName, CError** error);
+/* unix util end */
+
 int c_strcmp0 (const char* str1, const char* str2);
 void c_clear_pointer (void** pp, CDestroyNotify destroy);
 
@@ -1131,12 +1191,6 @@ int     c_utime                     (const char* filename, struct utimbuf* utb);
 int     c_open                      (const char* filename, int flags, int mode);
 int     c_rename                    (const char* oldFileName, const char* newFileName);
 FILE*   c_freopen                   (const char* filename, const char* mode, FILE* stream);
-
-char*   c_build_filenamev           (char** args);
-bool    c_path_is_absolute          (const char* fileName);
-char*   c_build_filename            (const char* firstElement, ...);
-bool    c_file_test                 (const char* fileName, CFileTest test);
-char*   c_build_filename_valist     (const char* firstElement, va_list* args);
 /* file end */
 
 // random

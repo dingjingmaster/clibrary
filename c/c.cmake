@@ -5,6 +5,9 @@ file(GLOB C_SRC
         ${CMAKE_SOURCE_DIR}/c/str.h
         ${CMAKE_SOURCE_DIR}/c/str.c
 
+        ${CMAKE_SOURCE_DIR}/c/date.h
+        ${CMAKE_SOURCE_DIR}/c/date.c
+
         ${CMAKE_SOURCE_DIR}/c/poll.h
         ${CMAKE_SOURCE_DIR}/c/poll.c
 
@@ -53,15 +56,24 @@ file(GLOB C_SRC
         ${CMAKE_SOURCE_DIR}/c/wakeup.h
         ${CMAKE_SOURCE_DIR}/c/wakeup.c
 
+        ${CMAKE_SOURCE_DIR}/c/cstring.h
+        ${CMAKE_SOURCE_DIR}/c/cstring.c
+
         ${CMAKE_SOURCE_DIR}/c/time-zone.h
         ${CMAKE_SOURCE_DIR}/c/time-zone.c
 
+        ${CMAKE_SOURCE_DIR}/c/file-utils.h
+        ${CMAKE_SOURCE_DIR}/c/file-utils.c
+
+        ${CMAKE_SOURCE_DIR}/c/mapped-file.h
+        ${CMAKE_SOURCE_DIR}/c/mapped-file.c
 )
 
 file(GLOB C_HEADERS
         ${CMAKE_SOURCE_DIR}/c/log.h
         ${CMAKE_SOURCE_DIR}/c/str.h
         ${CMAKE_SOURCE_DIR}/c/clib.h
+        ${CMAKE_SOURCE_DIR}/c/date.h
         ${CMAKE_SOURCE_DIR}/c/hash.h
         ${CMAKE_SOURCE_DIR}/c/poll.h
         ${CMAKE_SOURCE_DIR}/c/test.h
@@ -76,5 +88,8 @@ file(GLOB C_HEADERS
         ${CMAKE_SOURCE_DIR}/c/base64.h
         ${CMAKE_SOURCE_DIR}/c/macros.h
         ${CMAKE_SOURCE_DIR}/c/wakeup.h
+        ${CMAKE_SOURCE_DIR}/c/cstring.h
         ${CMAKE_SOURCE_DIR}/c/time-zone.h
+        ${CMAKE_SOURCE_DIR}/c/file-utils.h
+        ${CMAKE_SOURCE_DIR}/c/mapped-file.h
 )

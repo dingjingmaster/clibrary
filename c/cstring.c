@@ -8,31 +8,7 @@
  */
 
 //
-// Created by dingjing on 24-4-8.
+// Created by dingjing on 24-4-24.
 //
 
-#ifndef CLIBRARY_CLIB_H
-#define CLIBRARY_CLIB_H
-#include <c/log.h>
-#include <c/str.h>
-#include <c/date.h>
-#include <c/uuid.h>
-#include <c/hash.h>
-#include <c/list.h>
-#include <c/poll.h>
-#include <c/timer.h>
-#include <c/array.h>
-#include <c/bytes.h>
-#include <c/quark.h>
-#include <c/slist.h>
-#include <c/thread.h>
-#include <c/atomic.h>
-#include <c/macros.h>
-#include <c/base64.h>
-#include <c/wakeup.h>
-#include <c/cstring.h>
-#include <c/time-zone.h>
-#include <c/file-utils.h>
-#include <c/mapped-file.h>
-
-#endif //CLIBRARY_CLIB_H
+#include "cstring.h"
