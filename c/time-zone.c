@@ -287,7 +287,7 @@ CTimeZone* c_time_zone_new_identifier (const char* identifier)
              * we’re going to fall back to UTC eventually, so don’t clear out the
              * cache if it’s already UTC. */
             if (!(resolvedIdentifier == NULL && c_str_equal (gsTzDefault->name, "UTC")) && c_strcmp0 (gsTzDefault->name, resolvedIdentifier) != 0) {
-                c_clear_pointer (&gsTzDefault, c_time_zone_unref);
+                c_clear_pointer ((void**) &gsTzDefault, (CDestroyNotify) c_time_zone_unref);
             }
             else {
                 tz = c_time_zone_ref (gsTzDefault);
@@ -378,7 +378,7 @@ CTimeZone* c_time_zone_new_local (void)
 
     /* Is time zone changed and must be flushed? */
     if (gsTzLocal && c_strcmp0 (c_time_zone_get_identifier (gsTzLocal), tzenv)) {
-        c_clear_pointer (&gsTzLocal, c_time_zone_unref);
+        c_clear_pointer ((void**) &gsTzLocal, (CDestroyNotify) c_time_zone_unref);
     }
 
     if (gsTzLocal == NULL) {
@@ -872,9 +872,9 @@ static CBytes* zone_info_unix (const char* identifier, const char* resolvedIdent
 
     file = c_mapped_file_new (filename, false, NULL);
     if (file != NULL) {
-        zoneinfo = c_bytes_new_with_free_func (c_mapped_file_get_contents (file),
+        zoneInfo = c_bytes_new_with_free_func (c_mapped_file_get_contents (file),
                             c_mapped_file_get_length (file),
-                            (CDestroyNotify)g_mapped_file_unref,
+                            (CDestroyNotify)c_mapped_file_unref,
                             c_mapped_file_ref (file));
         c_mapped_file_unref (file);
     }

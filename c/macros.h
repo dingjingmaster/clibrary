@@ -1105,9 +1105,13 @@ bool c_int_equal (const void* p1, const void* p2);
 bool c_int64_equal (const void* p1, const void* p2);
 bool c_double_equal (const void* p1, const void* p2);
 
-cint64 c_get_real_time (void);
 int c_strcmp0 (const char* str1, const char* str2);
 void c_clear_pointer (void** pp, CDestroyNotify destroy);
+
+/* time start */
+cint64 c_get_real_time (void);
+cint64 c_get_monotonic_time (void);
+/* time end */
 
 /* file start */
 cint    c_fsync                     (cint fd);

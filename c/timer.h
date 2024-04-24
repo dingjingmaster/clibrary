@@ -8,27 +8,40 @@
  */
 
 //
-// Created by dingjing on 24-4-8.
+// Created by dingjing on 24-4-24.
 //
 
-#ifndef CLIBRARY_CLIB_H
-#define CLIBRARY_CLIB_H
-#include <c/log.h>
-#include <c/str.h>
-#include <c/uuid.h>
-#include <c/hash.h>
-#include <c/list.h>
-#include <c/poll.h>
-#include <c/timer.h>
-#include <c/array.h>
-#include <c/bytes.h>
-#include <c/quark.h>
-#include <c/slist.h>
-#include <c/thread.h>
-#include <c/atomic.h>
-#include <c/macros.h>
-#include <c/base64.h>
-#include <c/wakeup.h>
-#include <c/time-zone.h>
+#ifndef CLIBRARY_TIMER_H
+#define CLIBRARY_TIMER_H
 
-#endif //CLIBRARY_CLIB_H
+#if !defined (__CLIB_H_INSIDE__) && !defined (CLIB_COMPILATION)
+#error "Only <clib.h> can be included directly."
+#endif
+
+#include <c/macros.h>
+
+C_BEGIN_EXTERN_C
+
+typedef struct _CTimer          CTimer;
+typedef struct _CTimeVal        CTimeVal;
+
+#define C_USEC_PER_SEC 1000000
+
+CTimer*  c_timer_new             (void);
+void     c_timer_destroy         (CTimer* timer);
+void     c_timer_start           (CTimer* timer);
+void     c_timer_stop            (CTimer* timer);
+void     c_timer_reset           (CTimer* timer);
+void     c_timer_continue        (CTimer* timer);
+double   c_timer_elapsed         (CTimer* timer, culong* microseconds);
+bool     c_timer_is_active       (CTimer* timer);
+void     c_usleep                (culong microseconds);
+void     c_time_val_add          (CTimeVal* time_, clong microseconds);
+bool     c_time_val_from_iso8601 (const char* isoDate, CTimeVal* time_);
+char*    c_time_val_to_iso8601   (CTimeVal* time_) C_MALLOC;
+
+
+C_END_EXTERN_C
+
+
+#endif //CLIBRARY_TIMER_H

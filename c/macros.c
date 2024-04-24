@@ -16,11 +16,13 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <utime.h>
+#include <time.h>
 #include "macros.h"
 
 #include "log.h"
 #include "thread.h"
 #include "str.h"
+#include "timer.h"
 
 
 typedef struct _MSortParam          MSortParam;
@@ -782,6 +784,19 @@ bool c_close (cint fd, CError** error)
     return true;
 }
 
+cint64 c_get_monotonic_time (void)
+{
+    struct timespec ts;
+    cint result;
+
+    result = clock_gettime (CLOCK_MONOTONIC, &ts);
+
+    if C_UNLIKELY (result != 0) {
+        C_LOG_ERROR_CONSOLE("CLib requires working CLOCK_MONOTONIC");
+    }
+
+    return (((cint64) ts.tv_sec) * 1000000) + (ts.tv_nsec / 1000);
+}
 
 
 
