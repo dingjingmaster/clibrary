@@ -17,10 +17,12 @@
 #define CLIBRARY_MACROS_H
 #include <errno.h>
 #include <stdio.h>
+#include <utime.h>
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
 #include <assert.h>
+#include <unistd.h>
 
 #include <sys/poll.h>
 
@@ -43,6 +45,12 @@
 #define SIZEOF_WCHAR_T              4
 
 #define CLIB_SIZEOF_SIZE_T          8
+
+#define C_DIR_SEPARATOR '/'
+#define C_DIR_SEPARATOR_S "/"
+#define C_SEARCHPATH_SEPARATOR ':'
+#define C_SEARCHPATH_SEPARATOR_S ":"
+
 
 
 /**************************** 调试相关 ***********************************/
@@ -280,6 +288,8 @@ typedef cint                                                    catomicrefcount;
 #define c_ntohs(val)                (C_UINT16_FROM_BE (val))
 #define c_htonl(val)                (C_UINT32_TO_BE (val))
 #define c_htons(val)                (C_UINT16_TO_BE (val))
+
+#define C_IS_DIR_SEPARATOR(c)       ((c) == '/')
 
 static inline bool _CLIB_CHECKED_ADD_UINT (cuint* dest, cuint a, cuint b)           { *dest = a + b; return *dest >= a; }
 static inline bool _CLIB_CHECKED_MUL_UINT (cuint* dest, cuint a, cuint b)           { *dest = a * b; return !a || *dest / a == b; }
@@ -773,6 +783,14 @@ typedef enum
 #endif
 #endif
 
+typedef enum
+{
+    C_FILE_TEST_IS_REGULAR    = 1 << 0,
+    C_FILE_TEST_IS_SYMLINK    = 1 << 1,
+    C_FILE_TEST_IS_DIR        = 1 << 2,
+    C_FILE_TEST_IS_EXECUTABLE = 1 << 3,
+    C_FILE_TEST_EXISTS        = 1 << 4
+} CFileTest;
 
 
 /**
@@ -990,13 +1008,6 @@ C_STMT_START \
 C_STMT_END
 
 
-static inline bool _CLIB_CHECKED_ADD_UINT (cuint* dest, cuint a, cuint b)           { *dest = a + b; return *dest >= a; }
-static inline bool _CLIB_CHECKED_MUL_UINT (cuint* dest, cuint a, cuint b)           { *dest = a * b; return !a || *dest / a == b; }
-static inline bool _CLIB_CHECKED_ADD_UINT64 (cuint64* dest, cuint64 a, cuint64 b)   { *dest = a + b; return *dest >= a; }
-static inline bool _CLIB_CHECKED_MUL_UINT64 (cuint64* dest, cuint64 a, cuint64 b)   { *dest = a * b; return !a || *dest / a == b; }
-static inline bool _CLIB_CHECKED_ADD_SIZE (csize* dest, csize a, csize b)           { *dest = a + b; return *dest >= a; }
-static inline bool _CLIB_CHECKED_MUL_SIZE (csize* dest, csize a, csize b)           { *dest = a * b; return !a || *dest / a == b; }
-
 #define c_uint_checked_add(dest, a, b)      _CLIB_CHECKED_ADD_UINT(dest, a, b)
 #define c_uint_checked_mul(dest, a, b)      _CLIB_CHECKED_MUL_UINT(dest, a, b)
 
@@ -1006,6 +1017,9 @@ static inline bool _CLIB_CHECKED_MUL_SIZE (csize* dest, csize a, csize b)       
 #define c_size_checked_add(dest, a, b)      _CLIB_CHECKED_ADD_SIZE(dest, a, b)
 #define c_size_checked_mul(dest, a, b)      _CLIB_CHECKED_MUL_SIZE(dest, a, b)
 
+
+typedef struct _CError              CError;
+typedef struct stat                 CStatBuf;
 
 //
 static inline void* c_steal_pointer (void* pp)
@@ -1047,11 +1061,19 @@ static inline void* c_realloc (void* ptr, csize size)
 {
     c_return_val_if_fail(size > 0, NULL);
 
-    void* ret = realloc(ptr, size);
+    if (C_LIKELY(size)) {
+        void* ret = realloc(ptr, size);
+        if (C_LIKELY(ret)) {
+            return ret;
+        }
+        else {
+            fprintf(stderr, "realloc failed\n");
+        }
+    }
 
-    c_assert(ret);
+    c_free(ptr);
 
-    return ret;
+    return NULL;
 }
 
 static inline csize c_nearest_pow (csize num)
@@ -1083,6 +1105,35 @@ bool c_int_equal (const void* p1, const void* p2);
 bool c_int64_equal (const void* p1, const void* p2);
 bool c_double_equal (const void* p1, const void* p2);
 
+cint64 c_get_real_time (void);
+int c_strcmp0 (const char* str1, const char* str2);
+void c_clear_pointer (void** pp, CDestroyNotify destroy);
+
+/* file start */
+cint    c_fsync                     (cint fd);
+int     c_chdir                     (const char* path);
+int     c_rmdir                     (const char* filename);
+int     c_remove                    (const char* filename);
+int     c_unlink                    (const char* filename);
+bool    c_close                     (cint fd, CError** error);
+int     c_access                    (const char* filename, int mode);
+int     c_chmod                     (const char* filename, int mode);
+int     c_creat                     (const char* filename, int mode);
+int     c_mkdir                     (const char* filename, int mode);
+int     c_stat                      (const char* filename, CStatBuf* buf);
+int     c_lstat                     (const char* filename, CStatBuf* buf);
+FILE*   c_fopen                     (const char* filename, const char* mode);
+int     c_utime                     (const char* filename, struct utimbuf* utb);
+int     c_open                      (const char* filename, int flags, int mode);
+int     c_rename                    (const char* oldFileName, const char* newFileName);
+FILE*   c_freopen                   (const char* filename, const char* mode, FILE* stream);
+
+char*   c_build_filenamev           (char** args);
+bool    c_path_is_absolute          (const char* fileName);
+char*   c_build_filename            (const char* firstElement, ...);
+bool    c_file_test                 (const char* fileName, CFileTest test);
+char*   c_build_filename_valist     (const char* firstElement, va_list* args);
+/* file end */
 
 // random
 typedef struct _CRand CRand;
@@ -1115,6 +1166,7 @@ char**      c_get_environ     (void);
 const char* c_environ_getenv  (char** envp, const char* variable);
 char**      c_environ_setenv  (char** envp, const char* variable, const char* value, bool overwrite) C_WARN_UNUSED_RESULT;
 char**      c_environ_unsetenv(char** envp, const char* variable) C_WARN_UNUSED_RESULT;
-
 /* env end */
+
+
 #endif

@@ -11,15 +11,19 @@
 // Created by dingjing on 24-4-23.
 //
 
-#include <bits/stat.h>
-#include <sys/stat.h>
 #include "time-zone.h"
 
+#include <sys/stat.h>
+#include <bits/stat.h>
+
+#include "str.h"
 #include "hash.h"
 #include "bytes.h"
 #include "thread.h"
 #include "atomic.h"
-#include "str.h"
+
+#define TRANSITION(n)         c_array_index (tz->transitions, Transition, n)
+#define TRANSITION_INFO(n)    c_array_index (tz->tInfo, TransitionInfo, n)
 
 
 typedef struct { char bytes[8]; } cint64_be;
@@ -140,6 +144,7 @@ static const char* zone_info_base_dir (void);
 static void find_relative_date (TimeZoneDate* buffer);
 static bool parse_offset (char** pos, cint32* target);
 static CTimeZone* parse_footertz (const char*, size_t);
+static bool interval_valid (CTimeZone* tz, cuint interval);
 static bool set_tz_name (char** pos, char* buffer, cuint size);
 static bool parse_mwd_boundary (char** pos, TimeZoneDate* boundary);
 static bool parse_identifier_boundaries (char** pos, TimeZoneRule *tzr);
@@ -158,20 +163,263 @@ static void fill_transition_info_from_rule (TransitionInfo* info, TimeZoneRule* 
 static void init_zone_from_rules (CTimeZone* gtz, TimeZoneRule* rules, cuint rulesNum, char* identifier);
 
 
-CTimeZone* c_time_zone_new (const char* identifier);
-{}
+inline static const TransitionInfo* interval_info (CTimeZone* tz, cuint interval)
+{
+    cuint index;
+    c_return_val_if_fail (tz->tInfo != NULL, NULL);
+    if (interval && tz->transitions && interval <= tz->transitions->len) {
+        index = (TRANSITION(interval - 1)).infoIndex;
+    }
+    else {
+        for (index = 0; index < tz->tInfo->len; index++) {
+            TransitionInfo *tzinfo = &(TRANSITION_INFO(index));
+            if (!tzinfo->isDst) {
+                return tzinfo;
+            }
+        }
+        index = 0;
+    }
+
+    return &(TRANSITION_INFO(index));
+}
+
+inline static cint64 interval_start (CTimeZone* tz, cuint interval)
+{
+    if (!interval || tz->transitions == NULL || tz->transitions->len == 0) {
+        return C_MIN_INT64;
+    }
+    if (interval > tz->transitions->len) {
+        interval = tz->transitions->len;
+    }
+
+    return (TRANSITION(interval - 1)).time;
+}
+
+inline static cint64 interval_end (CTimeZone* tz, cuint interval)
+{
+    if (tz->transitions && interval < tz->transitions->len) {
+        cint64 lim = (TRANSITION(interval)).time;
+        return lim - (lim != C_MIN_INT64);
+    }
+    return C_MAX_INT64;
+}
+
+inline static cint32 interval_offset (CTimeZone* tz, cuint interval)
+{
+    c_return_val_if_fail (tz->tInfo != NULL, 0);
+    return interval_info (tz, interval)->gmtOffset;
+}
+
+inline static bool interval_isdst (CTimeZone* tz, cuint interval)
+{
+    c_return_val_if_fail (tz->tInfo != NULL, 0);
+    return interval_info (tz, interval)->isDst;
+}
+
+
+inline static char* interval_abbrev (CTimeZone* tz, cuint interval)
+{
+    c_return_val_if_fail (tz->tInfo != NULL, 0);
+    return interval_info (tz, interval)->abbrev;
+}
+
+inline static cint64 interval_local_start (CTimeZone* tz, cuint interval)
+{
+    if (interval) {
+        return interval_start (tz, interval) + interval_offset (tz, interval);
+    }
+
+    return C_MIN_INT64;
+}
+
+inline static cint64 interval_local_end (CTimeZone* tz, cuint interval)
+{
+    if (tz->transitions && interval < tz->transitions->len) {
+        return interval_end (tz, interval) + interval_offset (tz, interval);
+    }
+
+    return C_MAX_INT64;
+}
+
+
+CTimeZone* c_time_zone_new (const char* identifier)
+{
+    CTimeZone *tz = c_time_zone_new_identifier (identifier);
+
+    /* Always fall back to UTC. */
+    if (tz == NULL) {
+        tz = c_time_zone_new_utc ();
+    }
+
+    c_assert (tz != NULL);
+
+    return c_steal_pointer (&tz);
+}
 
 CTimeZone* c_time_zone_new_identifier (const char* identifier)
-{}
+{
+    CTimeZone* tz = NULL;
+    TimeZoneRule* rules;
+    cint rulesNum;
+    char* resolvedIdentifier = NULL;
+
+    if (identifier) {
+        C_LOCK (gsTimeZones);
+        if (gsTimeZones == NULL) {
+            gsTimeZones = c_hash_table_new (c_str_hash, c_str_equal);
+        }
+
+        tz = c_hash_table_lookup (gsTimeZones, identifier);
+        if (tz) {
+            c_atomic_int_inc (&tz->refCount);
+            C_UNLOCK (gsTimeZones);
+            return tz;
+        }
+        else {
+            resolvedIdentifier = c_strdup (identifier);
+        }
+    }
+    else {
+        C_LOCK (gsTzDefault);
+        resolvedIdentifier = zone_identifier_unix ();
+        if (gsTzDefault) {
+            /* Flush default if changed. If the identifier couldn’t be resolved,
+             * we’re going to fall back to UTC eventually, so don’t clear out the
+             * cache if it’s already UTC. */
+            if (!(resolvedIdentifier == NULL && c_str_equal (gsTzDefault->name, "UTC")) && c_strcmp0 (gsTzDefault->name, resolvedIdentifier) != 0) {
+                c_clear_pointer (&gsTzDefault, c_time_zone_unref);
+            }
+            else {
+                tz = c_time_zone_ref (gsTzDefault);
+                C_UNLOCK (gsTzDefault);
+                c_free (resolvedIdentifier);
+                return tz;
+            }
+        }
+    }
+
+    tz = c_malloc0(sizeof(CTimeZone));
+    tz->refCount = 0;
+
+    zone_for_constant_offset (tz, identifier);
+
+    if (tz->tInfo == NULL && (rulesNum = (int) rules_from_identifier (identifier, &rules))) {
+        init_zone_from_rules (tz, rules, rulesNum, c_steal_pointer (&resolvedIdentifier));
+        c_free (rules);
+    }
+
+    if (tz->tInfo == NULL) {
+        CBytes* zoneInfo = zone_info_unix (identifier, resolvedIdentifier);
+        if (zoneInfo != NULL) {
+            init_zone_from_iana_info (tz, zoneInfo, c_steal_pointer (&resolvedIdentifier));
+            c_bytes_unref (zoneInfo);
+        }
+    }
+
+    c_free (resolvedIdentifier);
+
+    /* Failed to load the timezone. */
+    if (tz->tInfo == NULL) {
+        c_free(tz);
+        if (identifier) {
+            C_UNLOCK (gsTimeZones);
+        }
+        else {
+            C_UNLOCK (gsTzDefault);
+        }
+
+        return NULL;
+    }
+
+    c_assert (tz->name != NULL);
+    c_assert (tz->tInfo != NULL);
+
+    if (identifier) {
+        c_hash_table_insert (gsTimeZones, tz->name, tz);
+    }
+    else if (tz->name) {
+        /* Caching reference */
+        c_atomic_int_inc (&tz->refCount);
+        gsTzDefault = tz;
+    }
+
+    c_atomic_int_inc (&tz->refCount);
+
+    if (identifier) {
+        C_UNLOCK (gsTimeZones);
+    }
+    else {
+        C_UNLOCK (gsTzDefault);
+    }
+
+    return tz;
+}
 
 CTimeZone* c_time_zone_new_utc (void)
-{}
+{
+    static CTimeZone* utc = NULL;
+    static csize initialised;
+
+    if (c_once_init_enter (&initialised)) {
+        utc = c_time_zone_new_identifier ("UTC");
+        c_assert (utc != NULL);
+        c_once_init_leave (&initialised, true);
+    }
+
+    return c_time_zone_ref (utc);
+}
 
 CTimeZone* c_time_zone_new_local (void)
-{}
+{
+    const char* tzenv = c_getenv ("TZ");
+    CTimeZone *tz;
+
+    C_LOCK (gsTzLocal);
+
+    /* Is time zone changed and must be flushed? */
+    if (gsTzLocal && c_strcmp0 (c_time_zone_get_identifier (gsTzLocal), tzenv)) {
+        c_clear_pointer (&gsTzLocal, c_time_zone_unref);
+    }
+
+    if (gsTzLocal == NULL) {
+        gsTzLocal = c_time_zone_new_identifier (tzenv);
+    }
+
+    if (gsTzLocal == NULL) {
+        gsTzLocal = c_time_zone_new_utc ();
+    }
+
+    tz = c_time_zone_ref (gsTzLocal);
+
+    C_UNLOCK (gsTzLocal);
+
+    return tz;
+}
 
 CTimeZone* c_time_zone_new_offset (cint32 seconds)
-{}
+{
+    char* identifier = NULL;
+
+    identifier = c_strdup_printf ("%c%02u:%02u:%02u",
+                                  (seconds >= 0) ? '+' : '-',
+                                  (C_ABS (seconds) / 60) / 60,
+                                  (C_ABS (seconds) / 60) % 60,
+                                  C_ABS (seconds) % 60);
+    CTimeZone* tz = c_time_zone_new_identifier (identifier);
+
+    if (tz == NULL) {
+        tz = c_time_zone_new_utc ();
+    }
+    else {
+        c_assert (c_time_zone_get_offset (tz, 0) == seconds);
+    }
+
+    c_assert (tz != NULL);
+    c_free (identifier);
+
+    return tz;
+
+}
 
 CTimeZone* c_time_zone_ref (CTimeZone* tz)
 {
@@ -231,22 +479,139 @@ again:
 }
 
 int c_time_zone_find_interval (CTimeZone* tz, CTimeType type, cint64 time_)
-{}
+{
+    cuint i, intervals;
+    bool intervalIsDst;
+
+    if (tz->transitions == NULL) {
+        return 0;
+    }
+
+    intervals = tz->transitions->len;
+    for (i = 0; i <= intervals; i++) {
+        if (time_ <= interval_end (tz, i)) {
+            break;
+        }
+    }
+
+    if (type == C_TIME_TYPE_UNIVERSAL) {
+        return i;
+    }
+
+    if (time_ < interval_local_start (tz, i)) {
+        if (time_ > interval_local_end (tz, --i)) {
+            return -1;
+        }
+    }
+    else if (time_ > interval_local_end (tz, i)) {
+        if (time_ < interval_local_start (tz, ++i)) {
+            return -1;
+        }
+    }
+    else {
+        intervalIsDst = interval_isdst (tz, i);
+        if  ((intervalIsDst && type != C_TIME_TYPE_DAYLIGHT) || (!intervalIsDst && type == C_TIME_TYPE_DAYLIGHT)) {
+            if (i && time_ <= interval_local_end (tz, i - 1)) {
+                i--;
+            }
+            else if (i < intervals && time_ >= interval_local_start (tz, i + 1)) {
+                i++;
+            }
+        }
+    }
+
+    return (int) i;
+}
 
 int c_time_zone_adjust_time (CTimeZone* tz, CTimeType type, cint64* time_)
-{}
+{
+    cuint i, intervals;
+    bool intervalIsDst;
+
+    if (tz->transitions == NULL) {
+        return 0;
+    }
+
+    intervals = tz->transitions->len;
+
+    /* find the interval containing *time UTC
+     * TODO: this could be binary searched (or better) */
+    for (i = 0; i <= intervals; i++) {
+        if (*time_ <= interval_end (tz, i)) {
+            break;
+        }
+    }
+
+    c_assert (interval_start (tz, i) <= *time_ && *time_ <= interval_end (tz, i));
+
+    if (type != C_TIME_TYPE_UNIVERSAL) {
+        if (*time_ < interval_local_start (tz, i)) {
+            i--;
+            /* if it's not in the previous interval... */
+            if (*time_ > interval_local_end (tz, i)) {
+                /* it doesn't exist.  fast-forward it. */
+                i++;
+                *time_ = interval_local_start (tz, i);
+            }
+        }
+        else if (*time_ > interval_local_end (tz, i)) {
+            /* if time came after the end of this interval... */
+            i++;
+            /* if it's not in the next interval... */
+            if (*time_ < interval_local_start (tz, i)) {
+                /* it doesn't exist.  fast-forward it. */
+                *time_ = interval_local_start (tz, i);
+            }
+        }
+        else {
+            intervalIsDst = interval_isdst (tz, i);
+            if ((intervalIsDst && type != C_TIME_TYPE_DAYLIGHT) || (!intervalIsDst && type == C_TIME_TYPE_DAYLIGHT)) {
+                /* it's in this interval, but dst flag doesn't match.
+                 * check neighbours for a better fit. */
+                if (i && *time_ <= interval_local_end (tz, i - 1)) {
+                    i--;
+                }
+                else if (i < intervals && *time_ >= interval_local_start (tz, i + 1)) {
+                    i++;
+                }
+            }
+        }
+    }
+
+    return (int) i;
+}
 
 const char* c_time_zone_get_abbreviation (CTimeZone* tz, int interval)
-{}
+{
+    c_return_val_if_fail (interval_valid (tz, (cuint)interval), NULL);
+
+    return interval_abbrev (tz, (cuint)interval);
+}
 
 cint32 c_time_zone_get_offset (CTimeZone* tz, int interval)
-{}
+{
+    c_return_val_if_fail (interval_valid (tz, (cuint)interval), 0);
+
+    return interval_offset (tz, (cuint)interval);
+}
 
 bool c_time_zone_is_dst (CTimeZone* tz, int interval)
-{}
+{
+    c_return_val_if_fail (interval_valid (tz, interval), false);
+
+    if (tz->transitions == NULL) {
+        return false;
+    }
+
+    return interval_isdst (tz, (cuint)interval);
+}
 
 const char* c_time_zone_get_identifier (CTimeZone* tz)
-{}
+{
+    c_return_val_if_fail (tz, NULL);
+
+    return tz->name;
+}
 
 static bool parse_time (const char* time_, cint32* offset, bool rfc8536)
 {
@@ -420,12 +785,12 @@ static char* zone_identifier_unix (void)
 
         if (c_lstat (resolvedIdentifier, &fileStatus) == 0) {
             if ((fileStatus.st_mode & S_IFMT) != S_IFREG) {
-                c_clear_pointer (&resolvedIdentifier, c_free0);
+                c_clear_pointer ((void**)&resolvedIdentifier, c_free0);
                 notASymlinkToZoneinfo = true;
             }
         }
         else {
-            c_clear_pointer (&resolvedIdentifier, c_free0);
+            c_clear_pointer ((void**) &resolvedIdentifier, c_free0);
         }
     }
     else {
@@ -1138,4 +1503,13 @@ static CTimeZone* parse_footertz (const char* footer, size_t footerlen)
     c_free (rules);
 
     return footertz;
+}
+
+static bool interval_valid (CTimeZone* tz, cuint interval)
+{
+    if ( tz->transitions == NULL) {
+        return interval == 0;
+    }
+
+    return interval <= tz->transitions->len;
 }
