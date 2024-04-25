@@ -46,14 +46,12 @@ void c_quark_init (void)
 
 CQuark c_quark_try_string (const char* str)
 {
-    CQuark quark = 0;
-
     if (str == NULL) {
         return 0;
     }
 
     C_LOCK (gsQuarkGlobal);
-    quark = C_POINTER_TO_UINT(c_hash_table_lookup (gsQuarkHt, str));
+    CQuark quark = C_POINTER_TO_UINT(c_hash_table_lookup (gsQuarkHt, str));
     C_UNLOCK (gsQuarkGlobal);
 
     return quark;
@@ -114,9 +112,7 @@ static char* quark_strdup (const char* str)
 
 static CQuark quark_from_string (const char* str, bool duplicate)
 {
-    CQuark quark = 0;
-
-    quark = C_POINTER_TO_UINT (c_hash_table_lookup (gsQuarkHt, str));
+    CQuark quark = C_POINTER_TO_UINT (c_hash_table_lookup (gsQuarkHt, str));
     if (!quark) {
         quark = quark_new (duplicate ? quark_strdup (str) : (char*) str);
     }
@@ -126,14 +122,12 @@ static CQuark quark_from_string (const char* str, bool duplicate)
 
 static CQuark quark_from_string_locked (const char* str, bool duplicate)
 {
-    CQuark quark = 0;
-
     if (!str) {
         return 0;
     }
 
     C_LOCK (gsQuarkGlobal);
-    quark = quark_from_string (str, duplicate);
+    CQuark quark = quark_from_string (str, duplicate);
     C_UNLOCK (gsQuarkGlobal);
 
     return quark;

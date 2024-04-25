@@ -14,6 +14,7 @@
 #include "wakeup.h"
 #include "error.h"
 #include "log.h"
+#include "source.h"
 
 #include <fcntl.h>
 #include <sys/eventfd.h>
@@ -40,12 +41,12 @@ CWakeup* c_wakeup_new (void)
     }
 
     if (!c_unix_open_pipe (wakeup->fds, FD_CLOEXEC, &error)) {
-        C_LOG_ERROR_CONSOLE("Creating pipes for GWakeup: %s", error->message);
+        C_LOG_ERROR_CONSOLE("Creating pipes for GWakeup: %s", error->message)
     }
 
     if (!c_unix_set_fd_nonblocking (wakeup->fds[0], true, &error)
         || !c_unix_set_fd_nonblocking (wakeup->fds[1], true, &error)) {
-        C_LOG_ERROR_CONSOLE("Set pipes non-blocking for GWakeup: %s", error->message);
+        C_LOG_ERROR_CONSOLE("Set pipes non-blocking for GWakeup: %s", error->message)
     }
 
     return wakeup;
@@ -77,14 +78,14 @@ void c_wakeup_signal (CWakeup* wakeup)
     if (wakeup->fds[1] == -1) {
         uint64_t one = 1;
         do {
-            res = write (wakeup->fds[0], (void*) &one, (csize) sizeof (one));
+            res = (int) write (wakeup->fds[0], (void*) &one, (csize) sizeof (one));
         }
         while (C_UNLIKELY (res == -1 && errno == EINTR));
     }
     else {
         uint8_t one = 1;
         do {
-            res = write (wakeup->fds[1], (void*) &one, (csize) sizeof (one));
+            res = (int) write (wakeup->fds[1], (void*) &one, (csize) sizeof (one));
         }
         while (C_UNLIKELY (res == -1 && errno == EINTR));
     }

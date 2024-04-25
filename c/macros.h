@@ -146,6 +146,7 @@ typedef cuint*                                                  cuintptr;
 typedef cint                                                    crefcount;
 typedef cint                                                    catomicrefcount;
 
+typedef cint                                                    CPid;
 typedef cuint32                                                 CQuark;
 
 #define C_CINT64_CONSTANT(val)	                                (val##L)
@@ -322,6 +323,12 @@ typedef enum
 
 typedef enum
 {
+    C_MAIN_CONTEXT_FLAGS_NONE = 0,
+    C_MAIN_CONTEXT_FLAGS_OWNERLESS_POLLING = 1
+} CMainContextFlags;
+
+typedef enum
+{
     C_FILE_TEST_IS_REGULAR    = 1 << 0,
     C_FILE_TEST_IS_SYMLINK    = 1 << 1,
     C_FILE_TEST_IS_DIR        = 1 << 2,
@@ -366,12 +373,18 @@ typedef enum
     C_FILE_SET_CONTENTS_ONLY_EXISTING   = 1 << 2
 } CFileSetContentsFlags;
 
-typedef struct _CError              CError;
-typedef struct _CBytes              CBytes;
-typedef struct _CSource             CSource;
-typedef struct _CString             CString;
-typedef struct stat                 CStatBuf;
-typedef struct _CTimeVal            CTimeVal;
+typedef struct _CError                  CError;
+typedef struct _CSList                  CSList;
+typedef struct _CBytes                  CBytes;
+typedef struct _CString                 CString;
+typedef struct _CSource                 CSource;
+typedef struct stat                     CStatBuf;
+typedef struct _CTimeVal                CTimeVal;
+typedef struct _CMainLoop               CMainLoop;
+typedef struct _CMainContext            CMainContext;
+typedef struct _CSourceFuncs            CSourceFuncs;
+typedef struct _CSourcePrivate          CSourcePrivate;
+typedef struct _CSourceCallbackFuncs    CSourceCallbackFuncs;
 
 
 typedef cint            (*CCompareFunc)         (void* data1, void* data2);
@@ -389,6 +402,55 @@ typedef void            (*CFreeFunc)            (void* data);
 typedef const char*     (*CTranslateFunc)       (const char* str, void* udata);
 typedef bool            (*CUnixFDSourceFunc)    (cint fd, CIOCondition condition, void* udata);
 typedef bool            (*CSourceFunc)          (void* udata);
+typedef void            (*CSourceOnceFunc)      (void* udata);
+typedef void            (*CChildWatchFunc)      (CPid pid, cint waitStatus, void* udata);
+typedef void            (*CSourceDisposeFunc)   (CSource* source);
+typedef void            (*CSourceDummyMarshal)  (void);
+
+
+struct _CSource
+{
+    /*< private >*/
+    void*                           callbackData;
+    CSourceCallbackFuncs*           callbackFuncs;
+    const CSourceFuncs*             sourceFuncs;
+    cuint                           refCount;
+
+    CMainContext*                   context;
+
+    cint                            priority;
+    cuint                           flags;
+    cuint                           sourceId;
+
+    CSList*                         pollFds;
+
+    CSource*                        prev;
+    CSource*                        next;
+
+    char*                           name;
+
+    CSourcePrivate*                 priv;
+};
+
+struct _CSourceCallbackFuncs
+{
+    void (*ref)   (void* cbData);
+    void (*unref) (void* cbData);
+    void (*get)   (void* cbData, CSource* source, CSourceFunc* func, void** data);
+};
+
+struct _CSourceFuncs
+{
+    bool (*prepare)  (CSource* source, cint* timeout_); // Can be NULL
+    bool (*check)    (CSource* source); // Can be NULL
+    bool (*dispatch) (CSource* source, CSourceFunc callback, void* udata);
+    void (*finalize) (CSource* source); // Can be NULL
+
+    /*< private >*/
+    /* For use by g_source_set_closure */
+    CSourceFunc             closureCallback;
+    CSourceDummyMarshal     closureMarshal; /* Really is of type GClosureMarshal */
+};
 
 
 /********************************* 汉化 *****************************************/
@@ -1158,20 +1220,6 @@ bool c_int_equal (const void* p1, const void* p2);
 bool c_int64_equal (const void* p1, const void* p2);
 bool c_double_equal (const void* p1, const void* p2);
 
-/* unix util start */
-
-#define C_UNIX_ERROR (c_unix_error_quark())
-CQuark          c_unix_error_quark          (void);
-bool            c_unix_open_pipe            (cint* fds, cint flags, CError** error);
-bool            c_unix_set_fd_nonblocking   (cint fd, bool nonblock, CError** error);
-CSource*        c_unix_signal_source_new    (cint signum);
-cuint           c_unix_signal_add_full      (cint priority, cint signum, CSourceFunc handler, void* udata, CDestroyNotify notify);
-cuint           c_unix_signal_add           (cint signum, CSourceFunc handler, void* udata);
-CSource*        c_unix_fd_source_new        (cint fd, CIOCondition condition);
-cuint           c_unix_fd_add_full          (cint priority, cint fd, CIOCondition condition, CUnixFDSourceFunc function, void* udata, CDestroyNotify notify);
-cuint           c_unix_fd_add               (cint fd, CIOCondition condition, CUnixFDSourceFunc function, void* udata);
-struct passwd*  c_unix_get_passwd_entry     (const char* userName, CError** error);
-/* unix util end */
 
 int c_strcmp0 (const char* str1, const char* str2);
 void c_clear_pointer (void** pp, CDestroyNotify destroy);

@@ -1073,7 +1073,7 @@ static cint64 boundary_for_year (TimeZoneDate* boundary, cint year, cint32 offse
     c_assert (buffer.year == year);
     c_date_clear (&date, 1);
     c_date_set_dmy (&date, buffer.mday, buffer.mon, buffer.year);
-    return ((c_date_get_julian (&date) - unixEpochStart) * secondsPerDay + buffer.offset - offset);
+    return (cint64) ((c_date_get_julian (&date) - unixEpochStart) * secondsPerDay + buffer.offset - offset);
 }
 
 static void fill_transition_info_from_rule (TransitionInfo* info, TimeZoneRule* rule, bool isDst)
@@ -1124,14 +1124,14 @@ static void init_zone_from_rules (CTimeZone* gtz, TimeZoneRule* rules, cuint rul
     for (ri = 0; ri < rulesNum - 1; ri++) {
         if ((rules[ri].stdOffset || rules[ri].dltOffset)
             && rules[ri].dltStart.mon == 0 && rules[ri].dltEnd.mon == 0) {
-            TransitionInfo std_info;
-            fill_transition_info_from_rule (&std_info, &(rules[ri]), false);
-            c_array_append_val (gtz->tInfo, std_info);
+            TransitionInfo stdInfo;
+            fill_transition_info_from_rule (&stdInfo, &(rules[ri]), false);
+            c_array_append_val (gtz->tInfo, stdInfo);
 
             if (ri > 0 && ((rules[ri - 1].dltStart.mon > 12 && rules[ri - 1].dltStart.wday > rules[ri - 1].dltEnd.wday) || rules[ri - 1].dltStart.mon > rules[ri - 1].dltEnd.mon)) {
                 cuint year = rules[ri].startYear;
-                cint64 std_time =  boundary_for_year (&rules[ri].dltEnd, year, lastOffset);
-                Transition std_trans = {std_time, infoIndex};
+                cint64 std_time =  boundary_for_year (&rules[ri].dltEnd, (cint) year, lastOffset);
+                Transition std_trans = {std_time, (cint) infoIndex};
                 c_array_append_val (gtz->transitions, std_trans);
             }
             lastOffset = rules[ri].stdOffset;
@@ -1159,10 +1159,10 @@ static void init_zone_from_rules (CTimeZone* gtz, TimeZoneRule* rules, cuint rul
             for (year = startYear; year < endYear; year++) {
                 cint32 dltOffset = (dltFirst ? lastOffset : rules[ri].dltOffset);
                 cint32 stdOffset = (dltFirst ? rules[ri].stdOffset : lastOffset);
-                cint64 stdTime =  boundary_for_year (&rules[ri].dltEnd, year, dltOffset);
-                cint64 dltTime = boundary_for_year (&rules[ri].dltStart, year, stdOffset);
-                Transition stdTrans = {stdTime, infoIndex};
-                Transition dltTrans = {dltTime, infoIndex + 1};
+                cint64 stdTime = boundary_for_year (&rules[ri].dltEnd, (cint) year, dltOffset);
+                cint64 dltTime = boundary_for_year (&rules[ri].dltStart, (cint) year, stdOffset);
+                Transition stdTrans = {stdTime, (cint) infoIndex};
+                Transition dltTrans = {dltTime, (cint) infoIndex + 1};
                 lastOffset = (dltFirst ? rules[ri].dltOffset : rules[ri].stdOffset);
                 if (dltFirst) {
                     if (skipFirstStdTrans) {
@@ -1194,8 +1194,8 @@ static void init_zone_from_rules (CTimeZone* gtz, TimeZoneRule* rules, cuint rul
         Transition trans;
         fill_transition_info_from_rule (&info, &(rules[ri - 1]), false);
         c_array_append_val (gtz->tInfo, info);
-        trans.time = boundary_for_year (&rules[ri - 1].dltEnd, year, lastOffset);
-        trans.infoIndex = infoIndex;
+        trans.time = boundary_for_year (&rules[ri - 1].dltEnd, (cint) year, lastOffset);
+        trans.infoIndex = (cint) infoIndex;
         c_array_append_val (gtz->transitions, trans);
     }
 }

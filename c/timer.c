@@ -99,9 +99,9 @@ double c_timer_elapsed (CTimer* timer, culong* microseconds)
         timer->end = c_get_monotonic_time ();
     }
 
-    cint64 elapsed = timer->end - timer->start;
+    cint64 elapsed = (cint64) (timer->end - timer->start);
 
-    total = elapsed / 1e6;
+    total = (cdouble) ((cdouble) elapsed / 1e6);
 
     if (microseconds) {
         *microseconds = elapsed % 1000000;
@@ -120,8 +120,8 @@ bool c_timer_is_active (CTimer* timer)
 void c_usleep (culong microseconds)
 {
     struct timespec request, remaining;
-    request.tv_sec = microseconds / C_USEC_PER_SEC;
-    request.tv_nsec = 1000 * (microseconds % C_USEC_PER_SEC);
+    request.tv_sec = (long) (microseconds / C_USEC_PER_SEC);
+    request.tv_nsec = (long) (1000 * (microseconds % C_USEC_PER_SEC));
     while (nanosleep (&request, &remaining) == -1 && errno == EINTR) {
         request = remaining;
     }

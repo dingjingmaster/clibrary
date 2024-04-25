@@ -23,6 +23,9 @@ file(GLOB C_SRC
         ${CMAKE_SOURCE_DIR}/c/hash.h
         ${CMAKE_SOURCE_DIR}/c/hash.c
 
+        ${CMAKE_SOURCE_DIR}/c/hook.h
+        ${CMAKE_SOURCE_DIR}/c/hook.c
+
         ${CMAKE_SOURCE_DIR}/c/timer.h
         ${CMAKE_SOURCE_DIR}/c/timer.c
 
@@ -40,6 +43,9 @@ file(GLOB C_SRC
 
         ${CMAKE_SOURCE_DIR}/c/error.h
         ${CMAKE_SOURCE_DIR}/c/error.c
+
+        ${CMAKE_SOURCE_DIR}/c/source.h
+        ${CMAKE_SOURCE_DIR}/c/source.c
 
         ${CMAKE_SOURCE_DIR}/c/thread.h
         ${CMAKE_SOURCE_DIR}/c/thread.c
@@ -82,10 +88,12 @@ file(GLOB C_HEADERS
         ${CMAKE_SOURCE_DIR}/c/test.h
         ${CMAKE_SOURCE_DIR}/c/list.h
         ${CMAKE_SOURCE_DIR}/c/uuid.h
+        ${CMAKE_SOURCE_DIR}/c/hook.h
         ${CMAKE_SOURCE_DIR}/c/timer.h
         ${CMAKE_SOURCE_DIR}/c/array.h
         ${CMAKE_SOURCE_DIR}/c/bytes.h
         ${CMAKE_SOURCE_DIR}/c/slist.h
+        ${CMAKE_SOURCE_DIR}/c/source.h
         ${CMAKE_SOURCE_DIR}/c/thread.h
         ${CMAKE_SOURCE_DIR}/c/atomic.h
         ${CMAKE_SOURCE_DIR}/c/base64.h

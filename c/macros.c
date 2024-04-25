@@ -15,17 +15,17 @@
 #include <fcntl.h>
 #include <utime.h>
 #include <unistd.h>
+#include <locale.h>
+#include <libintl.h>
 #include <sys/time.h>
 #include <sys/stat.h>
-#include <libintl.h>
-#include <locale.h>
 
 #include "log.h"
 #include "str.h"
 #include "timer.h"
 #include "thread.h"
 #include "macros.h"
-#include "cstring.h"
+#include "source.h"
 #include "file-utils.h"
 
 #ifndef GETTEXT_PACKAGE
@@ -51,6 +51,7 @@ struct _MSortParam
     void*                   arg;
     char*                   t;
 };
+
 
 /* rand start */
 C_LOCK_DEFINE_STATIC (gsGlobalRandom);
@@ -557,36 +558,6 @@ char** c_environ_unsetenv (char** envp, const char* variable)
     return c_environ_unsetenv_internal (envp, variable, true);
 }
 
-CQuark c_unix_error_quark (void)
-{}
-
-bool c_unix_open_pipe (cint* fds, cint flags, CError** error)
-{}
-
-bool c_unix_set_fd_nonblocking (cint fd, bool nonblock, CError** error)
-{}
-
-CSource* c_unix_signal_source_new (cint signum)
-{}
-
-cuint c_unix_signal_add_full (cint priority, cint signum, CSourceFunc handler, void* udata, CDestroyNotify notify)
-{}
-
-cuint c_unix_signal_add (cint signum, CSourceFunc handler, void* udata)
-{}
-
-CSource* c_unix_fd_source_new (cint fd, CIOCondition condition)
-{}
-
-cuint c_unix_fd_add_full (cint priority, cint fd, CIOCondition condition, CUnixFDSourceFunc function, void* udata, CDestroyNotify notify)
-{}
-
-cuint c_unix_fd_add (cint fd, CIOCondition condition, CUnixFDSourceFunc function, void* udata)
-{}
-
-struct passwd* c_unix_get_passwd_entry (const char* userName, CError** error)
-{}
-
 
 int c_strcmp0 (const char* str1, const char* str2)
 {
@@ -861,9 +832,6 @@ const char* c_dngettext (const char* domain, const char* msgId, const char* msgI
 
     return dngettext (domain, msgId, msgIdPlural, n);
 }
-
-
-
 
 
 static void msort_r (void *b, cuint64 n, cuint64 s, CCompareDataFunc cmp, void *arg)
@@ -1182,3 +1150,5 @@ static bool _c_dgettext_should_translate (void)
 
     return (translate == SHOULD_TRANSLATE);
 }
+
+

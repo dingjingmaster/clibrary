@@ -151,7 +151,7 @@ void            c_system_thread_free                    (CRealThread* thread);
 void*           c_private_set_alloc0                    (CPrivate* key, csize size);
 bool            c_system_thread_get_scheduler_settings  (CThreadSchedulerSettings* schedulerSettings);
 bool            c_thread_get_scheduler_settings         (CThreadSchedulerSettings* schedulerSettings);
-CRealThread*    c_system_thread_new                     (CThreadFunc proxy, culong stack_size, const CThreadSchedulerSettings *scheduleSsettings, const char* name, CThreadFunc func, void* data, CError** error);
+CRealThread*    c_system_thread_new                     (CThreadFunc proxy, culong stackSize, const CThreadSchedulerSettings* scheduleSettings, const char* name, CThreadFunc func, void* data, CError** error);
 CThread*        c_thread_new_internal                   (const char* name, CThreadFunc proxy, CThreadFunc func, void* data, csize stackSize, const CThreadSchedulerSettings* schedulerSettings, CError** error);
 
 
@@ -503,7 +503,7 @@ bool c_cond_wait_until (CCond* cond, CMutex* mutex, cint64 endTime)
 
         /* Make sure to only ever call this if the end time actually fits into the target type */
         if (C_UNLIKELY (sizeof (__kernel_long_t) < 8 && span.tv_sec > C_MAX_INT32)) {
-            C_LOG_ERROR_CONSOLE("%s: Can’t wait for more than %us", C_STRFUNC, C_MAX_INT32);
+            C_LOG_ERROR_CONSOLE("%s: Can’t wait for more than %us", C_STRFUNC, C_MAX_INT32)
         }
 
         spanArg.tv_sec = span.tv_sec;
@@ -517,8 +517,7 @@ bool c_cond_wait_until (CCond* cond, CMutex* mutex, cint64 endTime)
     }
 #endif /* defined(__NR_futex) */
 
-    /* We can't end up here because of the checks above */
-    abort();
+    c_assert_not_reached();
 }
 
 void* c_private_get (CPrivate* key)
@@ -699,14 +698,14 @@ void c_system_thread_exit (void)
     pthread_exit (NULL);
 }
 
-void c_system_thread_set_name (const char *name)
+void c_system_thread_set_name (const char* C_UNUSED name)
 {
 //#if defined(HAVE_PTHREAD_SETNAME_NP_WITHOUT_TID)
 //    pthread_setname_np (name); /* on OS X and iOS */
 //#elif defined(HAVE_PTHREAD_SETNAME_NP_WITH_TID)
 //    pthread_setname_np (pthread_self (), name); /* on Linux and Solaris */
 //#elif defined(HAVE_PTHREAD_SETNAME_NP_WITH_TID_AND_ARG)
-//    pthread_setname_np (pthread_self (), "%s", (gchar *) name); /* on NetBSD */
+//    pthread_setname_np (pthread_self (), "%s", (char*) name); /* on NetBSD */
 //#elif defined(HAVE_PTHREAD_SET_NAME_NP)
 //    pthread_set_name_np (pthread_self (), name); /* on FreeBSD, DragonFlyBSD, OpenBSD */
 //#endif
@@ -726,14 +725,12 @@ void c_system_thread_free (CRealThread* thread)
     c_free(pt);
 }
 
-bool c_system_thread_get_scheduler_settings (CThreadSchedulerSettings* schedulerSettings)
+bool c_system_thread_get_scheduler_settings (CThreadSchedulerSettings* C_UNUSED schedulerSettings)
 {
-    (void) schedulerSettings;
-
     return false;
 }
 
-CRealThread* c_system_thread_new (CThreadFunc proxy, culong stackSize, const CThreadSchedulerSettings *schedulerSettings, const char* name, CThreadFunc func, void* data, CError** error)
+CRealThread* c_system_thread_new (CThreadFunc proxy, culong C_UNUSED stackSize, const CThreadSchedulerSettings* schedulerSettings, const char* name, CThreadFunc func, void* data, CError** error)
 {
     CThreadPosix* thread;
     CRealThread* baseThread;
@@ -786,7 +783,7 @@ static void c_mutex_lock_slowpath (CMutex *mutex)
 static void c_mutex_unlock_slowpath (CMutex* mutex, cuint prev)
 {
     if C_UNLIKELY (prev == C_MUTEX_STATE_EMPTY) {
-        C_LOG_ERROR_CONSOLE("Attempt to unlock mutex that was not locked");
+        C_LOG_ERROR_CONSOLE("Attempt to unlock mutex that was not locked")
         c_abort ();
     }
 
