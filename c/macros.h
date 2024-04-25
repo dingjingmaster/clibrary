@@ -23,6 +23,7 @@
 #include <string.h>
 #include <assert.h>
 #include <unistd.h>
+#include <libintl.h>
 
 #include <sys/poll.h>
 
@@ -389,6 +390,13 @@ typedef const char*     (*CTranslateFunc)       (const char* str, void* udata);
 typedef bool            (*CUnixFDSourceFunc)    (cint fd, CIOCondition condition, void* udata);
 typedef bool            (*CSourceFunc)          (void* udata);
 
+
+/********************************* 汉化 *****************************************/
+#define  _(str) gettext (str)
+#define Q_(str) c_dpgettext (NULL, str, 0)
+#define N_(str) (str)
+#define C_(ctx,str) c_dpgettext (NULL, ctx "\004" str, strlen (ctx) + 1)
+#define NC_(ctx,str) (str)
 
 /** @NOTE **/
 /********************************* 宏定义 ***************************************/
@@ -1226,5 +1234,14 @@ char**      c_environ_setenv  (char** envp, const char* variable, const char* va
 char**      c_environ_unsetenv(char** envp, const char* variable) C_WARN_UNUSED_RESULT;
 /* env end */
 
+
+const char* clib_gettext    (const char* str);
+const char* c_dgettext      (const char* domain, const char* msgId);
+const char* c_strip_context (const char* msgId, const char* msgVal);
+const char* clib_pgettext   (const char* msgCtxTid, csize msgIdOffset);
+const char* c_dcgettext     (const char* domain, const char* msgId, cint category);
+const char* c_dpgettext2    (const char* domain, const char* msgCtxt, const char* msgId);
+const char* c_dpgettext     (const char* domain, const char* msgCtxTid, csize msgIdOffset);
+const char* c_dngettext     (const char* domain, const char* msgId, const char* msgIdPlural, culong n);
 
 #endif

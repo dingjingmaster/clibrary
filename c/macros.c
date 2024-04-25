@@ -17,6 +17,8 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <sys/stat.h>
+#include <libintl.h>
+#include <locale.h>
 
 #include "log.h"
 #include "str.h"
@@ -25,6 +27,18 @@
 #include "macros.h"
 #include "cstring.h"
 #include "file-utils.h"
+
+#ifndef GETTEXT_PACKAGE
+#define GETTEXT_PACKAGE "clibrary"
+#endif
+
+#ifndef CLIB_LOCALE_DIR
+#define CLIB_LOCALE_DIR "/usr/share/locale"
+#endif
+
+#ifndef CLIB_LOCALE
+#define CLIB_LOCALE "zh_CN.UTF-8"
+#endif
 
 
 typedef struct _MSortParam          MSortParam;
@@ -69,6 +83,8 @@ static CRand* get_global_random (void);
 static void msort_with_tmp (const MSortParam* p, void* b, size_t n);
 static void msort_r (void *b, cuint64 n, cuint64 s, CCompareDataFunc cmp, void *arg);
 
+static void ensure_gettext_initialized (void);
+static bool _c_dgettext_should_translate (void);
 static int c_environ_find (char** envp, const char* variable);
 static bool c_environ_matches (const char* env, const char* variable, csize len);
 static char* c_build_filename_va (const char* firstArgument, va_list* args, char** strArray);
@@ -666,7 +682,6 @@ int c_remove (const char* filename)
     return remove (filename);
 }
 
-
 int c_rmdir (const char* filename)
 {
     return rmdir (filename);
@@ -740,6 +755,113 @@ cint64 c_get_monotonic_time (void)
 
     return (((cint64) ts.tv_sec) * 1000000) + (ts.tv_nsec / 1000);
 }
+
+const char* clib_pgettext (const char* msgCtxTid, csize msgIdOffset)
+{
+    ensure_gettext_initialized ();
+
+    return c_dpgettext (GETTEXT_PACKAGE, msgCtxTid, msgIdOffset);
+}
+
+const char* clib_gettext (const char* str)
+{
+    ensure_gettext_initialized ();
+
+    return c_dgettext (GETTEXT_PACKAGE, str);
+}
+
+const char* c_strip_context (const char* msgId, const char* msgVal)
+{
+    if (msgVal == msgId) {
+        const char *c = strchr (msgId, '|');
+        if (c != NULL) {
+            return c + 1;
+        }
+    }
+
+    return msgVal;
+}
+
+const char* c_dpgettext (const char* domain, const char* msgCtxTid, csize msgIdOffset)
+{
+    char* sep = NULL;
+    const char* translation = NULL;
+
+    translation = c_dgettext (domain, msgCtxTid);
+
+    if (translation == msgCtxTid) {
+        if (msgIdOffset > 0) {
+            return msgCtxTid + msgIdOffset;
+        }
+
+        sep = strchr (msgCtxTid, '|');
+        if (sep) {
+            char* tmp = c_malloc0(strlen (msgCtxTid) + 1);
+            strcpy (tmp, msgCtxTid);
+            tmp[sep - msgCtxTid] = '\004';
+
+            translation = c_dgettext (domain, tmp);
+            if (translation == tmp) {
+                return sep + 1;
+            }
+        }
+    }
+
+    return translation;
+}
+
+const char* c_dpgettext2 (const char* domain, const char* msgCtxt, const char* msgId)
+{
+    size_t msgCtxtLen = strlen (msgCtxt) + 1;
+    size_t msgIdLen = strlen (msgId) + 1;
+    const char* translation;
+    char* msgCtxtId;
+
+    msgCtxtId = c_malloc0 (msgCtxtLen + msgIdLen);
+    memcpy (msgCtxtId, msgCtxt, msgCtxtLen - 1);
+    msgCtxtId[msgCtxtLen - 1] = '\004';
+    memcpy (msgCtxtId + msgCtxtLen, msgId, msgIdLen);
+
+    translation = c_dgettext (domain, msgCtxtId);
+
+    if (translation == msgCtxtId) {
+        msgCtxtId[msgCtxtLen - 1] = '|';
+        translation = c_dgettext (domain, msgCtxtId);
+        if (translation == msgCtxtId) {
+            return msgId;
+        }
+    }
+
+    return translation;
+}
+
+const char* c_dgettext (const char* domain, const char* msgId)
+{
+    if (domain && C_UNLIKELY (!_c_dgettext_should_translate ())) {
+        return msgId;
+    }
+
+    return dgettext (domain, msgId);
+}
+
+const char* c_dcgettext (const char* domain, const char* msgId, cint category)
+{
+    if (domain && C_UNLIKELY (!_c_dgettext_should_translate ())) {
+        return msgId;
+    }
+
+    return dcgettext (domain, msgId, category);
+}
+
+const char* c_dngettext (const char* domain, const char* msgId, const char* msgIdPlural, culong n)
+{
+    if (domain && C_UNLIKELY (!_c_dgettext_should_translate ())) {
+        return n == 1 ? msgId : msgIdPlural;
+    }
+
+    return dngettext (domain, msgId, msgIdPlural, n);
+}
+
 
 
 
@@ -1020,3 +1142,43 @@ static char** c_environ_unsetenv_internal (char** envp, const char* variable, bo
     return envp;
 }
 
+static void ensure_gettext_initialized (void)
+{
+    static csize initialised;
+
+    if (c_once_init_enter (&initialised)) {
+        bindtextdomain (GETTEXT_PACKAGE, CLIB_LOCALE_DIR);
+        bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
+        c_once_init_leave (&initialised, true);
+    }
+}
+
+static bool _c_dgettext_should_translate (void)
+{
+    static csize translate = 0;
+    enum {
+        SHOULD_TRANSLATE = 1,
+        SHOULD_NOT_TRANSLATE = 2
+    };
+
+    if (C_UNLIKELY (c_once_init_enter (&translate))) {
+        bool shouldTranslate = true;
+
+        const char* defaultDomain     = textdomain (NULL);
+        const char* translatorComment = gettext ("");
+        const char* translateLocale   = setlocale (LC_MESSAGES, NULL);
+
+        if (!defaultDomain
+            || !translatorComment
+            || !translateLocale
+            || ((0 != strcmp (defaultDomain, "messages"))
+                && ('\0' == *translatorComment)
+                && (0 != strncmp (translateLocale, "en_", 3))
+                && (0 != strcmp (translateLocale, "C")))) {
+            shouldTranslate = false;
+        }
+        c_once_init_leave (&translate, shouldTranslate ? SHOULD_TRANSLATE : SHOULD_NOT_TRANSLATE);
+    }
+
+    return (translate == SHOULD_TRANSLATE);
+}

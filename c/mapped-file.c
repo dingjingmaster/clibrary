@@ -13,7 +13,6 @@
 
 #include "mapped-file.h"
 
-
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/mman.h>
@@ -23,6 +22,7 @@
 #include "error.h"
 #include "bytes.h"
 #include "atomic.h"
+#include "convert.h"
 #include "file-utils.h"
 
 #ifndef _O_BINARY
