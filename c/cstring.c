@@ -192,7 +192,7 @@ CString* c_string_insert_len (CString* str, cssize pos, const char* val, cssize 
     }
 
     if (len < 0) {
-        len = strlen (val);
+        len = (cssize) strlen (val);
     }
     lenUnsigned = len;
 
@@ -366,24 +366,22 @@ CString* c_string_insert_unichar (CString* str, cssize pos, cunichar wc)
     c_string_maybe_expand (str, charLen);
 
     if (pos < 0) {
-        pos = str->len;
+        pos = (cssize) str->len;
     }
     else {
         c_return_val_if_fail ((csize) pos <= str->len, str);
     }
 
-    /* If not just an append, move the old stuff */
     if ((csize) pos < str->len) {
         memmove (str->str + pos + charLen, str->str + pos, str->len - pos);
     }
 
     dest = str->str + pos;
-    /* Code copied from g_unichar_to_utf() */
     for (i = charLen - 1; i > 0; --i) {
-        dest[i] = (wc & 0x3f) | 0x80;
+        dest[i] = (char) ((wc & 0x3f) | 0x80);
         wc >>= 6;
     }
-    dest[0] = wc | first;
+    dest[0] = (char) (wc | first);
     /* End of copied code */
 
     str->len += charLen;
@@ -503,7 +501,7 @@ CString* c_string_ascii_down (CString* str)
 
     c_return_val_if_fail (str != NULL, NULL);
 
-    n = str->len;
+    n = (cint) str->len;
     s = str->str;
 
     while (n) {
@@ -522,7 +520,7 @@ CString* c_string_ascii_up (CString* str)
 
     c_return_val_if_fail (str != NULL, NULL);
 
-    n = str->len;
+    n = (cint) str->len;
     s = str->str;
 
     while (n) {
@@ -591,7 +589,7 @@ CString* c_string_down (CString* str)
 
     c_return_val_if_fail (str != NULL, NULL);
 
-    n = str->len;
+    n = (clong) str->len;
     s = (cuchar*) str->str;
 
     while (n) {
@@ -630,7 +628,7 @@ CString* c_string_up (CString* str)
 static void c_string_maybe_expand (CString* str, csize len)
 {
     if C_UNLIKELY ((C_MAX_SIZE - str->len - 1) < len) {
-        C_LOG_ERROR_CONSOLE("adding %ul to string would overflow", len);
+        C_LOG_ERROR_CONSOLE("adding %ul to string would overflow", len)
     }
 
     if (str->len + len >= str->allocatedLen) {
