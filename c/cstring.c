@@ -11,12 +11,13 @@
 // Created by dingjing on 24-4-24.
 //
 
-#include <ctype.h>
 #include "cstring.h"
 
+#include <ctype.h>
+
+#include "str.h"
 #include "log.h"
 #include "bytes.h"
-#include "str.h"
 
 extern void _uri_encoder (CString* out, const cuchar* start, csize length, const char* reservedCharsAllowed, bool allowUtf8);
 
