@@ -14,10 +14,10 @@
 #include "mapped-file.h"
 
 
+#include <fcntl.h>
 #include <unistd.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
-#include <bits/fcntl-linux.h>
 
 #include "str.h"
 #include "error.h"
