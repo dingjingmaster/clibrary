@@ -11,11 +11,14 @@
 // Created by dingjing on 24-4-24.
 //
 
+#include <ctype.h>
 #include "cstring.h"
 
 #include "log.h"
 #include "bytes.h"
+#include "str.h"
 
+extern void _uri_encoder (CString* out, const cuchar* start, csize length, const char* reservedCharsAllowed, bool allowUtf8);
 
 static void c_string_maybe_expand (CString* str, csize len);
 
@@ -244,76 +247,384 @@ CString* c_string_insert_len (CString* str, cssize pos, const char* val, cssize 
 }
 
 CString* c_string_append (CString* str, const char* val)
-{}
+{
+    return c_string_insert_len (str, -1, val, -1);
+}
 
 CString* c_string_append_len (CString* str, const char* val, cssize len)
-{}
+{
+    return c_string_insert_len (str, -1, val, len);
+}
 
 CString* c_string_append_c (CString* str, char c)
-{}
+{
+    c_return_val_if_fail (str != NULL, NULL);
+
+    return c_string_insert_c (str, -1, c);
+}
 
 CString* c_string_append_unichar (CString* str, cunichar wc)
-{}
+{
+    c_return_val_if_fail (str != NULL, NULL);
+
+    return c_string_insert_unichar (str, -1, wc);
+}
 
 CString* c_string_prepend (CString* str, const char* val)
-{}
+{
+    return c_string_insert_len (str, 0, val, -1);
+}
 
 CString* c_string_prepend_c (CString* str, char c)
-{}
+{
+    c_return_val_if_fail (str != NULL, NULL);
+
+    return c_string_insert_c (str, 0, c);
+}
 
 CString* c_string_prepend_unichar (CString* str, cunichar wc)
-{}
+{
+    c_return_val_if_fail (str != NULL, NULL);
+
+    return c_string_insert_unichar (str, 0, wc);
+}
 
 CString* c_string_prepend_len (CString* str, const char* val, cssize len)
-{}
+{
+    return c_string_insert_len (str, 0, val, len);
+}
 
 CString* c_string_insert (CString* str, cssize pos, const char* val)
-{}
+{
+    return c_string_insert_len (str, pos, val, -1);
+}
 
 CString* c_string_insert_c (CString* str, cssize pos, char c)
-{}
+{
+    csize posUnsigned;
+
+    c_return_val_if_fail (str != NULL, NULL);
+
+    c_string_maybe_expand (str, 1);
+
+    if (pos < 0) {
+        pos = (cssize) str->len;
+    }
+    else {
+        c_return_val_if_fail ((csize) pos <= str->len, str);
+    }
+    posUnsigned = pos;
+
+    /* If not just an append, move the old stuff */
+    if (posUnsigned < str->len) {
+        memmove (str->str + posUnsigned + 1, str->str + posUnsigned, str->len - posUnsigned);
+    }
+
+    str->str[posUnsigned] = c;
+
+    str->len += 1;
+
+    str->str[str->len] = 0;
+
+    return str;
+}
 
 CString* c_string_insert_unichar (CString* str, cssize pos, cunichar wc)
-{}
+{
+    cint charLen, first, i;
+    char* dest = NULL;
+
+    c_return_val_if_fail (str != NULL, NULL);
+
+    /* Code copied from g_unichar_to_utf() */
+    if (wc < 0x80) {
+        first = 0;
+        charLen = 1;
+    }
+    else if (wc < 0x800) {
+        first = 0xc0;
+        charLen = 2;
+    }
+    else if (wc < 0x10000) {
+        first = 0xe0;
+        charLen = 3;
+    }
+    else if (wc < 0x200000) {
+        first = 0xf0;
+        charLen = 4;
+    }
+    else if (wc < 0x4000000) {
+        first = 0xf8;
+        charLen = 5;
+    }
+    else {
+        first = 0xfc;
+        charLen = 6;
+    }
+    /* End of copied code */
+
+    c_string_maybe_expand (str, charLen);
+
+    if (pos < 0) {
+        pos = str->len;
+    }
+    else {
+        c_return_val_if_fail ((csize) pos <= str->len, str);
+    }
+
+    /* If not just an append, move the old stuff */
+    if ((csize) pos < str->len) {
+        memmove (str->str + pos + charLen, str->str + pos, str->len - pos);
+    }
+
+    dest = str->str + pos;
+    /* Code copied from g_unichar_to_utf() */
+    for (i = charLen - 1; i > 0; --i) {
+        dest[i] = (wc & 0x3f) | 0x80;
+        wc >>= 6;
+    }
+    dest[0] = wc | first;
+    /* End of copied code */
+
+    str->len += charLen;
+    str->str[str->len] = 0;
+
+    return str;
+}
 
 CString* c_string_overwrite (CString* str, csize pos, const char* val)
-{}
+{
+    c_return_val_if_fail (val != NULL, str);
+
+    return c_string_overwrite_len (str, pos, val, (cssize) strlen (val));
+}
 
 CString* c_string_overwrite_len (CString* str, csize pos, const char* val, cssize len)
-{}
+{
+    csize end;
+
+    c_return_val_if_fail (str != NULL, NULL);
+
+    if (!len) {
+        return str;
+    }
+
+    c_return_val_if_fail (val != NULL, str);
+    c_return_val_if_fail (pos <= str->len, str);
+
+    if (len < 0) {
+        len = (cssize) strlen (val);
+    }
+
+    end = pos + len;
+
+    if (end > str->len) {
+        c_string_maybe_expand (str, end - str->len);
+    }
+
+    memcpy (str->str + pos, val, len);
+
+    if (end > str->len) {
+        str->str[end] = '\0';
+        str->len = end;
+    }
+
+    return str;
+
+}
 
 CString* c_string_erase (CString* str, cssize pos, cssize len)
-{}
+{
+    csize lenUnsigned, posUnsigned;
+
+    c_return_val_if_fail (str != NULL, NULL);
+    c_return_val_if_fail (pos >= 0, str);
+    posUnsigned = pos;
+
+    c_return_val_if_fail (posUnsigned <= str->len, str);
+
+    if (len < 0) {
+        lenUnsigned = str->len - posUnsigned;
+    }
+    else {
+        lenUnsigned = len;
+        c_return_val_if_fail (posUnsigned + lenUnsigned <= str->len, str);
+        if (posUnsigned + lenUnsigned < str->len) {
+            memmove (str->str + posUnsigned, str->str + posUnsigned + lenUnsigned, str->len - (posUnsigned + lenUnsigned));
+        }
+    }
+
+    str->len -= lenUnsigned;
+    str->str[str->len] = 0;
+
+    return str;
+}
 
 cuint c_string_replace (CString* str, const char* find, const char* replace, cuint limit)
-{}
+{
+    csize fLen, rLen, pos;
+    char *cur, *next;
+    cuint n = 0;
+
+    c_return_val_if_fail (str != NULL, 0);
+    c_return_val_if_fail (find != NULL, 0);
+    c_return_val_if_fail (replace != NULL, 0);
+
+    fLen = strlen (find);
+    rLen = strlen (replace);
+    cur = str->str;
+
+    while ((next = strstr (cur, find)) != NULL) {
+        pos = next - str->str;
+        c_string_erase (str, (cssize) pos, (cssize) fLen);
+        c_string_insert (str, (cssize) pos, replace);
+        cur = str->str + pos + rLen;
+        n++;
+        if (fLen == 0) {
+            if (cur[0] == '\0') {
+                break;
+            }
+            else {
+                cur++;
+            }
+        }
+        if (n == limit) {
+            break;
+        }
+    }
+
+    return n;
+}
 
 CString* c_string_ascii_down (CString* str)
-{}
+{
+    cint n;
+    char* s = NULL;
+
+    c_return_val_if_fail (str != NULL, NULL);
+
+    n = str->len;
+    s = str->str;
+
+    while (n) {
+        *s = c_ascii_tolower (*s);
+        s++;
+        n--;
+    }
+
+    return str;
+}
 
 CString* c_string_ascii_up (CString* str)
-{}
+{
+    cint n;
+    char* s = NULL;
+
+    c_return_val_if_fail (str != NULL, NULL);
+
+    n = str->len;
+    s = str->str;
+
+    while (n) {
+        *s = c_ascii_toupper (*s);
+        s++;
+        n--;
+    }
+
+    return str;
+}
 
 void c_string_vprintf (CString* str, const char* format, va_list args)
-{}
+{
+    c_string_truncate (str, 0);
+
+    c_string_append_vprintf (str, format, args);
+}
 
 void c_string_printf (CString* str, const char* format, ...)
-{}
+{
+    va_list args;
+    c_string_truncate (str, 0);
+    va_start (args, format);
+    c_string_append_vprintf (str, format, args);
+    va_end (args);
+
+}
 
 void c_string_append_vprintf (CString* str, const char* format, va_list args)
-{}
+{
+    char* buf = NULL;
+    cint len;
+
+    c_return_if_fail (str != NULL);
+    c_return_if_fail (format != NULL);
+
+    len = c_vasprintf (&buf, format, args);
+
+    if (len >= 0) {
+        c_string_maybe_expand (str, len);
+        memcpy (str->str + str->len, buf, len + 1);
+        str->len += len;
+        c_free (buf);
+    }
+}
 
 void c_string_append_printf (CString* str, const char* format, ...)
-{}
+{
+    va_list args;
+
+    va_start (args, format);
+    c_string_append_vprintf (str, format, args);
+    va_end (args);
+}
 
 CString* c_string_append_uri_escaped (CString* str, const char* unescaped, const char* reservedCharsAllowed, bool allowUtf8)
-{}
+{
+    _uri_encoder (str, (const cuchar*) unescaped, strlen (unescaped), reservedCharsAllowed, allowUtf8);
+    return str;
+}
 
 CString* c_string_down (CString* str)
-{}
+{
+    clong n;
+    cuchar* s;
+
+    c_return_val_if_fail (str != NULL, NULL);
+
+    n = str->len;
+    s = (cuchar*) str->str;
+
+    while (n) {
+        if (isupper (*s)) {
+            *s = tolower (*s);
+        }
+        s++;
+        n--;
+    }
+
+    return str;
+}
 
 CString* c_string_up (CString* str)
-{}
+{
+    clong n;
+    cuchar* s = NULL;
+
+    c_return_val_if_fail (str != NULL, NULL);
+
+    n = (clong) str->len;
+    s = (cuchar*) str->str;
+
+    while (n) {
+        if (islower (*s)) {
+            *s = toupper (*s);
+        }
+        s++;
+        n--;
+    }
+
+    return str;
+}
 
 
 static void c_string_maybe_expand (CString* str, csize len)
