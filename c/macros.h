@@ -1126,6 +1126,15 @@ C_STMT_START \
 } \
 C_STMT_END
 
+#define c_warn_if_fail(x) \
+C_STMT_START \
+{ \
+    if (C_UNLIKELY(!(x))) { \
+        fprintf(stderr, "\"%s\" is fail!", #x); \
+    } \
+} \
+C_STMT_END
+
 
 #define c_uint_checked_add(dest, a, b)      _CLIB_CHECKED_ADD_UINT(dest, a, b)
 #define c_uint_checked_mul(dest, a, b)      _CLIB_CHECKED_MUL_UINT(dest, a, b)

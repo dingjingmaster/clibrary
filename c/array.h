@@ -41,7 +41,7 @@ struct _CByteArray
 
 struct _CPtrArray
 {
-    void*               pdata;
+    void**              pdata;
     cuint               len;
 };
 

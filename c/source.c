@@ -38,7 +38,15 @@
 #define W_EXITCODE(ret, sig) ((ret) << 8 | (sig))
 #endif
 
+#define LOCK_CONTEXT(context) c_mutex_lock (&context->mutex)
+#define UNLOCK_CONTEXT(context) c_mutex_unlock (&context->mutex)
+#define C_THREAD_SELF c_thread_self ()
+#define SOURCE_DESTROYED(source) (((source)->flags & C_HOOK_FLAG_ACTIVE) == 0)
+#define SOURCE_BLOCKED(source) (((source)->flags & C_SOURCE_BLOCKED) != 0)
+
+
 C_DEFINE_QUARK (c-unix-error-quark, c_unix_error)
+
 
 typedef struct _CIdleSource             CIdleSource;
 typedef struct _CTimeoutSource          CTimeoutSource;
@@ -118,6 +126,72 @@ struct _CMainContext
     bool                timeIsFresh;
 };
 
+struct _CSourceCallback
+{
+    cint                refCount;  /* (atomic) */
+    CSourceFunc         func;
+    void*               data;
+    CDestroyNotify      notify;
+};
+
+struct _CMainLoop
+{
+    CMainContext*       context;
+    bool                isRunning; /* (atomic) */
+    cint                refCount;  /* (atomic) */
+};
+
+struct _CIdleSource
+{
+    CSource             source;
+    bool                oneShot;
+};
+
+struct _CTimeoutSource
+{
+    CSource             source;
+    cuint               interval;
+    bool                seconds;
+    bool                oneShot;
+};
+
+struct _CChildWatchSource
+{
+    CSource             source;
+    CPid                pid;
+    cint                childStatus;
+    CPollFD             poll;
+    bool                childExited; /* (atomic); not used iff @using_pidfd is set */
+    bool                usingPidFd;
+};
+
+struct _CPollRec
+{
+    CPollFD*            fd;
+    CPollRec*           prev;
+    CPollRec*           next;
+    cint                priority;
+};
+
+struct _CSourcePrivate
+{
+    CSList*             childSources;
+    CSource*            parentSource;
+    cint64              readyTime;
+    CSList*             fds;
+    CSourceDisposeFunc  dispose;
+    bool                staticName;
+};
+
+typedef struct _CSourceIter
+{
+    CMainContext*       context;
+    bool                mayModify;
+    CList*              currentList;
+    CSource*            source;
+} CSourceIter;
+
+
 
 C_LOCK_DEFINE_STATIC (gsUnixSignalLock);
 static cuint gsUnixSignalRefcount[NSIG];
@@ -125,26 +199,105 @@ static CSList* gsUnixSignalWatches;
 static CSList* gsUnixChildWatches;
 
 
+CMainContext* c_get_worker_context (void);
+
+
+static void         free_context (void* data);
+static void         dispatch_unix_signals (void);
+static void         wake_source (CSource *source);
+static void*        clib_worker_main (void* data);
 static const char*  signum_to_string (int signum);
-CSource*            _c_main_create_unix_signal_watch (int signum);
+static CSource*     idle_source_new (bool oneShot);
+static void         dispatch_unix_signals_unlocked (void);
 static bool         c_unix_signal_watch_check (CSource* source);
+CSource*            _c_main_create_unix_signal_watch (int signum);
 static void         ref_unix_signal_handler_unlocked (int signum);
 static void         unref_unix_signal_handler_unlocked (int signum);
+static int          siginfo_t_to_wait_status (const siginfo_t *info);
+static inline void  poll_rec_list_free (CMainContext* context, CPollRec* list);
 static bool         c_unix_set_error_from_errno (CError** error, int savedErrno);
 static bool         c_unix_signal_watch_prepare (CSource* source, cint* timeout);
+static void         source_remove_from_context (CSource* source, CMainContext* context);
 bool                c_unix_fd_source_dispatch (CSource* source, CSourceFunc callback, void* udata);
+static void         c_timeout_set_expiration (CTimeoutSource* timeout_source, cint64 current_time);
 static bool         c_unix_signal_watch_dispatch (CSource* source, CSourceFunc callback, void* udata);
+static CSourceList* find_source_list_for_priority (CMainContext* context, cint priority, bool create);
+
+static cuint idle_add_full (cint priority, bool oneShot, CSourceFunc function, void* data, CDestroyNotify notify);
+static void c_source_unref_internal             (CSource* source, CMainContext* context, bool haveLock);
+static void c_source_destroy_internal           (CSource* source, CMainContext* context, bool haveLock);
+static void c_source_set_priority_unlocked      (CSource* source, CMainContext* context, cint priority);
+static void c_child_source_remove_internal      (CSource* childSource, CMainContext* context);
+static void c_main_context_poll                 (CMainContext* context, cint timeout, cint priority, CPollFD* fds, cint nFds);
+static void c_main_context_add_poll_unlocked    (CMainContext* context, cint priority, CPollFD* fd);
+static void c_main_context_remove_poll_unlocked (CMainContext* context, CPollFD* fd);
+static void c_source_iter_init (CSourceIter* iter, CMainContext* context, bool mayModify);
+static bool c_source_iter_next (CSourceIter* iter, CSource** source);
+static void c_source_iter_clear (CSourceIter* iter);
+static bool c_timeout_dispatch (CSource* source, CSourceFunc callback, void* udata);
+static bool c_child_watch_prepare (CSource* source, cint* timeout);
+static bool c_child_watch_check (CSource* source);
+static bool c_child_watch_dispatch (CSource* source, CSourceFunc callback, void* udata);
+static void c_child_watch_finalize (CSource* source);
+static void c_unix_signal_handler (int signum);
+static bool c_unix_signal_watch_prepare  (CSource* source, cint* timeout);
+static bool c_unix_signal_watch_check    (CSource* source);
+static bool c_unix_signal_watch_dispatch (CSource* source, CSourceFunc callback, void* udata);
+static void c_unix_signal_watch_finalize  (CSource* source);
+static bool c_idle_prepare     (CSource* source, cint* timeout);
+static bool c_idle_check       (CSource* source);
+static bool c_idle_dispatch    (CSource* source, CSourceFunc callback, void* udata);
+static void block_source (CSource* source);
+
+
 
 
 CSourceFuncs c_unix_fd_source_funcs = {
     NULL, NULL, c_unix_fd_source_dispatch, NULL, NULL, NULL
 };
+static volatile sig_atomic_t gsUnixSignalPending[NSIG];
+static volatile sig_atomic_t gsAnyUnixSignalPending;
+static CMainContext* gsClibWorkerContext;
+C_LOCK_DEFINE_STATIC (gsUnixSignalLock);
+static cuint gsUnixSignalRefcount[NSIG];
+static CSList* gsUnixSignalWatches;
+static CSList* gsUnixChildWatches;
 
+CSourceFuncs c_unix_signal_funcs =
+    {
+        c_unix_signal_watch_prepare,
+        c_unix_signal_watch_check,
+        c_unix_signal_watch_dispatch,
+        c_unix_signal_watch_finalize,
+        NULL, NULL
+    };
+C_LOCK_DEFINE_STATIC (gsMainContextList);
+static CSList* gsMainContextList = NULL;
 
+CSourceFuncs c_timeout_funcs =
+    {
+        NULL, /* prepare */
+        NULL, /* check */
+        c_timeout_dispatch,
+        NULL, NULL, NULL
+    };
 
+CSourceFuncs c_child_watch_funcs =
+    {
+        c_child_watch_prepare,
+        c_child_watch_check,
+        c_child_watch_dispatch,
+        c_child_watch_finalize,
+        NULL, NULL
+    };
 
-
-
+CSourceFuncs c_idle_funcs =
+    {
+        c_idle_prepare,
+        c_idle_check,
+        c_idle_dispatch,
+        NULL, NULL, NULL
+    };
 
 bool c_unix_open_pipe (cint* fds, cint flags, CError** error)
 {
@@ -299,7 +452,6 @@ struct passwd* c_unix_get_passwd_entry (const char* userName, CError** error)
     }
 #endif /* _SC_GETPW_R_SIZE_MAX */
 
-    /* Default starting size. */
     if (stringBufferSize == 0) {
         stringBufferSize = 64;
     }
@@ -356,14 +508,12 @@ CSource* _c_main_create_unix_signal_watch (int signum)
 
     C_LOCK (gsUnixSignalLock);
     ref_unix_signal_handler_unlocked (signum);
-    gsUnixSignalWatches = c_slist_prepend (gsUnixSignalWatches, unix_signal_source);
+    gsUnixSignalWatches = c_slist_prepend (gsUnixSignalWatches, unixSignalSource);
     dispatch_unix_signals_unlocked ();
     C_UNLOCK (gsUnixSignalLock);
 
     return source;
 }
-
-
 
 //
 bool c_unix_fd_source_dispatch (CSource* source, CSourceFunc callback, void* udata)
@@ -377,6 +527,319 @@ bool c_unix_fd_source_dispatch (CSource* source, CSourceFunc callback, void* uda
     }
 
     return (* func) (fdSource->fd, c_source_query_unix_fd (source, fdSource->tag), udata);
+}
+
+CMainContext* c_main_context_ref (CMainContext* context)
+{
+    c_return_val_if_fail (context != NULL, NULL);
+
+    int oldRefCount = c_atomic_int_add (&context->refCount, 1);
+
+    c_return_val_if_fail (oldRefCount > 0, NULL);
+
+    return context;
+}
+
+void c_main_context_unref (CMainContext* context)
+{
+    CSourceIter iter;
+    CSource *source;
+    CList *sl_iter;
+    CSList *s_iter, *remaining_sources = NULL;
+    CSourceList *list;
+    cuint i;
+
+    c_return_if_fail (context != NULL);
+    c_return_if_fail (c_atomic_int_get (&context->refCount) > 0);
+
+    if (!c_atomic_int_dec_and_test (&context->refCount)) {
+        return;
+    }
+
+    C_LOCK (gsMainContextList);
+    gsMainContextList = c_slist_remove (gsMainContextList, context);
+    C_UNLOCK (gsMainContextList);
+
+    for (i = 0; i < context->pendingDispatches->len; i++) {
+        c_source_unref_internal ((CSource*) (context->pendingDispatches->pdata[i]), context, false);
+    }
+
+    LOCK_CONTEXT (context);
+
+    c_source_iter_init (&iter, context, false);
+    while (c_source_iter_next (&iter, &source)) {
+        source->context = NULL;
+        remaining_sources = c_slist_prepend (remaining_sources, c_source_ref (source));
+    }
+    c_source_iter_clear (&iter);
+
+    for (s_iter = remaining_sources; s_iter; s_iter = s_iter->next) {
+        source = s_iter->data;
+        c_source_destroy_internal (source, context, true);
+    }
+
+    for (sl_iter = context->sourceLists; sl_iter; sl_iter = sl_iter->next) {
+        list = sl_iter->data;
+        c_free (list);
+    }
+    c_list_free (context->sourceLists);
+
+    c_hash_table_destroy (context->sources);
+
+    UNLOCK_CONTEXT (context);
+    c_mutex_clear (&context->mutex);
+
+    c_ptr_array_free (context->pendingDispatches, true);
+    c_free (context->cachedPollArray);
+
+    poll_rec_list_free (context, context->pollRecords);
+
+    c_wakeup_free (context->wakeup);
+    c_cond_clear (&context->cond);
+
+    c_free (context);
+
+    for (s_iter = remaining_sources; s_iter; s_iter = s_iter->next) {
+        source = s_iter->data;
+        c_source_unref_internal (source, NULL, false);
+    }
+    c_slist_free (remaining_sources);
+}
+
+CMainContext* c_main_context_new_with_next_id (cuint nextId)
+{
+    CMainContext *ret = c_main_context_new ();
+
+    ret->nextId = nextId;
+
+    return ret;
+}
+
+CMainContext* c_main_context_new (void)
+{
+    return c_main_context_new_with_flags (C_MAIN_CONTEXT_FLAGS_NONE);
+}
+
+CMainContext* c_main_context_new_with_flags (CMainContextFlags flags)
+{
+    static csize initialised;
+    CMainContext* context;
+
+    if (c_once_init_enter (&initialised)) {
+        c_once_init_leave (&initialised, true);
+    }
+
+    context = c_malloc0(sizeof(CMainContext));
+
+    c_mutex_init (&context->mutex);
+    c_cond_init (&context->cond);
+
+    context->sources = c_hash_table_new (NULL, NULL);
+    context->owner = NULL;
+    context->flags = flags;
+    context->waiters = NULL;
+
+    context->refCount = 1;
+
+    context->nextId = 1;
+
+    context->sourceLists = NULL;
+
+    context->pollFunc = c_poll;
+
+    context->cachedPollArray = NULL;
+    context->cachedPollArraySize = 0;
+
+    context->pendingDispatches = c_ptr_array_new ();
+
+    context->timeIsFresh = false;
+
+    context->wakeup = c_wakeup_new ();
+    c_wakeup_get_pollfd (context->wakeup, &context->wakeupRec);
+    c_main_context_add_poll_unlocked (context, 0, &context->wakeupRec);
+
+    C_LOCK (gsMainContextList);
+    gsMainContextList = c_slist_append (gsMainContextList, context);
+
+    C_UNLOCK (gsMainContextList);
+
+    return context;
+}
+
+CMainContext* c_main_context_default (void)
+{
+    static CMainContext* default_main_context = NULL;
+
+    if (c_once_init_enter (&default_main_context)) {
+        CMainContext *context;
+
+        context = c_main_context_new ();
+
+        c_once_init_leave (&default_main_context, (culong) context);
+    }
+
+    return default_main_context;
+}
+
+CSource* c_child_watch_source_new (CPid pid)
+{
+    CSource* source;
+    CChildWatchSource *child_watch_source;
+    int errsv;
+
+    c_return_val_if_fail (pid > 0, NULL);
+
+    source = c_source_new (&c_child_watch_funcs, sizeof (CChildWatchSource));
+    child_watch_source = (CChildWatchSource *)source;
+
+    c_source_set_static_name (source, "CChildWatchSource");
+
+    child_watch_source->pid = pid;
+
+    child_watch_source->poll.fd = (int) syscall (SYS_pidfd_open, pid, 0);
+    errsv = errno;
+
+    if (child_watch_source->poll.fd >= 0) {
+        child_watch_source->usingPidFd = true;
+        child_watch_source->poll.events = C_IO_IN;
+        c_source_add_poll (source, &child_watch_source->poll);
+
+        return source;
+    }
+    else {
+        C_LOG_DEBUG_CONSOLE("pidfd_open(%ul) failed with error: %s", pid, c_strerror (errsv));
+    }
+
+    C_LOCK (gsUnixSignalLock);
+    ref_unix_signal_handler_unlocked (SIGCHLD);
+    gsUnixChildWatches = c_slist_prepend (gsUnixChildWatches, child_watch_source);
+    if (waitpid (pid, &child_watch_source->childStatus, WNOHANG) > 0) {
+        child_watch_source->childExited = true;
+    }
+    C_UNLOCK (gsUnixSignalLock);
+
+    return source;
+}
+
+cuint c_child_watch_add_full (cint priority, CPid pid, CChildWatchFunc function, void* data, CDestroyNotify notify)
+{
+    cuint id;
+
+    c_return_val_if_fail (function != NULL, 0);
+    c_return_val_if_fail (pid > 0, 0);
+
+    CSource* source = c_child_watch_source_new (pid);
+
+    if (priority != C_PRIORITY_DEFAULT) {
+        c_source_set_priority (source, priority);
+    }
+
+    c_source_set_callback (source, (CSourceFunc) function, data, notify);
+    id = c_source_attach (source, NULL);
+    c_source_unref (source);
+
+    return id;
+}
+
+cuint c_child_watch_add (CPid pid, CChildWatchFunc function, void* data)
+{
+    return c_child_watch_add_full (C_PRIORITY_DEFAULT, pid, function, data, NULL);
+}
+
+CSource* c_idle_source_new (void)
+{
+    return idle_source_new (false);
+}
+
+cuint c_idle_add_full (cint priority, CSourceFunc function, void* data, CDestroyNotify notify)
+{
+    return idle_add_full (priority, false, function, data, notify);
+}
+
+cuint c_idle_add (CSourceFunc function, void* data)
+{
+    return c_idle_add_full (C_PRIORITY_DEFAULT_IDLE, function, data, NULL);
+}
+
+cuint c_idle_add_once (CSourceOnceFunc function, void* data)
+{
+    return idle_add_full (C_PRIORITY_DEFAULT_IDLE, true, (CSourceFunc) function, data, NULL);
+}
+
+bool c_idle_remove_by_data (void* data)
+{
+    return c_source_remove_by_funcs_user_data (&c_idle_funcs, data);
+}
+
+void c_main_context_invoke (CMainContext* context, CSourceFunc function, void* data)
+{
+    c_main_context_invoke_full (context, C_PRIORITY_DEFAULT, function, data, NULL);
+}
+
+void c_main_context_invoke_full (CMainContext* context, cint priority, CSourceFunc function, void* data, CDestroyNotify notify)
+{
+    c_return_if_fail (function != NULL);
+
+    if (!context) {
+        context = c_main_context_default ();
+    }
+
+    if (c_main_context_is_owner (context)) {
+        while (function (data));
+        if (notify != NULL) {
+            notify (data);
+        }
+    }
+    else {
+        CMainContext *thread_default = c_main_context_get_thread_default ();
+        if (!thread_default) {
+            thread_default = c_main_context_default ();
+        }
+
+        if (thread_default == context && c_main_context_acquire (context)) {
+            while (function (data));
+            c_main_context_release (context);
+            if (notify != NULL) {
+                notify (data);
+            }
+        }
+        else {
+            CSource *source = c_idle_source_new ();
+            c_source_set_priority (source, priority);
+            c_source_set_callback (source, function, data, notify);
+            c_source_attach (source, context);
+            c_source_unref (source);
+        }
+    }
+}
+
+CMainContext* c_get_worker_context (void)
+{
+    static csize initialised;
+
+    if (c_once_init_enter (&initialised)) {
+        sigset_t prevMask;
+        sigset_t all;
+
+        sigfillset (&all);
+        pthread_sigmask (SIG_SETMASK, &all, &prevMask);
+        gsClibWorkerContext = c_main_context_new ();
+        c_thread_new ("cmain", clib_worker_main, NULL);
+        pthread_sigmask (SIG_SETMASK, &prevMask, NULL);
+        c_once_init_leave (&initialised, true);
+    }
+
+    return gsClibWorkerContext;
+}
+
+
+
+
+
+static inline void poll_rec_list_free (CMainContext* context, CPollRec* list)
+{
+    // FIXME:// 实现
+//    c_slice_free_chain (CPollRec, list, next);
 }
 
 static bool c_unix_set_error_from_errno (CError** error, int savedErrno)
@@ -511,32 +974,687 @@ static bool c_child_watch_check (CSource* source)
 {
     CChildWatchSource* childWatchSource = (CChildWatchSource*) source;
 
-#ifdef HAVE_PIDFD
-    if (child_watch_source->using_pidfd) {
-      gboolean child_exited = child_watch_source->poll.revents & G_IO_IN;
+    if (childWatchSource->usingPidFd) {
+        bool child_exited = childWatchSource->poll.rEvents & C_IO_IN;
 
-      if (child_exited)
-        {
-          siginfo_t child_info = { 0, };
+        if (child_exited) {
+            siginfo_t child_info = { 0, };
+            if (waitid (P_PIDFD, childWatchSource->poll.fd, &child_info, WEXITED | WNOHANG) >= 0 && child_info.si_pid != 0) {
+                childWatchSource->childStatus = siginfo_t_to_wait_status (&child_info);
+                childWatchSource->childExited = true;
+            }
+        }
+        return child_exited;
+    }
 
-          /* Get the exit status */
-          if (waitid (P_PIDFD, child_watch_source->poll.fd, &child_info, WEXITED | WNOHANG) >= 0 &&
-              child_info.si_pid != 0)
-            {
-              /* waitid() helpfully provides the wait status in a decomposed
-               * form which is quite useful. Unfortunately we have to report it
-               * to the #GChildWatchFunc as a waitpid()-style platform-specific
-               * wait status, so that the user code in #GChildWatchFunc can then
-               * call WIFEXITED() (etc.) on it. That means re-composing the
-               * status information. */
-              child_watch_source->child_status = siginfo_t_to_wait_status (&child_info);
-              child_watch_source->child_exited = TRUE;
+    return c_atomic_int_get (&childWatchSource->childExited);
+}
+
+static void free_context (void* data)
+{
+    CMainContext *context = data;
+
+    c_main_context_release (context);
+    if (context) {
+        c_main_context_unref (context);
+    }
+}
+
+static int siginfo_t_to_wait_status (const siginfo_t *info)
+{
+    switch (info->si_code) {
+        case CLD_EXITED:
+            return W_EXITCODE (info->si_status, 0);
+        case CLD_KILLED:
+            return W_EXITCODE (0, info->si_status);
+        case CLD_DUMPED:
+#ifdef WCOREFLAG
+            return W_EXITCODE (0, info->si_status | WCOREFLAG);
+#else
+            c_assert_not_reached ();
+#endif
+        case CLD_CONTINUED:
+#ifdef __W_CONTINUED
+            return __W_CONTINUED;
+#else
+            c_assert_not_reached ();
+#endif
+        case CLD_STOPPED:
+        case CLD_TRAPPED:
+        default: {
+            return W_STOPCODE (info->si_status);
+        }
+    }
+}
+
+static void c_unix_signal_watch_finalize (CSource* source)
+{
+    CUnixSignalWatchSource* unix_signal_source = (CUnixSignalWatchSource*) source;
+
+    C_LOCK (gsUnixSignalLock);
+    unref_unix_signal_handler_unlocked (unix_signal_source->signum);
+    gsUnixSignalWatches = c_slist_remove (gsUnixSignalWatches, source);
+    C_UNLOCK (gsUnixSignalLock);
+}
+
+static void c_child_watch_finalize (CSource* source)
+{
+    CChildWatchSource *child_watch_source = (CChildWatchSource*) source;
+
+    if (child_watch_source->usingPidFd) {
+        if (child_watch_source->poll.fd >= 0) {
+            close (child_watch_source->poll.fd);
+        }
+        return;
+    }
+
+    C_LOCK (gsUnixSignalLock);
+    gsUnixSignalWatches = c_slist_remove (gsUnixSignalWatches, source);
+    unref_unix_signal_handler_unlocked (SIGCHLD);
+    C_UNLOCK (gsUnixSignalLock);
+}
+
+static bool c_child_watch_dispatch (CSource* source, CSourceFunc callback, void* udata)
+{
+    CChildWatchSource *child_watch_source;
+    CChildWatchFunc child_watch_callback = (CChildWatchFunc) callback;
+
+    child_watch_source = (CChildWatchSource*) source;
+
+    if (!callback) {
+        C_LOG_WARNING_CONSOLE("Child watch source dispatched without callback. You must call g_source_set_callback().")
+        return false;
+    }
+
+    (child_watch_callback) (child_watch_source->pid, child_watch_source->childStatus, udata);
+
+    return false;
+}
+
+static void c_unix_signal_handler (int signum)
+{
+    cint saved_errno = errno;
+
+    c_atomic_int_set (&gsUnixSignalPending[signum], 1);
+    c_atomic_int_set (&gsAnyUnixSignalPending, 1);
+
+    c_wakeup_signal (gsClibWorkerContext->wakeup);
+
+    errno = saved_errno;
+}
+
+static bool c_idle_prepare  (CSource* source, cint* timeout)
+{
+    *timeout = 0;
+
+    return true;
+}
+
+static bool c_idle_check (CSource* C_UNUSED source)
+{
+    return true;
+}
+
+static bool c_idle_dispatch (CSource* source, CSourceFunc callback, void* udata)
+{
+    CIdleSource *idle_source = (CIdleSource*) source;
+    bool again;
+
+    if (!callback) {
+        C_LOG_WARNING_CONSOLE("Idle source dispatched without callback. You must call g_source_set_callback().")
+        return false;
+    }
+
+    if (idle_source->oneShot) {
+        CSourceOnceFunc once_callback = (CSourceOnceFunc) callback;
+        once_callback (udata);
+        again = C_SOURCE_REMOVE;
+    }
+    else {
+        again = callback (udata);
+    }
+
+    return again;
+}
+
+static CSource* idle_source_new (bool oneShot)
+{
+    CSource *source;
+    CIdleSource *idle_source;
+
+    source = c_source_new (&c_idle_funcs, sizeof (CIdleSource));
+    idle_source = (CIdleSource *) source;
+
+    idle_source->oneShot = oneShot;
+
+    c_source_set_priority (source, C_PRIORITY_DEFAULT_IDLE);
+
+    c_source_set_static_name (source, "CIdleSource");
+
+    return source;
+}
+
+static cuint idle_add_full (cint priority, bool oneShot, CSourceFunc function, void* data, CDestroyNotify notify)
+{
+    cuint id;
+
+    c_return_val_if_fail (function != NULL, 0);
+
+    CSource *source = idle_source_new (oneShot);
+
+    if (priority != C_PRIORITY_DEFAULT_IDLE) {
+        c_source_set_priority (source, priority);
+    }
+
+    c_source_set_callback (source, function, data, notify);
+    id = c_source_attach (source, NULL);
+
+    c_source_unref (source);
+
+    return id;
+}
+
+static void* clib_worker_main (void* data)
+{
+    while (true) {
+        c_main_context_iteration (gsClibWorkerContext, true);
+        if (c_atomic_int_get (&gsAnyUnixSignalPending)) {
+            dispatch_unix_signals ();
+        }
+    }
+
+    return NULL; /* worst GCC warning message ever... */
+}
+
+static void dispatch_unix_signals_unlocked (void)
+{
+    bool pending[NSIG];
+    CSList *node;
+    cint i;
+
+    c_atomic_int_set (&gsAnyUnixSignalPending, 0);
+    for (i = 0; i < NSIG; i++) {
+        pending[i] = c_atomic_int_compare_and_exchange (&gsUnixSignalPending[i], 1, 0);
+    }
+
+    if (pending[SIGCHLD]) {
+        for (node = gsUnixChildWatches; node; node = node->next) {
+            CChildWatchSource *source = node->data;
+            if (!source->usingPidFd&& !c_atomic_int_get (&source->childExited)) {
+                pid_t pid;
+                do {
+                    c_assert (source->pid > 0);
+                    pid = waitpid (source->pid, &source->childStatus, WNOHANG);
+                    if (pid > 0) {
+                        c_atomic_int_set (&source->childExited, true);
+                        wake_source ((CSource*) source);
+                    }
+                    else if (pid == -1 && errno == ECHILD) {
+                        C_LOG_WARNING_CONSOLE("CChildWatchSource: Exit status of a child process was requested but ECHILD was received by waitpid(). See the documentation of g_child_watch_source_new() for possible causes.");
+                        source->childStatus = 0;
+                        c_atomic_int_set (&source->childExited, true);
+                        wake_source ((CSource *) source);
+                    }
+                }
+                while (pid == -1 && errno == EINTR);
+            }
+        }
+    }
+
+    for (node = gsUnixSignalWatches; node; node = node->next) {
+        CUnixSignalWatchSource *source = node->data;
+        if (pending[source->signum] && c_atomic_int_compare_and_exchange (&source->pending, false, true)) {
+            wake_source ((CSource*) source);
+        }
+    }
+}
+
+static void wake_source (CSource *source)
+{
+    CMainContext *context;
+    C_LOCK(gsMainContextList);
+    context = source->context;
+    if (context) {
+        c_wakeup_signal (context->wakeup);
+    }
+    C_UNLOCK(gsMainContextList);
+}
+
+static void dispatch_unix_signals (void)
+{
+    C_LOCK(gsUnixSignalLock);
+    dispatch_unix_signals_unlocked ();
+    C_UNLOCK(gsUnixSignalLock);
+}
+
+static void c_source_unref_internal (CSource* source, CMainContext* context, bool have_lock)
+{
+    void* old_cb_data = NULL;
+    CSourceCallbackFuncs *old_cb_funcs = NULL;
+
+    c_return_if_fail (source != NULL);
+
+    if (!have_lock && context) {
+        LOCK_CONTEXT (context);
+    }
+
+    if (c_atomic_int_dec_and_test ((cint*) &source->refCount)) {
+        if (source->priv->dispose) {
+            c_atomic_int_inc ((cint*) &source->refCount);
+            if (context) {
+                UNLOCK_CONTEXT (context);
+            }
+            source->priv->dispose (source);
+            if (context) {
+                LOCK_CONTEXT (context);
+            }
+
+            if (!c_atomic_int_dec_and_test ((cint*) &source->refCount)) {
+                if (!have_lock && context) {
+                    UNLOCK_CONTEXT (context);
+                }
+                return;
             }
         }
 
-      return child_exited;
-    }
-#endif  /* HAVE_PIDFD */
+        old_cb_data = source->callbackData;
+        old_cb_funcs = source->callbackFuncs;
 
-    return c_atomic_int_get (&childWatchSource->child_exited);
+        source->callbackData = NULL;
+        source->callbackFuncs = NULL;
+
+        if (context) {
+            if (!SOURCE_DESTROYED (source)) {
+                C_LOG_WARNING_CONSOLE("refCount == 0, but source was still attached to a context!");
+            }
+            source_remove_from_context (source, context);
+            c_hash_table_remove (context->sources, (void*) *((void**) &(source->sourceId)));
+        }
+
+        if (source->sourceFuncs->finalize) {
+            cint old_ref_count;
+
+            c_atomic_int_inc ((cint*)&source->refCount);
+            if (context) {
+                UNLOCK_CONTEXT (context);
+            }
+            source->sourceFuncs->finalize (source);
+            if (context) {
+                LOCK_CONTEXT (context);
+            }
+            old_ref_count = c_atomic_int_add ((void*)&source->refCount, -1);
+            c_warn_if_fail (old_ref_count == 1);
+        }
+
+        if (old_cb_funcs) {
+            cint old_ref_count;
+            c_atomic_int_inc ((cint*)&source->refCount);
+            if (context) {
+                UNLOCK_CONTEXT (context);
+            }
+
+            old_cb_funcs->unref (old_cb_data);
+            if (context) {
+                LOCK_CONTEXT (context);
+            }
+            old_ref_count = c_atomic_int_add ((cint*) &source->refCount, -1);
+            c_warn_if_fail (old_ref_count == 1);
+        }
+
+        if (!source->priv->staticName) {
+            c_free (source->name);
+        }
+        source->name = NULL;
+
+        c_slist_free (source->pollFds);
+        source->pollFds = NULL;
+        c_slist_free_full (source->priv->fds, c_free0);
+        while (source->priv->childSources) {
+            CSource *child_source = source->priv->childSources->data;
+            source->priv->childSources = c_slist_remove (source->priv->childSources, child_source);
+            child_source->priv->parentSource = NULL;
+            c_source_unref_internal (child_source, context, true);
+        }
+
+        c_free (source->priv);
+        source->priv = NULL;
+
+        c_free (source);
+    }
+
+    if (!have_lock && context) {
+        UNLOCK_CONTEXT (context);
+    }
+}
+
+static bool c_child_watch_prepare (CSource* source, cint* timeout)
+{
+    *timeout = -1;
+    return false;
+}
+
+static bool c_timeout_dispatch (CSource* source, CSourceFunc callback, void* user_data)
+{
+    CTimeoutSource* timeout_source = (CTimeoutSource*) source;
+    bool again;
+
+    if (!callback) {
+        C_LOG_WARNING_CONSOLE("Timeout source dispatched without callback. You must call g_source_set_callback().")
+        return false;
+    }
+
+    if (timeout_source->oneShot) {
+        CSourceOnceFunc once_callback = (CSourceOnceFunc) callback;
+        once_callback (user_data);
+        again = C_SOURCE_REMOVE;
+    }
+    else {
+        again = callback (user_data);
+    }
+
+    if (again) {
+        c_timeout_set_expiration (timeout_source, c_source_get_time (source));
+    }
+
+    return again;
+}
+
+static void c_timeout_set_expiration (CTimeoutSource* timeout_source, cint64 current_time)
+{
+    cint64 expiration;
+
+    if (timeout_source->seconds) {
+        cint64 remainder;
+        static cint timer_perturb = -1;
+
+        if (timer_perturb == -1) {
+            const char *session_bus_address = c_getenv ("DBUS_SESSION_BUS_ADDRESS");
+            if (!session_bus_address) {
+                session_bus_address = c_getenv ("HOSTNAME");
+            }
+            if (session_bus_address) {
+                timer_perturb = C_ABS ((cint) c_str_hash (session_bus_address)) % 1000000;
+            }
+            else {
+                timer_perturb = 0;
+            }
+        }
+
+        expiration = current_time + (cuint64) timeout_source->interval * 1000 * 1000;
+
+        expiration -= timer_perturb;
+
+        remainder = expiration % 1000000;
+        if (remainder >= 1000000/4) {
+            expiration += 1000000;
+        }
+
+        expiration -= remainder;
+        expiration += timer_perturb;
+    }
+    else {
+        expiration = current_time + (cuint64) timeout_source->interval * 1000;
+    }
+
+    c_source_set_ready_time ((CSource*) timeout_source, expiration);
+}
+
+static void c_source_iter_clear (CSourceIter* iter)
+{
+    if (iter->source && iter->mayModify) {
+        c_source_unref_internal (iter->source, iter->context, true);
+        iter->source = NULL;
+    }
+}
+
+static bool c_source_iter_next (CSourceIter* iter, CSource** source)
+{
+    CSource* next_source;
+
+    if (iter->source) {
+        next_source = iter->source->next;
+    }
+    else {
+        next_source = NULL;
+    }
+
+    if (!next_source) {
+        if (iter->currentList) {
+            iter->currentList = iter->currentList->next;
+        }
+        else {
+            iter->currentList = iter->context->sourceLists;
+        }
+
+        if (iter->currentList) {
+            CSourceList *source_list = iter->currentList->data;
+            next_source = source_list->head;
+        }
+    }
+
+    if (next_source && iter->mayModify) {
+        c_source_ref (next_source);
+    }
+
+    if (iter->source && iter->mayModify) {
+        c_source_unref_internal (iter->source, iter->context, true);
+    }
+    iter->source = next_source;
+
+    *source = iter->source;
+    return *source != NULL;
+}
+
+static void c_source_iter_init (CSourceIter* iter, CMainContext* context, bool may_modify)
+{
+    iter->context = context;
+    iter->currentList = NULL;
+    iter->source = NULL;
+    iter->mayModify = may_modify;
+}
+
+static void c_main_context_add_poll_unlocked (CMainContext* context, cint priority, CPollFD* fd)
+{
+    CPollRec *prevrec, *nextrec;
+    CPollRec *newrec = c_malloc0(sizeof(CPollRec));
+
+    fd->rEvents = 0;
+    newrec->fd = fd;
+    newrec->priority = priority;
+
+    prevrec = NULL;
+    nextrec = context->pollRecords;
+    while (nextrec) {
+        if (nextrec->fd->fd > fd->fd) {
+            break;
+        }
+        prevrec = nextrec;
+        nextrec = nextrec->next;
+    }
+
+    if (prevrec) {
+        prevrec->next = newrec;
+    }
+    else {
+        context->pollRecords = newrec;
+    }
+
+    newrec->prev = prevrec;
+    newrec->next = nextrec;
+
+    if (nextrec)
+        nextrec->prev = newrec;
+
+    context->nPollRecords++;
+
+    context->pollChanged = true;
+
+    if (fd != &context->wakeupRec) {
+        c_wakeup_signal (context->wakeup);
+    }
+}
+
+static void c_source_destroy_internal (CSource* source, CMainContext* context, bool have_lock)
+{
+    if (!have_lock) {
+        LOCK_CONTEXT (context);
+    }
+
+    if (!SOURCE_DESTROYED (source)) {
+        CSList *tmp_list;
+        void* old_cb_data;
+        CSourceCallbackFuncs *old_cb_funcs;
+
+        source->flags &= ~C_HOOK_FLAG_ACTIVE;
+
+        old_cb_data = source->callbackData;
+        old_cb_funcs = source->callbackFuncs;
+
+        source->callbackData = NULL;
+        source->callbackFuncs = NULL;
+
+        if (old_cb_funcs) {
+            UNLOCK_CONTEXT (context);
+            old_cb_funcs->unref (old_cb_data);
+            LOCK_CONTEXT (context);
+        }
+
+        if (!SOURCE_BLOCKED (source)) {
+            tmp_list = source->pollFds;
+            while (tmp_list) {
+                c_main_context_remove_poll_unlocked (context, tmp_list->data);
+                tmp_list = tmp_list->next;
+            }
+
+            for (tmp_list = source->priv->fds; tmp_list; tmp_list = tmp_list->next) {
+                c_main_context_remove_poll_unlocked (context, tmp_list->data);
+            }
+        }
+
+        while (source->priv->childSources) {
+            c_child_source_remove_internal (source->priv->childSources->data, context);
+        }
+
+        if (source->priv->parentSource) {
+            c_child_source_remove_internal (source, context);
+        }
+
+        c_source_unref_internal (source, context, true);
+    }
+
+    if (!have_lock) {
+        UNLOCK_CONTEXT (context);
+    }
+}
+
+static void c_main_context_remove_poll_unlocked (CMainContext* context, CPollFD* fd)
+{
+    CPollRec *pollrec, *prevrec, *nextrec;
+
+    prevrec = NULL;
+    pollrec = context->pollRecords;
+
+    while (pollrec) {
+        nextrec = pollrec->next;
+        if (pollrec->fd == fd) {
+            if (prevrec != NULL) {
+                prevrec->next = nextrec;
+            }
+            else {
+                context->pollRecords = nextrec;
+            }
+
+            if (nextrec != NULL) {
+                nextrec->prev = prevrec;
+            }
+            c_free(pollrec);
+            context->nPollRecords--;
+            break;
+        }
+        prevrec = pollrec;
+        pollrec = nextrec;
+    }
+
+    context->pollChanged = true;
+
+    c_wakeup_signal (context->wakeup);
+}
+
+static void c_child_source_remove_internal (CSource* child_source, CMainContext* context)
+{
+    CSource *parent_source = child_source->priv->parentSource;
+
+    parent_source->priv->childSources =
+        c_slist_remove (parent_source->priv->childSources, child_source);
+    child_source->priv->parentSource = NULL;
+
+    c_source_destroy_internal (child_source, context, true);
+    c_source_unref_internal (child_source, context, true);
+}
+
+static void source_remove_from_context (CSource* source, CMainContext* context)
+{
+    CSourceList *source_list;
+
+    source_list = find_source_list_for_priority (context, source->priority, false);
+    c_return_if_fail (source_list != NULL);
+
+    if (source->prev)
+        source->prev->next = source->next;
+    else
+        source_list->head = source->next;
+
+    if (source->next)
+        source->next->prev = source->prev;
+    else
+        source_list->tail = source->prev;
+
+    source->prev = NULL;
+    source->next = NULL;
+
+    if (source_list->head == NULL) {
+        context->sourceLists = c_list_remove (context->sourceLists, source_list);
+        c_free(source_list);
+    }
+}
+
+static CSourceList* find_source_list_for_priority (CMainContext* context, cint priority, bool create)
+{
+    CList *iter, *last;
+    CSourceList *source_list;
+
+    last = NULL;
+    for (iter = context->sourceLists; iter != NULL; last = iter, iter = iter->next) {
+        source_list = iter->data;
+
+        if (source_list->priority == priority)
+            return source_list;
+
+        if (source_list->priority > priority) {
+            if (!create) {
+                return NULL;
+            }
+
+            source_list = c_malloc0(sizeof(CSourceList));
+            source_list->priority = priority;
+            context->sourceLists = c_list_insert_before (context->sourceLists, iter, source_list);
+            return source_list;
+        }
+    }
+
+    if (!create) {
+        return NULL;
+    }
+
+    source_list = c_malloc0(sizeof(CSourceList));
+    source_list->priority = priority;
+
+    if (!last) {
+        context->sourceLists = c_list_append (NULL, source_list);
+    }
+    else {
+        last = c_list_append (last, source_list);
+        (void) last;
+    }
+    return source_list;
 }
