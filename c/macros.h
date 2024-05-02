@@ -1145,6 +1145,10 @@ C_STMT_END
 #define c_size_checked_add(dest, a, b)      _CLIB_CHECKED_ADD_SIZE(dest, a, b)
 #define c_size_checked_mul(dest, a, b)      _CLIB_CHECKED_MUL_SIZE(dest, a, b)
 
+#define C_STRUCT_OFFSET(structType,member)  ((long)((cuint8*)&((structType*)0)->member))
+#define C_STRUCT_MEMBER_P(structP,offset)   ((void*)((cuint8*)(structP)+(long)(offset)))
+#define C_STRUCT_MEMBER(memberType,structP,offset)  (*(memberType*) C_STRUCT_MEMBER_P ((structP), (offset)))
+#define C_CONTAINER_OF(ptr, type, field)    ((type *) C_STRUCT_MEMBER_P (ptr, -C_STRUCT_OFFSET (type, field)))
 //
 static inline void* c_steal_pointer (void* pp)
 {
@@ -1218,7 +1222,6 @@ static inline csize c_nearest_pow (csize num)
 
     return n + 1;
 }
-
 
 void c_abort (void);
 void c_qsort_with_data (const void* pBase, cint totalElems, csize size, CCompareDataFunc compareFunc, void* udata);
