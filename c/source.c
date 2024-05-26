@@ -29,6 +29,7 @@
 #include "error.h"
 #include "thread.h"
 #include "atomic.h"
+#include "timer.h"
 #include "wakeup.h"
 
 #ifndef W_STOPCODE
@@ -193,14 +194,10 @@ typedef struct _CSourceIter
 } CSourceIter;
 
 
-
-C_LOCK_DEFINE_STATIC (gsUnixSignalLock);
-static cuint gsUnixSignalRefcount[NSIG];
-static CSList* gsUnixSignalWatches;
-static CSList* gsUnixChildWatches;
-
-
 CMainContext* c_get_worker_context (void);
+
+
+void* c_private_set_alloc0 (CPrivate* key, csize size);
 
 
 static CMainDispatch*   get_dispatch (void);
@@ -210,24 +207,33 @@ static void             wake_source (CSource *source);
 static void*            clib_worker_main (void* data);
 static const char*      signum_to_string (int signum);
 static CSource*         idle_source_new (bool oneShot);
+static void             free_context_stack (void* data);
+static void             unblock_source (CSource *source);
+static void             c_main_dispatch_free (void* dispatch);
 static void             dispatch_unix_signals_unlocked (void);
+static void             c_main_dispatch (CMainContext* context);
 static bool             c_unix_signal_watch_check (CSource* source);
+static int              round_timeout_to_msec (cint64 timeout_usec);
 CSource*                _c_main_create_unix_signal_watch (int signum);
 static void             ref_unix_signal_handler_unlocked (int signum);
 static void             unref_unix_signal_handler_unlocked (int signum);
 static int              siginfo_t_to_wait_status (const siginfo_t *info);
+static void             c_main_context_release_unlocked (CMainContext* context);
 static bool             c_main_context_acquire_unlocked (CMainContext *context);
 static void             c_main_context_dispatch_unlocked (CMainContext *context);
 static inline void      poll_rec_list_free (CMainContext* context, CPollRec* list);
 static bool             c_unix_set_error_from_errno (CError** error, int savedErrno);
 static bool             c_unix_signal_watch_prepare (CSource* source, cint* timeout);
 static void             source_remove_from_context (CSource* source, CMainContext* context);
+static bool             c_main_context_prepare_unlocked (CMainContext* context, cint* priority);
 bool                    c_unix_fd_source_dispatch (CSource* source, CSourceFunc callback, void* udata);
 static void             c_timeout_set_expiration (CTimeoutSource* timeout_source, cint64 current_time);
+static bool             c_main_context_wait_internal (CMainContext* context, CCond* cond, CMutex* mutex);
 static bool             c_unix_signal_watch_dispatch (CSource* source, CSourceFunc callback, void* udata);
 static CSourceList*     find_source_list_for_priority (CMainContext* context, cint priority, bool create);
 static bool             c_main_context_iterate_unlocked (CMainContext* context, bool block, bool dispatch, CThread* self);
 static bool             c_main_context_check_unlocked (CMainContext *context, cint max_priority, CPollFD* fds, cint n_fds);
+static void             c_main_context_poll_unlocked (CMainContext *context, cint64 timeout_usec, int priority, CPollFD* fds, int n_fds);
 static cint             c_main_context_query_unlocked (CMainContext* context, cint max_priority, cint64* timeout_usec, CPollFD* fds, cint n_fds);
 
 static cuint            idle_add_full (cint priority, bool oneShot, CSourceFunc function, void* data, CDestroyNotify notify);
@@ -256,7 +262,15 @@ static bool             c_idle_check       (CSource* source);
 static bool             c_idle_dispatch    (CSource* source, CSourceFunc callback, void* udata);
 static void             block_source (CSource* source);
 
+static void             free_context (void* data);
+static void             free_context_stack (void* data);
 
+
+C_LOCK_DEFINE_STATIC (gsUnixSignalLock);
+static cuint gsUnixSignalRefcount[NSIG];
+static CSList* gsUnixSignalWatches;
+static CSList* gsUnixChildWatches;
+static CPrivate gsThreadContextStack = C_PRIVATE_INIT(free_context_stack);
 
 
 CSourceFuncs c_unix_fd_source_funcs = {
@@ -859,9 +873,7 @@ void c_main_context_pop_thread_default (CMainContext* context)
 
 CMainContext* c_main_context_get_thread_default (void)
 {
-    CQueue* stack;
-
-    stack = c_private_get (&thread_context_stack);
+    CQueue* stack = c_private_get (&gsThreadContextStack);
     if (stack) {
         return c_queue_peek_head (stack);
     }
@@ -2153,4 +2165,384 @@ static bool c_main_context_acquire_unlocked (CMainContext *context)
     else {
         return false;
     }
+}
+
+static bool c_main_context_wait_internal (CMainContext* context, CCond* cond, CMutex* mutex)
+{
+    bool result = false;
+    CThread* self = C_THREAD_SELF;
+    bool loop_internal_waiter = (mutex == &context->mutex);
+
+    if (!loop_internal_waiter) {
+        LOCK_CONTEXT (context);
+    }
+
+    if (context->owner && context->owner != self) {
+        CMainWaiter waiter;
+
+        waiter.cond = cond;
+        waiter.mutex = mutex;
+
+        context->waiters = c_slist_append (context->waiters, &waiter);
+
+        if (!loop_internal_waiter) {
+            UNLOCK_CONTEXT (context);
+        }
+
+        c_cond_wait (cond, mutex);
+        if (!loop_internal_waiter) {
+            LOCK_CONTEXT (context);
+        }
+
+        context->waiters = c_slist_remove (context->waiters, &waiter);
+    }
+
+    if (!context->owner) {
+        context->owner = self;
+        c_assert (context->ownerCount == 0);
+    }
+
+    if (context->owner == self) {
+        context->ownerCount++;
+        result = true;
+    }
+
+    if (!loop_internal_waiter) {
+        UNLOCK_CONTEXT (context);
+    }
+
+    return result;
+}
+
+
+static bool c_main_context_prepare_unlocked (CMainContext* context, cint* priority)
+{
+    cuint i;
+    cint n_ready = 0;
+    cint current_priority = C_MAX_INT32;
+    CSource *source;
+    CSourceIter iter;
+
+    context->timeIsFresh = false;
+
+    if (context->inCheckOrPrepare) {
+        C_LOG_WARNING_CONSOLE("c_main_context_prepare() called recursively from within a source's check() or prepare() member.");
+        return false;
+    }
+
+    /* If recursing, clear list of pending dispatches */
+    for (i = 0; i < context->pendingDispatches->len; i++) {
+        if (context->pendingDispatches->pdata[i]) {
+            c_source_unref_internal ((CSource*)context->pendingDispatches->pdata[i], context, true);
+        }
+    }
+    c_ptr_array_set_size (context->pendingDispatches, 0);
+
+    /* Prepare all sources */
+    context->timeoutUsec = -1;
+
+    c_source_iter_init (&iter, context, true);
+    while (c_source_iter_next (&iter, &source)) {
+        cint64 source_timeout_usec = -1;
+        if (SOURCE_DESTROYED (source) || SOURCE_BLOCKED (source)) {
+            continue;
+        }
+        if ((n_ready > 0) && (source->priority > current_priority)) {
+            break;
+        }
+        if (!(source->flags & C_SOURCE_READY)) {
+            bool result;
+            bool (*prepare) (CSource* source, cint* timeout);
+            prepare = source->sourceFuncs->prepare;
+            if (prepare) {
+                cint64 begin_time_nsec C_UNUSED;
+                int source_timeout_msec = -1;
+
+                context->inCheckOrPrepare++;
+                UNLOCK_CONTEXT (context);
+                result = (*prepare) (source, &source_timeout_msec);
+                // source_timeout_usec = extend_timeout_to_usec (source_timeout_msec);
+
+                LOCK_CONTEXT (context);
+                context->inCheckOrPrepare--;
+            }
+            else {
+                result = false;
+            }
+
+            if (result == false && source->priv->readyTime != -1) {
+                if (!context->timeIsFresh) {
+                    context->time = c_get_monotonic_time ();
+                    context->timeIsFresh = true;
+                }
+
+                if (source->priv->readyTime <= context->time) {
+                    source_timeout_usec = 0;
+                    result = true;
+                }
+                else if (source_timeout_usec < 0 || (source->priv->readyTime < context->time + source_timeout_usec)) {
+                  source_timeout_usec = C_MAX (0, source->priv->readyTime - context->time);
+                }
+            }
+
+            if (result) {
+                CSource *ready_source = source;
+                while (ready_source) {
+                  ready_source->flags |= C_SOURCE_READY;
+                  ready_source = ready_source->priv->parentSource;
+                }
+            }
+        }
+        if (source->flags & C_SOURCE_READY) {
+            n_ready++;
+            current_priority = source->priority;
+            context->timeoutUsec = 0;
+        }
+        if (source_timeout_usec >= 0) {
+            if (context->timeoutUsec < 0) {
+                context->timeoutUsec = source_timeout_usec;
+            }
+            else {
+                context->timeoutUsec = C_MIN (context->timeoutUsec, source_timeout_usec);
+            }
+        }
+    }
+    c_source_iter_clear (&iter);
+
+    if (priority) {
+        *priority = current_priority;
+    }
+
+    return (n_ready > 0);
+}
+
+static void  c_main_context_poll_unlocked (CMainContext *context, cint64 timeout_usec, int priority, CPollFD* fds, int n_fds)
+{
+#ifdef  G_MAIN_POLL_DEBUG
+  GTimer *poll_timer;
+  GPollRec *pollrec;
+  gint i;
+#endif
+
+    CPollFunc poll_func;
+    if (n_fds || timeout_usec != 0) {
+        int ret, errsv;
+
+        poll_func = context->pollFunc;
+        {
+            int timeout_msec = round_timeout_to_msec (timeout_usec);
+            UNLOCK_CONTEXT (context);
+            ret = (*poll_func) (fds, n_fds, timeout_msec);
+            LOCK_CONTEXT (context);
+        }
+
+        errsv = errno;
+        if (ret < 0 && errsv != EINTR) {
+            C_LOG_WARNING_CONSOLE("poll(2) failed due to: %s.", c_strerror (errsv));
+        }
+    } /* if (n_fds || timeout_usec != 0) */
+}
+
+static void c_main_context_release_unlocked (CMainContext* context)
+{
+    c_return_if_fail (context->ownerCount > 0);
+
+    context->ownerCount--;
+    if (context->ownerCount == 0) {
+        context->owner = NULL;
+        if (context->waiters) {
+            CMainWaiter *waiter = context->waiters->data;
+            bool loop_internal_waiter = (waiter->mutex == &context->mutex);
+            context->waiters = c_slist_delete_link (context->waiters, context->waiters);
+            if (!loop_internal_waiter) {
+                c_mutex_lock (waiter->mutex);
+            }
+            c_cond_signal (waiter->cond);
+
+            if (!loop_internal_waiter) {
+                c_mutex_unlock (waiter->mutex);
+            }
+        }
+    }
+}
+
+static void c_main_dispatch (CMainContext* context)
+{
+    CMainDispatch *current = get_dispatch ();
+    cuint i;
+
+    for (i = 0; i < context->pendingDispatches->len; i++) {
+        CSource *source = context->pendingDispatches->pdata[i];
+        context->pendingDispatches->pdata[i] = NULL;
+        c_assert (source);
+
+        source->flags &= ~C_SOURCE_READY;
+
+        if (!SOURCE_DESTROYED (source)) {
+            bool was_in_call;
+            void* user_data = NULL;
+            CSourceFunc callback = NULL;
+            CSourceCallbackFuncs *cb_funcs;
+            void* cb_data;
+            bool need_destroy;
+
+            bool(*dispatch) (CSource*, CSourceFunc, void*);
+            CSource *prev_source;
+            cint64 begin_time_nsec C_UNUSED;
+
+            dispatch = source->sourceFuncs->dispatch;
+            cb_funcs = source->callbackFuncs;
+            cb_data = source->callbackData;
+
+            if (cb_funcs) {
+                cb_funcs->ref (cb_data);
+            }
+
+            if ((source->flags & C_SOURCE_CAN_RECURSE) == 0) {
+                block_source (source);
+            }
+
+            was_in_call = source->flags & C_HOOK_FLAG_IN_CALL;
+            source->flags |= C_HOOK_FLAG_IN_CALL;
+
+            if (cb_funcs) {
+                cb_funcs->get (cb_data, source, &callback, &user_data);
+            }
+
+            UNLOCK_CONTEXT (context);
+
+            prev_source = current->source;
+            current->source = source;
+            current->depth++;
+
+            need_destroy = !(* dispatch) (source, callback, user_data);
+            current->source = prev_source;
+            current->depth--;
+
+            if (cb_funcs) {
+                cb_funcs->unref (cb_data);
+            }
+            LOCK_CONTEXT (context);
+
+            if (!was_in_call) {
+                source->flags &= ~C_HOOK_FLAG_IN_CALL;
+            }
+
+            if (SOURCE_BLOCKED (source) && !SOURCE_DESTROYED (source)) {
+                unblock_source (source);
+            }
+
+            if (need_destroy && !SOURCE_DESTROYED (source)) {
+                c_assert (source->context == context);
+                c_source_destroy_internal (source, context, true);
+            }
+        }
+
+        c_source_unref_internal (source, context, true);
+    }
+
+    c_ptr_array_set_size (context->pendingDispatches, 0);
+}
+
+static void c_main_dispatch_free (void* dispatch)
+{
+    c_free (dispatch);
+}
+
+static int round_timeout_to_msec (cint64 timeout_usec)
+{
+    /* We need to round to milliseconds from our internal microseconds for
+     * various external API and GPollFunc which requires milliseconds.
+     *
+     * However, we want to ensure a few invariants for this.
+     *
+     *   Return == -1 if we have no timeout specified
+     *   Return ==  0 if we don't want to block at all
+     *   Return  >  0 if we have any timeout to avoid spinning the CPU
+     *
+     * This does cause jitter if the microsecond timeout is < 1000 usec
+     * because that is beyond our precision. However, using ppoll() instead
+     * of poll() (when available) avoids this jitter.
+     */
+
+    if (timeout_usec == 0)
+        return 0;
+
+    if (timeout_usec > 0) {
+        cuint64 timeout_msec = (timeout_usec + 999) / 1000;
+        return (int) C_MIN (timeout_msec, C_MAX_INT32);
+    }
+
+    return -1;
+}
+
+static void block_source (CSource *source)
+{
+    CSList *tmp_list;
+
+    c_return_if_fail (!SOURCE_BLOCKED (source));
+
+    source->flags |= C_SOURCE_BLOCKED;
+
+    if (source->context) {
+        tmp_list = source->pollFds;
+        while (tmp_list) {
+            c_main_context_remove_poll_unlocked (source->context, tmp_list->data);
+            tmp_list = tmp_list->next;
+        }
+
+        for (tmp_list = source->priv->fds; tmp_list; tmp_list = tmp_list->next) {
+            c_main_context_remove_poll_unlocked (source->context, tmp_list->data);
+        }
+    }
+
+    if (source->priv && source->priv->childSources) {
+        tmp_list = source->priv->childSources;
+        while (tmp_list) {
+            block_source (tmp_list->data);
+            tmp_list = tmp_list->next;
+        }
+    }
+}
+
+static void unblock_source (CSource *source)
+{
+    CSList *tmp_list;
+
+    c_return_if_fail (SOURCE_BLOCKED (source)); /* Source already unblocked */
+    c_return_if_fail (!SOURCE_DESTROYED (source));
+
+    source->flags &= ~C_SOURCE_BLOCKED;
+
+    tmp_list = source->pollFds;
+    while (tmp_list) {
+        c_main_context_add_poll_unlocked (source->context, source->priority, tmp_list->data);
+        tmp_list = tmp_list->next;
+    }
+
+    for (tmp_list = source->priv->fds; tmp_list; tmp_list = tmp_list->next) {
+        c_main_context_add_poll_unlocked (source->context, source->priority, tmp_list->data);
+    }
+
+    if (source->priv && source->priv->childSources) {
+        tmp_list = source->priv->childSources;
+        while (tmp_list) {
+            unblock_source (tmp_list->data);
+            tmp_list = tmp_list->next;
+        }
+    }
+}
+
+static void free_context_stack (void* data)
+{
+    c_queue_free_full((CQueue*) data, (CDestroyNotify) free_context);
+}
+
+void* c_private_set_alloc0 (CPrivate* key, csize size)
+{
+    void* allocated = c_malloc0 (size);
+
+    c_private_set (key, allocated);
+
+    return c_steal_pointer (&allocated);
 }

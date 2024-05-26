@@ -47,6 +47,9 @@ file(GLOB C_SRC
         ${CMAKE_SOURCE_DIR}/c/error.h
         ${CMAKE_SOURCE_DIR}/c/error.c
 
+        ${CMAKE_SOURCE_DIR}/c/global.h
+        ${CMAKE_SOURCE_DIR}/c/global.c
+
         ${CMAKE_SOURCE_DIR}/c/source.h
         ${CMAKE_SOURCE_DIR}/c/source.c
 
