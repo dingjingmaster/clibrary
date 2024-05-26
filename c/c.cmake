@@ -41,6 +41,9 @@ file(GLOB C_SRC
         ${CMAKE_SOURCE_DIR}/c/quark.h
         ${CMAKE_SOURCE_DIR}/c/quark.c
 
+        ${CMAKE_SOURCE_DIR}/c/queue.h
+        ${CMAKE_SOURCE_DIR}/c/queue.c
+
         ${CMAKE_SOURCE_DIR}/c/error.h
         ${CMAKE_SOURCE_DIR}/c/error.c
 

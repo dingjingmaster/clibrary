@@ -52,7 +52,16 @@ struct _CList
 
 
 CList*   c_list_alloc                   (void) C_WARN_UNUSED_RESULT;
+
+/**
+ * @brief 从 list 节点开始依次释放
+ * @param list: 开始释放节点位置
+ */
 void     c_list_free                    (CList* list);
+
+/**
+ * @brief 仅仅释放 list 一个节点
+ */
 void     c_list_free_1                  (CList* list);
 void     c_list_free_full               (CList* list, CDestroyNotify freeFunc);
 CList*   c_list_append                  (CList* list, void* data) C_WARN_UNUSED_RESULT;

@@ -14,7 +14,7 @@
 > Created Time: Thu 07 Sep 2022 22:20:19 PM CST
 ************************************************************************/
 
-#include "atomic.h"
+// #include "atomic.h"
 
 #include "log.h"
 #include <pthread.h>
@@ -222,10 +222,10 @@ void* c_atomic_pointer_exchange (void* atomic, void* newVal)
     return oldVal;
 }
 
-cuint64 c_atomic_pointer_add (volatile void* atomic, culong val)
+cintptr c_atomic_pointer_add (volatile void* atomic, cssize val)
 {
-    cuint64* ptr = (cuint64*) atomic;
-    cuint64 oldVal;
+    cintptr* ptr = (cintptr*) atomic;
+    cintptr oldVal;
 
     pthread_mutex_lock (&gsAtomicLock);
     oldVal = *ptr;
@@ -235,7 +235,7 @@ cuint64 c_atomic_pointer_add (volatile void* atomic, culong val)
     return oldVal;
 }
 
-cuint64 c_atomic_pointer_and (volatile void* atomic, culong val)
+cuintptr c_atomic_pointer_and (volatile void* atomic, culong val)
 {
     cuint64* ptr = (culong*) atomic;
     cuint64 oldVal;
@@ -248,7 +248,7 @@ cuint64 c_atomic_pointer_and (volatile void* atomic, culong val)
     return oldVal;
 }
 
-cuint64 c_atomic_pointer_or (volatile void* atomic, culong val)
+cuintptr c_atomic_pointer_or (volatile void* atomic, culong val)
 {
     cuint64* ptr = (culong*) atomic;
     cuint64 oldVal;
@@ -261,7 +261,7 @@ cuint64 c_atomic_pointer_or (volatile void* atomic, culong val)
     return oldVal;
 }
 
-cuint64 c_atomic_pointer_xor (volatile void* atomic, culong val)
+cuintptr c_atomic_pointer_xor (volatile void* atomic, csize val)
 {
     cuint64* ptr = (culong*) atomic;
     cuint64 oldVal;

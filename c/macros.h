@@ -140,9 +140,10 @@ typedef double                                                  cdouble;
 typedef unsigned long                                           csize;
 typedef signed long                                             cssize;
 
+typedef signed long                                             cintptr;
 typedef void*                                                   cvoidptr;
 typedef cuint32                                                 cunichar;
-typedef cuint*                                                  cuintptr;
+typedef unsigned long                                           cuintptr;
 typedef cint                                                    crefcount;
 typedef cint                                                    catomicrefcount;
 
@@ -1159,6 +1160,10 @@ static inline void* c_steal_pointer (void* pp)
     return ref;
 }
 
+/**
+ * @brief c_free 宏函数的函数版
+ * @note 用于当成函数指针使用
+ */
 static void c_free0 (void* p)
 {
     c_free(p);

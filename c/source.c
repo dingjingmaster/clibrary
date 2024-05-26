@@ -25,6 +25,7 @@
 #include "str.h"
 #include "hash.h"
 #include "hook.h"
+#include "queue.h"
 #include "error.h"
 #include "thread.h"
 #include "atomic.h"
