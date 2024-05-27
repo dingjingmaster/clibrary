@@ -21,7 +21,7 @@
 
 static pthread_mutex_t gsAtomicLock = PTHREAD_MUTEX_INITIALIZER;
 
-int c_atomic_int_get (const volatile int *atomic)
+int c_atomic_int_get (const volatile cint *atomic)
 {
     int value;
 

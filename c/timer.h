@@ -25,6 +25,20 @@ C_BEGIN_EXTERN_C
 typedef struct _CTimer          CTimer;
 typedef struct _CTimeVal        CTimeVal;
 
+struct _CTimer
+{
+    cuint64 start;
+    cuint64 end;
+
+    cuint active : 1;
+};
+
+struct _CTimeVal
+{
+    clong tvSec;
+    clong tvUsec;
+};
+
 #define C_USEC_PER_SEC 1000000
 
 CTimer*  c_timer_new             (void);

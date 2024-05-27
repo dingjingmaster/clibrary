@@ -16,20 +16,6 @@
 #include "clib.h"
 
 
-struct _CTimer
-{
-    cuint64 start;
-    cuint64 end;
-
-    cuint active : 1;
-};
-
-struct _CTimeVal
-{
-    clong tvSec;
-    clong tvUsec;
-};
-
 static time_t mktime_utc (struct tm *tm);
 
 
