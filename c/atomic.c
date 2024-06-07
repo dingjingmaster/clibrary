@@ -17,6 +17,8 @@
 // #include "atomic.h"
 
 #include "log.h"
+#include "atomic.h"
+
 #include <pthread.h>
 
 static pthread_mutex_t gsAtomicLock = PTHREAD_MUTEX_INITIALIZER;
@@ -399,4 +401,37 @@ bool c_atomic_ref_count_compare (catomicrefcount* arc, cint val)
     c_return_val_if_fail (val >= 0, false);
 
     return c_atomic_int_get (arc) == val;
+}
+
+cint c_atomic_bool_get(volatile const bool *atomic)
+{
+    bool value;
+
+    pthread_mutex_lock (&gsAtomicLock);
+    value = *atomic;
+    pthread_mutex_unlock (&gsAtomicLock);
+
+    return value;
+}
+
+void c_atomic_bool_set(volatile bool *atomic, bool newval)
+{
+    pthread_mutex_lock (&gsAtomicLock);
+    *atomic = newval;
+    pthread_mutex_unlock (&gsAtomicLock);
+}
+
+bool c_atomic_bool_compare_and_exchange(volatile bool* atomic, bool oldVal, cint newVal)
+{
+    bool success;
+
+    pthread_mutex_lock (&gsAtomicLock);
+
+    if ((success = (*atomic == oldVal))) {
+        *atomic = newVal;
+    }
+
+    pthread_mutex_unlock (&gsAtomicLock);
+
+    return success;
 }

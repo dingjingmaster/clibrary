@@ -1432,13 +1432,13 @@ void c_main_loop_run(CMainLoop *loop)
 
         /* Another thread owns this context */
         LOCK_CONTEXT (loop->context);
-        c_atomic_int_set (&loop->isRunning, true);
+        c_atomic_bool_set (&loop->isRunning, true);
 
-        while (c_atomic_int_get (&loop->isRunning) && !got_ownership) {
+        while (c_atomic_bool_get (&loop->isRunning) && !got_ownership) {
             got_ownership = c_main_context_wait_internal (loop->context, &loop->context->cond, &loop->context->mutex);
         }
 
-        if (!c_atomic_int_get (&loop->isRunning)) {
+        if (!c_atomic_bool_get (&loop->isRunning)) {
             UNLOCK_CONTEXT (loop->context);
             if (got_ownership) {
                 c_main_context_release (loop->context);
@@ -1458,8 +1458,8 @@ void c_main_loop_run(CMainLoop *loop)
         return;
     }
 
-    c_atomic_int_set (&loop->isRunning, true);
-    while (c_atomic_int_get (&loop->isRunning)) {
+    c_atomic_bool_set (&loop->isRunning, true);
+    while (c_atomic_bool_get (&loop->isRunning)) {
         c_main_context_iterate (loop->context, true, true, self);
     }
 
@@ -1476,7 +1476,7 @@ void c_main_loop_quit(CMainLoop *loop)
     c_return_if_fail (c_atomic_int_get (&loop->refCount) > 0);
 
     LOCK_CONTEXT (loop->context);
-    c_atomic_int_set (&loop->isRunning, false);
+    c_atomic_bool_set (&loop->isRunning, false);
     c_wakeup_signal (loop->context->wakeup);
 
     c_cond_broadcast (&loop->context->cond);
@@ -1512,7 +1512,7 @@ bool c_main_loop_is_running(CMainLoop *loop)
     c_return_val_if_fail (loop != NULL, false);
     c_return_val_if_fail (c_atomic_int_get (&loop->refCount) > 0, false);
 
-    return c_atomic_int_get (&loop->isRunning);
+    return c_atomic_bool_get (&loop->isRunning);
 }
 
 CMainContext *c_main_loop_get_context(CMainLoop *loop)
@@ -2314,7 +2314,7 @@ static bool c_unix_signal_watch_dispatch (CSource* source, CSourceFunc callback,
         return false;
     }
 
-    c_atomic_int_set (&unixSignalSource->pending, false);
+    c_atomic_bool_set (&unixSignalSource->pending, false);
 
     again = (callback) (udata);
 
@@ -2325,14 +2325,14 @@ static bool c_unix_signal_watch_check (CSource* source)
 {
     CUnixSignalWatchSource* unixSignalSource = (CUnixSignalWatchSource*) source;
 
-    return c_atomic_int_get (&unixSignalSource->pending);
+    return c_atomic_bool_get (&unixSignalSource->pending);
 }
 
 static bool c_unix_signal_watch_prepare (CSource* source, cint* timeout)
 {
     CUnixSignalWatchSource *unixSignalSource = (CUnixSignalWatchSource*) source;
 
-    return c_atomic_int_get (&unixSignalSource->pending);
+    return c_atomic_bool_get (&unixSignalSource->pending);
 }
 
 static bool c_child_watch_check (CSource* source)
@@ -2352,7 +2352,7 @@ static bool c_child_watch_check (CSource* source)
         return child_exited;
     }
 
-    return c_atomic_int_get (&childWatchSource->childExited);
+    return c_atomic_bool_get (&childWatchSource->childExited);
 }
 
 static void free_context (void* data)
@@ -2545,19 +2545,19 @@ static void dispatch_unix_signals_unlocked (void)
     if (pending[SIGCHLD]) {
         for (node = gsUnixChildWatches; node; node = node->next) {
             CChildWatchSource *source = node->data;
-            if (!source->usingPidFd&& !c_atomic_int_get (&source->childExited)) {
+            if (!source->usingPidFd&& !c_atomic_bool_get (&source->childExited)) {
                 pid_t pid;
                 do {
                     c_assert (source->pid > 0);
                     pid = waitpid (source->pid, &source->childStatus, WNOHANG);
                     if (pid > 0) {
-                        c_atomic_int_set (&source->childExited, true);
+                        c_atomic_bool_set (&source->childExited, true);
                         wake_source ((CSource*) source);
                     }
                     else if (pid == -1 && errno == ECHILD) {
                         C_LOG_WARNING_CONSOLE("CChildWatchSource: Exit status of a child process was requested but ECHILD was received by waitpid(). See the documentation of g_child_watch_source_new() for possible causes.");
                         source->childStatus = 0;
-                        c_atomic_int_set (&source->childExited, true);
+                        c_atomic_bool_set (&source->childExited, true);
                         wake_source ((CSource *) source);
                     }
                 }
@@ -2568,7 +2568,7 @@ static void dispatch_unix_signals_unlocked (void)
 
     for (node = gsUnixSignalWatches; node; node = node->next) {
         CUnixSignalWatchSource *source = node->data;
-        if (pending[source->signum] && c_atomic_int_compare_and_exchange (&source->pending, false, true)) {
+        if (pending[source->signum] && c_atomic_bool_compare_and_exchange (&source->pending, false, true)) {
             wake_source ((CSource*) source);
         }
     }

@@ -15,6 +15,11 @@
  ************************************************************************/
 #ifndef CLIBRARY_MACROS_H
 #define CLIBRARY_MACROS_H
+
+#if !defined (__CLIB_H_INSIDE__) && !defined (CLIB_COMPILATION)
+#error "Only <clib.h> can be included directly."
+#endif
+
 #include <errno.h>
 #include <stdio.h>
 #include <utime.h>
@@ -25,12 +30,8 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include <libintl.h>
-
 #include <sys/poll.h>
 
-#if !defined (__CLIB_H_INSIDE__) && !defined (CLIB_COMPILATION)
-#error "Only <clib.h> can be included directly."
-#endif
 
 #define ALIGNOF_CUINT32             4
 #define ALIGNOF_CUINT64             8
@@ -76,37 +77,15 @@
 #endif
 
 /**
- * @brief
- *  定义 false
- */
-
-#ifdef __cplusplus
-#else
-#undef false
-#define false                                                   (0)
-#endif
-
-/**
  * @brief bool
  */
 #ifdef __cplusplus
 #else
-#ifdef bool
-#undef bool
-#endif
 #ifndef bool
 typedef int                                                     bool;
-#endif
-#endif
-
-/**
- * @brief
- *  定义 true
- */
-#ifdef __cplusplus
-#else
-#undef true
+#define false                                                   (0)
 #define true                                                    (!false)
+#endif
 #endif
 
 /**

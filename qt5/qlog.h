@@ -38,8 +38,8 @@
 #if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
 #define C_QLOG_INIT_IF_NOT_INIT \
 { \
-    if (C_UNLIKELY(!c_log_is_inited())) { \
-        c_log_init (C_LOG_LEVEL, C_LOG_SIZE, C_LOG_DIR, C_LOG_TAG, "log", false); \
+    if (C_UNLIKELY(!(0 != c_log_is_inited()))) { \
+        c_log_init (C_LOG_LEVEL, C_LOG_SIZE, C_LOG_DIR, C_LOG_TAG, "log", 0); \
         qInstallMessageHandler(c_qlog_handler); \
     } \
 };
@@ -49,8 +49,8 @@ void c_qlog_handler (QtMsgType type, const QMessageLogContext &context, const QS
 #elif QT_VERSION >= QT_VERSION_CHECK(4,0,0)
 #define C_QLOG_INIT_IF_NOT_INIT \
 { \
-    if (C_UNLIKELY(!c_log_is_inited())) { \
-        c_log_init (C_LOG_TYPE_FILE, C_LOG_LEVEL, C_LOG_SIZE, C_LOG_DIR, C_LOG_TAG, "log", false); \
+    if (C_UNLIKELY(!(0 != c_log_is_inited()))) { \
+        c_log_init (C_LOG_TYPE_FILE, C_LOG_LEVEL, C_LOG_SIZE, C_LOG_DIR, C_LOG_TAG, "log", 0); \
         qInstallMsgHandler(c_qlog_handler); \
     } \
 };

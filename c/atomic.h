@@ -31,6 +31,10 @@ void            c_atomic_ref_count_inc          (catomicrefcount* arc);
 bool            c_atomic_ref_count_dec          (catomicrefcount* arc);
 bool            c_atomic_ref_count_compare      (catomicrefcount* arc, cint val);
 
+cint            c_atomic_bool_get                           (const volatile bool *atomic);
+void            c_atomic_bool_set                           (volatile bool* atomic, bool newval);
+bool            c_atomic_bool_compare_and_exchange          (volatile bool* atomic, bool oldval, cint newval);
+
 cint            c_atomic_int_get                            (const volatile cint *atomic);
 void            c_atomic_int_set                            (volatile cint* atomic, cint newval);
 void            c_atomic_int_inc                            (volatile cint* atomic);
@@ -42,6 +46,7 @@ cint            c_atomic_int_add                            (volatile cint* atom
 cuint           c_atomic_int_and                            (volatile cuint* atomic, cuint val);
 cuint           c_atomic_int_or                             (volatile cuint* atomic, cuint val);
 cuint           c_atomic_int_xor                            (volatile cuint* atomic, cuint val);
+
 void*           c_atomic_pointer_get                        (const volatile void* atomic);
 void            c_atomic_pointer_set                        (volatile void* atomic, void* newval);
 bool            c_atomic_pointer_compare_and_exchange       (volatile void* atomic, void* oldval, void* newval);
