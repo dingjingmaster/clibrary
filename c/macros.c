@@ -580,6 +580,20 @@ void c_clear_pointer (void** pp, CDestroyNotify destroy)
     }
 }
 
+cint64 c_get_monotonic_time (void)
+{
+    struct timespec ts;
+    cint result;
+
+    result = clock_gettime (CLOCK_MONOTONIC, &ts);
+
+    if C_UNLIKELY (result != 0) {
+        C_LOG_ERROR_CONSOLE("CLib requires working CLOCK_MONOTONIC");
+    }
+
+    return (((cint64) ts.tv_sec) * 1000000) + (ts.tv_nsec / 1000);
+}
+
 cint64 c_get_real_time (void)
 {
     struct timeval r;
@@ -711,20 +725,6 @@ bool c_close (cint fd, CError** error)
     }
 
     return true;
-}
-
-cint64 c_get_monotonic_time (void)
-{
-    struct timespec ts;
-    cint result;
-
-    result = clock_gettime (CLOCK_MONOTONIC, &ts);
-
-    if C_UNLIKELY (result != 0) {
-        C_LOG_ERROR_CONSOLE("CLib requires working CLOCK_MONOTONIC");
-    }
-
-    return (((cint64) ts.tv_sec) * 1000000) + (ts.tv_nsec / 1000);
 }
 
 const char* clib_pgettext (const char* msgCtxTid, csize msgIdOffset)

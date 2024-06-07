@@ -100,7 +100,7 @@ C_BEGIN_EXTERN_C
 
 #define C_LOG_VERB_CONSOLE(...)
 
-#if DEBUG
+#ifdef DEBUG
 #define C_LOG_DEBUG(...)
 #define C_LOG_VERB(...)
 #else

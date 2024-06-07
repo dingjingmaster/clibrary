@@ -8,41 +8,50 @@
  */
 
 //
-// Created by dingjing on 24-4-8.
+// Created by dingjing on 24-6-7.
 //
 
-#ifndef CLIBRARY_CLIB_H
-#define CLIBRARY_CLIB_H
-#if !defined (__CLIB_H_INSIDE__)
-#define __CLIB_H_INSIDE__
-#endif
+#include "utils.h"
 
-#include <c/log.h>
-#include <c/str.h>
-#include <c/date.h>
-#include <c/uuid.h>
-#include <c/hash.h>
-#include <c/list.h>
-#include <c/poll.h>
-#include <c/hook.h>
-#include <c/timer.h>
-#include <c/error.h>
-#include <c/array.h>
-#include <c/bytes.h>
-#include <c/quark.h>
-#include <c/slist.h>
-#include <c/utils.h>
-#include <c/source.h>
-#include <c/thread.h>
-#include <c/atomic.h>
-#include <c/macros.h>
-#include <c/base64.h>
-#include <c/wakeup.h>
-#include <c/unicode.h>
-#include <c/convert.h>
-#include <c/cstring.h>
-#include <c/time-zone.h>
-#include <c/file-utils.h>
-#include <c/mapped-file.h>
+#include "clib.h"
 
-#endif //CLIBRARY_CLIB_H
+
+static char* gsTmpDir = NULL;
+C_LOCK_DEFINE_STATIC (gsUtilsLocker);
+
+
+const char *c_get_tmp_dir(void)
+{
+    C_LOCK (gsUtilsLocker);
+
+    if (gsTmpDir == NULL) {
+        char *tmp = c_strdup (c_getenv ("G_TEST_TMPDIR"));
+
+        if (tmp == NULL || *tmp == '\0') {
+            c_free (tmp);
+            tmp = c_strdup (c_getenv ("TMPDIR"));
+        }
+
+#ifdef P_tmpdir
+        if (tmp == NULL || *tmp == '\0') {
+            csize k;
+            c_free (tmp);
+            tmp = c_strdup (P_tmpdir);
+            k = strlen (tmp);
+            if (k > 1 && C_IS_DIR_SEPARATOR (tmp[k - 1]))
+                tmp[k - 1] = '\0';
+        }
+#endif /* P_tmpdir */
+
+        if (tmp == NULL || *tmp == '\0') {
+            c_free (tmp);
+            tmp = c_strdup ("/tmp");
+        }
+
+        gsTmpDir = c_steal_pointer (&tmp);
+    }
+
+    C_UNLOCK (gsUtilsLocker);
+
+    return gsTmpDir;
+}

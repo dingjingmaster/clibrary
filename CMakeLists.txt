@@ -29,7 +29,7 @@ elseif (CMAKE_BUILD_TYPE STREQUAL "Debug")
 endif ()
 
 include_directories(${CMAKE_SOURCE_DIR})
-add_definitions(-DQT_NO_KEYWORDS -DQT_MESSAGELOGCONTEXT -D__CLIB_H_INSIDE__)
+add_definitions(-DQT_NO_KEYWORDS -DQT_MESSAGELOGCONTEXT -D__CLIB_H_INSIDE__ -DPACKAGE_NAME=\"clib\")
 
 enable_testing()
 

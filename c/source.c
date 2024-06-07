@@ -19,6 +19,7 @@
 #include <sys/wait.h>
 #include <linux/wait.h>
 #include <sys/syscall.h>
+#include <time.h>
 
 
 #include "log.h"

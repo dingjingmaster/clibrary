@@ -23,6 +23,7 @@
 #include <string.h>
 #include <assert.h>
 #include <unistd.h>
+#include <stdbool.h>
 #include <libintl.h>
 
 #include <sys/poll.h>
@@ -80,7 +81,6 @@
  */
 
 #ifdef __cplusplus
-#define false                                                   false
 #else
 #undef false
 #define false                                                   (0)
@@ -91,6 +91,9 @@
  */
 #ifdef __cplusplus
 #else
+#ifdef bool
+#undef bool
+#endif
 #ifndef bool
 typedef int                                                     bool;
 #endif
@@ -101,7 +104,6 @@ typedef int                                                     bool;
  *  定义 true
  */
 #ifdef __cplusplus
-#define true                                                    true
 #else
 #undef true
 #define true                                                    (!false)
@@ -143,6 +145,7 @@ typedef signed long                                             cssize;
 typedef signed long                                             cintptr;
 typedef void*                                                   cvoidptr;
 typedef cuint32                                                 cunichar;
+typedef cuint16                                                 cunichar2;
 typedef unsigned long                                           cuintptr;
 typedef cint                                                    crefcount;
 typedef cint                                                    catomicrefcount;
@@ -178,6 +181,7 @@ typedef cuint32                                                 CQuark;
 #define C_MAX_UINT32                                            ((cuint32) 0xFFFFFFFF)
 #define C_MIN_INT32                                             ((cint32) (-C_MAX_INT32) - 1)
 
+#define C_MAX_ULONG                                             (18446744073709551615UL)
 #define C_MAX_INT64                                             ((cint64) C_CINT64_CONSTANT(0x7FFFFFFFFFFFFFFF))
 #define C_MAX_UINT64                                            ((cuint64) C_CUINT64_CONSTANT(0xFFFFFFFFFFFFFFFF))
 #define C_MIN_INT64                                             ((cint64) (-C_MAX_INT64) - C_CINT64_CONSTANT(1))
@@ -1237,14 +1241,9 @@ bool c_int_equal (const void* p1, const void* p2);
 bool c_int64_equal (const void* p1, const void* p2);
 bool c_double_equal (const void* p1, const void* p2);
 
-
 int c_strcmp0 (const char* str1, const char* str2);
 void c_clear_pointer (void** pp, CDestroyNotify destroy);
 
-/* time start */
-cint64 c_get_real_time (void);
-cint64 c_get_monotonic_time (void);
-/* time end */
 
 /* file start */
 cint    c_fsync                     (cint fd);

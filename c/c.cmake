@@ -47,6 +47,9 @@ file(GLOB C_SRC
         ${CMAKE_SOURCE_DIR}/c/error.h
         ${CMAKE_SOURCE_DIR}/c/error.c
 
+        ${CMAKE_SOURCE_DIR}/c/utils.h
+        ${CMAKE_SOURCE_DIR}/c/utils.c
+
         ${CMAKE_SOURCE_DIR}/c/global.h
         ${CMAKE_SOURCE_DIR}/c/global.c
 
@@ -74,6 +77,9 @@ file(GLOB C_SRC
         ${CMAKE_SOURCE_DIR}/c/cstring.h
         ${CMAKE_SOURCE_DIR}/c/cstring.c
 
+        ${CMAKE_SOURCE_DIR}/c/unicode.h
+        ${CMAKE_SOURCE_DIR}/c/unicode.c
+
         ${CMAKE_SOURCE_DIR}/c/time-zone.h
         ${CMAKE_SOURCE_DIR}/c/time-zone.c
 
@@ -96,6 +102,7 @@ file(GLOB C_HEADERS
         ${CMAKE_SOURCE_DIR}/c/uuid.h
         ${CMAKE_SOURCE_DIR}/c/hook.h
         ${CMAKE_SOURCE_DIR}/c/timer.h
+        ${CMAKE_SOURCE_DIR}/c/utils.h
         ${CMAKE_SOURCE_DIR}/c/array.h
         ${CMAKE_SOURCE_DIR}/c/bytes.h
         ${CMAKE_SOURCE_DIR}/c/slist.h
@@ -107,6 +114,7 @@ file(GLOB C_HEADERS
         ${CMAKE_SOURCE_DIR}/c/wakeup.h
         ${CMAKE_SOURCE_DIR}/c/convert.h
         ${CMAKE_SOURCE_DIR}/c/cstring.h
+        ${CMAKE_SOURCE_DIR}/c/unicode.h
         ${CMAKE_SOURCE_DIR}/c/time-zone.h
         ${CMAKE_SOURCE_DIR}/c/file-utils.h
         ${CMAKE_SOURCE_DIR}/c/mapped-file.h
