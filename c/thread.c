@@ -593,6 +593,44 @@ cuint c_get_num_processors (void)
     return 1;
 }
 
+bool (c_once_init_enter_pointer) (void* location)
+{
+    void** valueLocation = (void**) location;
+    bool needInit = false;
+    c_mutex_lock (&gsOnceMutex);
+    if (c_atomic_pointer_get (valueLocation) == 0) {
+        if (!c_slist_find (gsOnceInitList, (void *) valueLocation)) {
+            needInit = true;
+            gsOnceInitList = c_slist_prepend (gsOnceInitList, (void *) valueLocation);
+        }
+        else {
+            do {
+                c_cond_wait (&gsOnceCond, &gsOnceMutex);
+            } while (c_slist_find (gsOnceInitList, (void *) valueLocation));
+        }
+    }
+    c_mutex_unlock (&gsOnceMutex);
+
+    return needInit;
+}
+
+void (c_once_init_leave_pointer) (void* location, void* result)
+{
+    void** valueLocation = (void**) location;
+    void* oldValue;
+
+    c_return_if_fail (result != 0);
+
+    oldValue = c_atomic_pointer_exchange (valueLocation, result);
+    c_return_if_fail (oldValue == 0);
+
+    c_mutex_lock (&gsOnceMutex);
+    c_return_if_fail (gsOnceInitList != NULL);
+    gsOnceInitList = c_slist_remove (gsOnceInitList, (void *) valueLocation);
+    c_cond_broadcast (&gsOnceCond);
+    c_mutex_unlock (&gsOnceMutex);
+}
+
 
 
 void* c_once_impl (COnce* once, CThreadFunc func, void* arg)

@@ -37,6 +37,7 @@ C_BEGIN_EXTERN_C
 #define c_ascii_isupper(c)      ((gpAsciiTable[(cuchar) (c)] & C_ASCII_UPPER) != 0)
 #define c_ascii_isxdigit(c)     ((gpAsciiTable[(cuchar) (c)] & C_ASCII_XDIGIT) != 0)
 
+#define c_strstrip(str)	        c_strchomp (c_strchug(str))
 
 typedef enum
 {

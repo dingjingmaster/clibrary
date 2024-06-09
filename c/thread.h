@@ -189,6 +189,9 @@ void*           c_once_impl                     (COnce* once, CThreadFunc func, 
 bool            c_once_init_enter               (volatile void* location);
 void            c_once_init_leave               (volatile void* location, csize result);
 cuint           c_get_num_processors            (void);
+bool            c_once_init_enter_pointer       (void *location);
+void            c_once_init_leave_pointer       (void *location, void* result);
+
 
 
 static inline CMutexLocker* c_mutex_locker_new (CMutex *mutex)

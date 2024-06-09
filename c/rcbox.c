@@ -20,6 +20,7 @@
 #define STRUCT_ALIGNMENT        (2 * sizeof (csize))
 #define C_RC_BOX_SIZE           sizeof (CRcBox)
 #define C_ARC_BOX_SIZE          sizeof (CArcBox)
+#define C_ARC_BOX(p)            (CArcBox*) (((char*) (p)) - C_ARC_BOX_SIZE)
 
 typedef struct _CRcBox      CRcBox;
 typedef struct _CArcBox     CArcBox;
@@ -190,4 +191,48 @@ csize c_rc_box_get_size(void * mem_block)
     c_return_val_if_fail(real_box->magic == C_BOX_MAGIC, 0);
 
     return real_box->memSize;
+}
+
+void* c_atomic_rc_box_alloc (csize block_size)
+{
+    c_return_val_if_fail (block_size > 0, NULL);
+
+    return c_rc_box_alloc_full (block_size, STRUCT_ALIGNMENT, true, false);
+}
+
+void* c_atomic_rc_box_alloc0 (csize block_size)
+{
+    c_return_val_if_fail (block_size > 0, NULL);
+
+    return c_rc_box_alloc_full (block_size, STRUCT_ALIGNMENT, true, true);
+}
+
+void c_atomic_rc_box_release_full (void* mem_block, CDestroyNotify clear_func)
+{
+    CArcBox *real_box = C_ARC_BOX (mem_block);
+
+    c_return_if_fail (mem_block != NULL);
+    c_return_if_fail (real_box->magic == C_BOX_MAGIC);
+
+    if (c_atomic_ref_count_dec (&real_box->refCount))
+    {
+        char *real_mem = (char *) real_box - real_box->privateOffset;
+
+        if (clear_func != NULL)
+            clear_func (mem_block);
+
+        c_free (real_mem);
+    }
+}
+
+void* (c_atomic_rc_box_acquire) (void* mem_block)
+{
+    CArcBox *real_box = C_ARC_BOX (mem_block);
+
+    c_return_val_if_fail (mem_block != NULL, NULL);
+    c_return_val_if_fail (real_box->magic == C_BOX_MAGIC, NULL);
+
+    c_atomic_ref_count_inc (&real_box->refCount);
+
+    return mem_block;
 }

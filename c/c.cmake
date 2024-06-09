@@ -77,6 +77,9 @@ file(GLOB C_SRC
         ${CMAKE_SOURCE_DIR}/c/wakeup.h
         ${CMAKE_SOURCE_DIR}/c/wakeup.c
 
+        ${CMAKE_SOURCE_DIR}/c/charset.h
+        ${CMAKE_SOURCE_DIR}/c/charset.c
+
         ${CMAKE_SOURCE_DIR}/c/convert.h
         ${CMAKE_SOURCE_DIR}/c/convert.c
 
@@ -129,6 +132,7 @@ file(GLOB C_HEADERS
         ${CMAKE_SOURCE_DIR}/c/convert.h
         ${CMAKE_SOURCE_DIR}/c/cstring.h
         ${CMAKE_SOURCE_DIR}/c/unicode.h
+        ${CMAKE_SOURCE_DIR}/c/charset.h
         ${CMAKE_SOURCE_DIR}/c/time-zone.h
         ${CMAKE_SOURCE_DIR}/c/host-utils.h
         ${CMAKE_SOURCE_DIR}/c/hash-table.h

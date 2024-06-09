@@ -198,7 +198,7 @@ typedef struct _CSourceIter
 CMainContext* c_get_worker_context (void);
 
 
-void* c_private_set_alloc0 (CPrivate* key, csize size);
+extern void* c_private_set_alloc0 (CPrivate* key, csize size);
 
 static void c_source_callback_ref   (void* cbData);
 static void c_source_callback_unref (void* cbData);

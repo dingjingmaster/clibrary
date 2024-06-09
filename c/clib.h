@@ -42,6 +42,7 @@
 #include <c/unicode.h>
 #include <c/convert.h>
 #include <c/cstring.h>
+#include <c/charset.h>
 #include <c/time-zone.h>
 #include <c/host-utils.h>
 #include <c/hash-table.h>
