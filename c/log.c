@@ -91,7 +91,7 @@ static const char* gsLogLevelStr[] = {
 };
 
 
-//static CLogType gsLogType = C_LOG_TYPE_CONSOLE;                         // 日志默认输出到控制台
+//static CLogType gsLogType = C_LOG_TYPE_CONSOLE;                       // 日志默认输出到控制台
 static unsigned long long gsLogSize = 0;                                // 日志文件大小
 static CLogLevel gsLogLevel;                                            // 输出日至级别
 static char gsLogDir[LOG_DIRNAME_LEN] = "./";                           // 日志输出文件夹
