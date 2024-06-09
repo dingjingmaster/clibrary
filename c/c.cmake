@@ -117,12 +117,14 @@ file(GLOB C_HEADERS
         ${CMAKE_SOURCE_DIR}/c/list.h
         ${CMAKE_SOURCE_DIR}/c/uuid.h
         ${CMAKE_SOURCE_DIR}/c/hook.h
+        ${CMAKE_SOURCE_DIR}/c/error.h
         ${CMAKE_SOURCE_DIR}/c/timer.h
         ${CMAKE_SOURCE_DIR}/c/utils.h
         ${CMAKE_SOURCE_DIR}/c/array.h
         ${CMAKE_SOURCE_DIR}/c/bytes.h
         ${CMAKE_SOURCE_DIR}/c/slist.h
         ${CMAKE_SOURCE_DIR}/c/rcbox.h
+        ${CMAKE_SOURCE_DIR}/c/quark.h
         ${CMAKE_SOURCE_DIR}/c/source.h
         ${CMAKE_SOURCE_DIR}/c/thread.h
         ${CMAKE_SOURCE_DIR}/c/atomic.h
