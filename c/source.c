@@ -24,7 +24,7 @@
 
 #include "log.h"
 #include "str.h"
-#include "hash.h"
+#include "hash-table.h"
 #include "hook.h"
 #include "queue.h"
 #include "error.h"

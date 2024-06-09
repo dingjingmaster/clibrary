@@ -18,7 +18,7 @@
 
 #include "str.h"
 #include "date.h"
-#include "hash.h"
+#include "hash-table.h"
 #include "bytes.h"
 #include "thread.h"
 #include "atomic.h"

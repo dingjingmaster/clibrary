@@ -11,8 +11,8 @@
 // Created by dingjing on 24-4-22.
 //
 
-#ifndef CLIBRARY_HASH_H
-#define CLIBRARY_HASH_H
+#ifndef CLIBRARY_HASH_TABLE_H
+#define CLIBRARY_HASH_TABLE_H
 
 #if !defined (__CLIB_H_INSIDE__) && !defined (CLIB_COMPILATION)
 #error "Only <clib.h> can be included directly."
@@ -87,4 +87,4 @@ cuint    c_direct_hash  (const void* v) C_CONST;
 
 C_END_EXTERN_C
 
-#endif //CLIBRARY_HASH_H
+#endif //CLIBRARY_HASH_TABLE_H

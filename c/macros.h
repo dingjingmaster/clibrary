@@ -184,6 +184,8 @@ typedef cuint32                                                 CQuark;
 #define C_BIG_ENDIAN                                            4321
 #define C_PDP_ENDIAN                                            3412
 
+#define C_POINTER(p)             ((void*) p)
+
 #define C_INT16_TO_LE(val)       ((cint16) (val))
 #define C_UINT16_TO_LE(val)      ((cuint16) (val))
 #define C_INT16_TO_BE(val)       ((cint16) C_UINT16_SWAP_LE_BE (val))
@@ -893,6 +895,21 @@ struct _CSourceFuncs
 #else
 #define C_STMT_END    while (0)
 #endif
+#endif
+
+#if C_C_STD_CHECK_VERSION (11)
+#define C_ALIGNOF(type) _Alignof (type)
+#else
+#define C_ALIGNOF(type) (C_STRUCT_OFFSET (struct { char a; type b; }, b))
+#endif
+
+#undef clib_typeof
+#if !C_CXX_STD_CHECK_VERSION (11) && \
+(C_GNUC_CHECK_VERSION(4, 8) || defined(__clang__))
+#define clib_typeof(t) __typeof__ (t)
+#elif C_CXX_STD_CHECK_VERSION (11)
+#include <type_traits>
+#define clib_typeof(t) typename std::remove_reference<decltype (t)>::type
 #endif
 
 

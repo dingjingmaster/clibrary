@@ -19,9 +19,9 @@
 
 #include <c/log.h>
 #include <c/str.h>
+#include <c/uri.h>
 #include <c/date.h>
 #include <c/uuid.h>
-#include <c/hash.h>
 #include <c/list.h>
 #include <c/poll.h>
 #include <c/hook.h>
@@ -32,6 +32,7 @@
 #include <c/quark.h>
 #include <c/slist.h>
 #include <c/utils.h>
+#include <c/rcbox.h>
 #include <c/source.h>
 #include <c/thread.h>
 #include <c/atomic.h>
@@ -42,6 +43,8 @@
 #include <c/convert.h>
 #include <c/cstring.h>
 #include <c/time-zone.h>
+#include <c/host-utils.h>
+#include <c/hash-table.h>
 #include <c/file-utils.h>
 #include <c/mapped-file.h>
 

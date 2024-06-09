@@ -5,6 +5,9 @@ file(GLOB C_SRC
         ${CMAKE_SOURCE_DIR}/c/str.h
         ${CMAKE_SOURCE_DIR}/c/str.c
 
+        ${CMAKE_SOURCE_DIR}/c/uri.h
+        ${CMAKE_SOURCE_DIR}/c/uri.c
+
         ${CMAKE_SOURCE_DIR}/c/date.h
         ${CMAKE_SOURCE_DIR}/c/date.c
 
@@ -25,6 +28,9 @@ file(GLOB C_SRC
 
         ${CMAKE_SOURCE_DIR}/c/hook.h
         ${CMAKE_SOURCE_DIR}/c/hook.c
+
+        ${CMAKE_SOURCE_DIR}/c/rcbox.h
+        ${CMAKE_SOURCE_DIR}/c/rcbox.c
 
         ${CMAKE_SOURCE_DIR}/c/timer.h
         ${CMAKE_SOURCE_DIR}/c/timer.c
@@ -83,8 +89,14 @@ file(GLOB C_SRC
         ${CMAKE_SOURCE_DIR}/c/time-zone.h
         ${CMAKE_SOURCE_DIR}/c/time-zone.c
 
+        ${CMAKE_SOURCE_DIR}/c/hash-table.h
+        ${CMAKE_SOURCE_DIR}/c/hash-table.c
+
         ${CMAKE_SOURCE_DIR}/c/file-utils.h
         ${CMAKE_SOURCE_DIR}/c/file-utils.c
+
+        ${CMAKE_SOURCE_DIR}/c/host-utils.h
+        ${CMAKE_SOURCE_DIR}/c/host-utils.c
 
         ${CMAKE_SOURCE_DIR}/c/mapped-file.h
         ${CMAKE_SOURCE_DIR}/c/mapped-file.c
@@ -93,6 +105,7 @@ file(GLOB C_SRC
 file(GLOB C_HEADERS
         ${CMAKE_SOURCE_DIR}/c/log.h
         ${CMAKE_SOURCE_DIR}/c/str.h
+        ${CMAKE_SOURCE_DIR}/c/uri.h
         ${CMAKE_SOURCE_DIR}/c/clib.h
         ${CMAKE_SOURCE_DIR}/c/date.h
         ${CMAKE_SOURCE_DIR}/c/hash.h
@@ -106,6 +119,7 @@ file(GLOB C_HEADERS
         ${CMAKE_SOURCE_DIR}/c/array.h
         ${CMAKE_SOURCE_DIR}/c/bytes.h
         ${CMAKE_SOURCE_DIR}/c/slist.h
+        ${CMAKE_SOURCE_DIR}/c/rcbox.h
         ${CMAKE_SOURCE_DIR}/c/source.h
         ${CMAKE_SOURCE_DIR}/c/thread.h
         ${CMAKE_SOURCE_DIR}/c/atomic.h
@@ -116,6 +130,8 @@ file(GLOB C_HEADERS
         ${CMAKE_SOURCE_DIR}/c/cstring.h
         ${CMAKE_SOURCE_DIR}/c/unicode.h
         ${CMAKE_SOURCE_DIR}/c/time-zone.h
+        ${CMAKE_SOURCE_DIR}/c/host-utils.h
+        ${CMAKE_SOURCE_DIR}/c/hash-table.h
         ${CMAKE_SOURCE_DIR}/c/file-utils.h
         ${CMAKE_SOURCE_DIR}/c/mapped-file.h
 )

@@ -11,7 +11,8 @@
 // Created by dingjing on 24-4-22.
 //
 
-#include "hash.h"
+#include "hash-table.h"
+
 #include "atomic.h"
 
 // 1 << 3 == 8 buckets

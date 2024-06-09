@@ -13,7 +13,7 @@
 
 #include "quark.h"
 
-#include "c/hash.h"
+#include "c/hash-table.h"
 #include "c/thread.h"
 #include "str.h"
 #include "atomic.h"

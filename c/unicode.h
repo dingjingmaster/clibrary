@@ -323,6 +323,9 @@ typedef enum
 } CNormalizeMode;
 
 
+extern const char * const gsUtf8Skip;
+
+
 bool        c_unichar_validate          (cunichar ch);
 char*       c_utf8_prev_char            (const char* p);
 cunichar    c_utf8_get_char             (const cchar* p);
