@@ -74,6 +74,9 @@ file(GLOB C_SRC
         ${CMAKE_SOURCE_DIR}/c/macros.h
         ${CMAKE_SOURCE_DIR}/c/macros.c
 
+        ${CMAKE_SOURCE_DIR}/c/option.h
+        ${CMAKE_SOURCE_DIR}/c/option.c
+
         ${CMAKE_SOURCE_DIR}/c/wakeup.h
         ${CMAKE_SOURCE_DIR}/c/wakeup.c
 
@@ -125,6 +128,7 @@ file(GLOB C_HEADERS
         ${CMAKE_SOURCE_DIR}/c/slist.h
         ${CMAKE_SOURCE_DIR}/c/rcbox.h
         ${CMAKE_SOURCE_DIR}/c/quark.h
+        ${CMAKE_SOURCE_DIR}/c/option.h
         ${CMAKE_SOURCE_DIR}/c/source.h
         ${CMAKE_SOURCE_DIR}/c/thread.h
         ${CMAKE_SOURCE_DIR}/c/atomic.h

@@ -15,10 +15,16 @@
 
 #include "clib.h"
 
+#define CHAR_IS_SAFE(wc)    (!((wc < 0x20 && wc != '\t' && wc != '\n' && wc != '\r') || (wc == 0x7f) || (wc >= 0x80 && wc < 0xa0)))
+
+static void print_string (FILE* stream, const cchar* str);
+static cchar* strdup_convert (const cchar *string, const cchar *charset);
 
 static char* gsTmpDir = NULL;
 C_LOCK_DEFINE_STATIC (gsUtilsLocker);
 
+C_LOCK_DEFINE_STATIC (gsPrgname);
+static const cchar* gsPrgname = NULL;
 
 const char *c_get_tmp_dir(void)
 {
@@ -54,4 +60,95 @@ const char *c_get_tmp_dir(void)
     C_UNLOCK (gsUtilsLocker);
 
     return gsTmpDir;
+}
+
+const cchar* c_get_prgname (void)
+{
+    const cchar* retval;
+
+    C_LOCK (gsPrgname);
+    retval = gsPrgname;
+    C_UNLOCK (gsPrgname);
+
+    return retval;
+}
+
+void c_set_prgname (const cchar *prgname)
+{
+    CQuark qprgname = c_quark_from_string (prgname);
+    C_LOCK (gsPrgname);
+    gsPrgname = c_quark_to_string (qprgname);
+    C_UNLOCK (gsPrgname);
+}
+
+void c_print (const cchar *format, ...)
+{
+    va_list args;
+    cchar* str;
+
+    c_return_if_fail (format != NULL);
+
+    va_start (args, format);
+    str = c_strdup_vprintf (format, args);
+    va_end (args);
+
+    print_string (stdout, str);
+
+    c_free (str);
+}
+
+static void print_string (FILE* stream, const cchar* str)
+{
+    const cchar *charset;
+    int ret;
+
+    if (c_get_console_charset (&charset)) {
+        ret = fputs (str, stream);
+    }
+    else {
+        cchar* convertedString = strdup_convert (str, charset);
+        ret = fputs (convertedString, stream);
+        c_free (convertedString);
+    }
+
+    if (ret == EOF) {
+        return;
+    }
+
+    fflush (stream);
+}
+
+static cchar* strdup_convert (const cchar *str, const cchar *charset)
+{
+    if (!c_utf8_validate (str, -1, NULL)) {
+        CString *gstring = c_string_new ("[Invalid UTF-8] ");
+        cuchar *p;
+        for (p = (cuchar*)str; *p; p++) {
+            if (CHAR_IS_SAFE(*p) && !(*p == '\r' && *(p + 1) != '\n') && *p < 0x80) {
+                c_string_append_c (gstring, *p);
+            }
+            else {
+                c_string_append_printf (gstring, "\\x%02x", (cuint)(cuchar)*p);
+            }
+        }
+
+        return c_string_free (gstring, false);
+    }
+    else {
+        CError *err = NULL;
+        cchar *result = c_convert_with_fallback (str, -1, charset, "UTF-8", "?", NULL, NULL, &err);
+        if (result) {
+            return result;
+        }
+        else {
+            static bool warned = false;
+            if (!warned) {
+                warned = true;
+                _c_fprintf (stderr, "GLib: Cannot convert message: %s\n", err->message);
+            }
+            c_error_free (err);
+
+            return c_strdup (str);
+        }
+    }
 }

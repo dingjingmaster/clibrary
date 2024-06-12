@@ -23,15 +23,17 @@
 
 
 const char* c_get_tmp_dir (void);
-//const char* c_get_prgname (void);
+const char* c_get_prgname (void);
 //const char* c_get_home_dir (void);
 //const char* c_get_user_name (void);
 //const char* c_get_real_name (void);
 //const char* c_get_host_name	(void);
-//void  c_set_prgname (const char* prgname);
+void  c_set_prgname (const char* prgname);
 //const char* c_get_application_name (void);
 //char* c_get_os_info  (const char* keyName);
 //void  c_set_application_name (const char* applicationName);
+
+void c_print (const cchar *format, ...);
 
 #if 0
 /**
