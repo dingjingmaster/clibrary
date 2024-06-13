@@ -97,6 +97,26 @@ void c_print (const cchar *format, ...)
     c_free (str);
 }
 
+int c_drop_permissions(void)
+{
+    errno = 0;
+    bool ok = true;
+
+    do {
+        if (setgid(getgid()) < 0) {
+            ok = false;
+            break;
+        }
+
+        if (setuid(getuid()) < 0) {
+            ok = false;
+            break;
+        }
+    } while (0);
+
+    return ok ? 0 : (errno ? -errno : -1);
+}
+
 static void print_string (FILE* stream, const cchar* str)
 {
     const cchar *charset;

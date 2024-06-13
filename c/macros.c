@@ -833,6 +833,11 @@ const char* c_dngettext (const char* domain, const char* msgId, const char* msgI
     return dngettext (domain, msgId, msgIdPlural, n);
 }
 
+bool c_is_power_of_2(cuint64 value)
+{
+    return (value!= 0) && ((value & (value - 1)) == 0);
+}
+
 
 static void msort_r (void *b, cuint64 n, cuint64 s, CCompareDataFunc cmp, void *arg)
 {

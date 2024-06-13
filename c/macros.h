@@ -1304,4 +1304,6 @@ const char* c_dpgettext2    (const char* domain, const char* msgCtxt, const char
 const char* c_dpgettext     (const char* domain, const char* msgCtxTid, csize msgIdOffset);
 const char* c_dngettext     (const char* domain, const char* msgId, const char* msgIdPlural, culong n);
 
+bool    c_is_power_of_2     (cuint64 value);
+
 #endif
