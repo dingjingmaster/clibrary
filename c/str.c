@@ -655,7 +655,7 @@ cuint c_strv_length (char** strArray)
     return count;
 }
 
-cuint c_strv_conts_length (const char* const* strArray)
+cuint c_strv_const_length (const char* const* strArray)
 {
     cuint64 count;
     c_ptr_array_count0(strArray, count);
