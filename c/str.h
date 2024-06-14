@@ -212,6 +212,7 @@ char**                c_strdupv             (const char** strArray);
  * @return 返回字符串数组的长度
  */
 cuint                 c_strv_length         (char** strArray);
+cuint                 c_strv_conts_length   (const char* const* strArray);
 
 /**
  * @brief 根据错误码，返回描述信息
