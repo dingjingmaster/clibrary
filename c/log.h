@@ -120,8 +120,15 @@ C_BEGIN_EXTERN_C
 #define C_LOG_RAW(level, tag, file, line, fun, ...) \
 { \
     C_LOG_INIT_IF_NOT_INIT \
+    c_log_print(level, tag, file, line, fun, __VA_ARGS__); \
+}
+
+#define C_LOG_WRITE_FILE(level, ...) \
+{                                    \
+    C_LOG_INIT_IF_NOT_INIT \
     c_log_raw(level, __VA_ARGS__); \
 }
+
 
 #define C_LOG_RAW_CONSOLE(level, tag, file, line, fun, ...) \
 { \
