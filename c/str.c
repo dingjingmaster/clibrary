@@ -15,6 +15,7 @@
 #include <ctype.h>
 
 #include "log.h"
+#include "array.h"
 
 
 static char* c_stpcpy (char* dest, const char* src);
@@ -1186,7 +1187,7 @@ char** c_strsplit (const char* str, const char* delimiter, int maxTokens)
 {
     char* s = NULL;
     const char* remainder = NULL;
-    char** strList = NULL;
+    CPtrArray* strList = NULL;
 
     c_return_val_if_fail (str != NULL, NULL);
     c_return_val_if_fail (delimiter != NULL, NULL);
@@ -1194,25 +1195,30 @@ char** c_strsplit (const char* str, const char* delimiter, int maxTokens)
 
     if (maxTokens < 1) {
         maxTokens = C_MAX_INT32;
+        strList = c_ptr_array_new();
+    }
+    else {
+        strList = c_ptr_array_new_full(maxTokens + 1, NULL);
     }
 
     remainder = str;
-    s = c_strstr (remainder, delimiter);
+    s = strstr (remainder, delimiter);
     if (s) {
         cuint64 delimiterLen = strlen (delimiter);
         while (--maxTokens && s) {
             cuint64 len = 0;
             len = s - remainder;
-            c_ptr_array_add1_0(strList, char*, c_strndup(remainder, len));
+            c_ptr_array_add(strList, c_strndup(remainder, len));
             remainder = s + delimiterLen;
             s = strstr (remainder, delimiter);
         }
     }
     if (*str) {
-        c_ptr_array_add1_0(strList, char*, c_strdup (remainder));
+        c_ptr_array_add(strList, c_strdup (remainder));
     }
+    c_ptr_array_add(strList, NULL);
 
-    return strList;
+    return (char**) c_ptr_array_free(strList, false);
 }
 
 char** c_strsplit_set (const char* str, const char* delimiters, int maxTokens)
