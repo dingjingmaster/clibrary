@@ -225,6 +225,26 @@ bool c_log_is_inited()
     return gsIsLogInit;
 }
 
+void c_log_raw(const cchar *fmt, ...)
+{
+    va_list ap;
+    char buf[LOG_BUF_SIZE] = {0};
+    int n;
+
+    va_start(ap, fmt);
+    n = vsnprintf(buf, LOG_BUF_SIZE - 1, fmt, ap);
+    va_end(ap);
+    if(n < 0) {
+        return;
+    }
+
+    struct iovec vec[1];
+    vec[0].iov_base = buf;
+    vec[0].iov_len = strlen(buf);
+
+    log_write(C_LOG_TYPE_FILE, vec, 1);
+}
+
 static void log_print(CLogType logType, CLogLevel level, const cchar* tag, const cchar* file, cint line, const cchar* func, const cchar* msg)
 {
     struct iovec vec[LOG_IOVEC_MAX];
