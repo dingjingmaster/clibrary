@@ -557,6 +557,33 @@ char* c_strchomp (const char* str)
     return strT;
 }
 
+void c_striptrim_arr(char str[])
+{
+    c_return_if_fail(str);
+
+    int idx = 0;
+    cuint64 len = c_strlen(str);
+    for (idx = len; idx >=0; idx--) {
+        if (c_ascii_isspace((cuchar)str[idx]) || (str[idx] == '\n') || (str[idx] == '\r')) {
+            str[idx] = '\0';
+        }
+        else {
+            break;
+        }
+    }
+}
+
+cuint64 c_strlen(const char * str)
+{
+    cuint64 len = 0;
+
+    c_return_val_if_fail(str, len);
+
+    while (str[len] != '\0') { len++; }
+
+    return len;
+}
+
 char* c_strreverse (const char* str)
 {
     c_return_val_if_fail (str != NULL, NULL);
@@ -1420,11 +1447,9 @@ next:
 
 void c_strchomp_arr(char *str)
 {
-    cuint64 len;
-
     c_return_if_fail (str != NULL);
 
-    len = strlen (str);
+    cuint64 len = strlen (str);
 
     while (len--) {
         if (c_ascii_isspace ((cuchar) str[len])) {
@@ -1440,29 +1465,27 @@ void c_strchomp_arr(char *str)
 void c_strchug_arr(char *str)
 {
     int idx = 0;
-    cuint64 len;
 
     c_return_if_fail (str != NULL);
 
-    len = strlen (str);
+    cuint64 len = strlen (str);
 
     int idxNoSpace = 0;
-    while (str[idxNoSpace])
+    while ((idxNoSpace < len) && c_ascii_isspace(str[idxNoSpace])) {++idxNoSpace;};
 
-    while (len > idx) {
-        if (c_ascii_isspace ((cuchar) str[idx])) {
-            str[idx] = '\0';
-        }
-        else {
-            break;
-        }
-        ++idx;
+    c_return_if_fail(idx != idxNoSpace);
+
+    for (idx = 0; idxNoSpace < len; ++idx, ++idxNoSpace) {
+        str[idx] = str[idxNoSpace];
     }
 }
 
 void c_strip_arr(char *str)
 {
+    c_return_if_fail (str != NULL);
 
+    c_strchug_arr(str);
+    c_strchomp_arr(str);
 }
 
 

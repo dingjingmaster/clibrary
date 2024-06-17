@@ -187,6 +187,17 @@ void                  c_strip_arr           (char* str);
 char*                 c_strchomp            (const char* str);
 
 /**
+ * @brief 末尾的空格和换行符
+ * @note 无需释放内存
+ */
+void                  c_striptrim_arr       (char str[]);
+
+/**
+ * @brief 计算字符串长度，字符串以 '\0' 结束
+ */
+cuint64               c_strlen              (const char* str);
+
+/**
  * @brief 去掉字符串后面的空格
  * @note 无须释放资源，针对数组
  */
