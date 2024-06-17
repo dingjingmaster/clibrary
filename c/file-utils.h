@@ -18,6 +18,7 @@
 #error "Only <clib.h> can be included directly."
 #endif
 
+#include <stdio.h>
 #include <c/macros.h>
 
 C_BEGIN_EXTERN_C
@@ -51,6 +52,19 @@ char*       c_get_current_dir           (void);
 char*       c_path_get_basename         (const char* fileName) C_MALLOC;
 char*       c_path_get_dirname          (const char* fileName) C_MALLOC;
 char*       c_canonicalize_filename     (const char* filename, const char* relativeTo) C_MALLOC;
+
+/**
+ * @brief 读取一行到数组中
+ * @return 返回读取的字节数
+ */
+cuint64     c_file_read_line_arr        (FILE* fr, char lineBuf[], cuint64 bufLen);
+
+/**
+ * @brief 格式化路径，去掉路径中多余字符
+ * @return 返回格式化的字符串
+ * @note 无需释放结果
+ */
+char*       c_file_path_format_arr      (char pathBuf[]);
 
 
 C_END_EXTERN_C

@@ -190,7 +190,7 @@ char*                 c_strchomp            (const char* str);
  * @brief 末尾的空格和换行符
  * @note 无需释放内存
  */
-void                  c_striptrim_arr       (char str[]);
+void                  c_strtrim_arr       (char str[]);
 
 /**
  * @brief 计算字符串长度，字符串以 '\0' 结束

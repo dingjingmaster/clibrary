@@ -557,7 +557,7 @@ char* c_strchomp (const char* str)
     return strT;
 }
 
-void c_striptrim_arr(char str[])
+void c_strtrim_arr(char str[])
 {
     c_return_if_fail(str);
 

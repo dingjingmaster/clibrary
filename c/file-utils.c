@@ -37,6 +37,7 @@
 typedef cint (*CTmpFileCallback) (const char*, cint, cint);
 
 
+static void arr_move_left1(cuint64 startPos, char* buf);
 static cint wrap_g_open (const char* filename, int flags, int mode);
 static cint wrap_g_mkdir (const char* filename, int flags C_UNUSED, int mode);
 static int get_tmp_file (char* tmpl, CTmpFileCallback f, int flags, int mode);
@@ -864,6 +865,52 @@ char *c_canonicalize_filename(const char *filename, const char *relativeTo)
     return canon;
 }
 
+cuint64 c_file_read_line_arr(FILE * fr, char lineBuf[], cuint64 bufLen)
+{
+    cuint64 len = 0;
+
+    c_return_val_if_fail (fr != NULL, 0);
+    c_return_val_if_fail (0 != bufLen, 0);
+    c_return_val_if_fail (lineBuf != NULL, 0);
+
+    while (len < bufLen - 1) {
+        int c = fgetc (fr);
+        if (c == EOF) {
+            break;
+        }
+        lineBuf[len++] = c;
+        if (c == '\n') {
+            break;
+        }
+    }
+    lineBuf[len] = '\0';
+
+    return len;
+}
+
+char * c_file_path_format_arr(char pathBuf[])
+{
+    c_return_val_if_fail(pathBuf, NULL);
+
+    if ('/' == pathBuf[0]) {
+        // 去掉字符串中 "//" 类似字符串，变为 /
+        int idx = 0;
+        for (idx = 1; '\0' != pathBuf[idx]; idx++) {
+            if (('/' == pathBuf[idx]) && ('/' == pathBuf[idx - 1])) {
+                arr_move_left1(idx, pathBuf);
+                idx--;
+            }
+        }
+        if (c_str_has_suffix(pathBuf, "/")) {
+            pathBuf[c_strlen(pathBuf) - 1] = '\0';
+        }
+    }
+    // TODO://
+
+    return pathBuf;
+}
+
+
 char *c_get_current_dir(void)
 {
     const char *pwd;
@@ -1609,4 +1656,20 @@ static char* g_build_filename_va (const char* first_argument, va_list* args, cha
 #endif
 
     return str;
+}
+
+static void arr_move_left1(cuint64 startPos, char* buf)
+{
+    c_return_if_fail(buf);
+
+    cuint64 len = c_strlen(buf);
+
+    printf("%s\n", buf);
+
+    // int idx = startPos + 1;
+    for (; startPos < len - 1; startPos++) {
+        // printf("%d -- %d -- %d -- %c\n", startPos, startPos + 1, len, buf[startPos + 1]);
+        buf[startPos] = buf[startPos + 1];
+    }
+    buf[len - 1] = '\0';
 }
