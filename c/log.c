@@ -243,11 +243,14 @@ void c_log_raw(CLogLevel level, const cchar *fmt, ...)
         return;
     }
 
-    struct iovec vec[1];
+    struct iovec vec[2];
     vec[0].iov_base = buf;
     vec[0].iov_len = strlen(buf);
 
-    log_write(C_LOG_TYPE_FILE, vec, 1);
+    vec[0].iov_base = "\n";
+    vec[0].iov_len = 1;
+
+    log_write(C_LOG_TYPE_FILE, vec, 2);
 }
 
 static void log_print(CLogType logType, CLogLevel level, const cchar* tag, const cchar* file, cint line, const cchar* func, const cchar* msg)

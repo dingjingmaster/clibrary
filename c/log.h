@@ -188,6 +188,9 @@ void c_log_print (CLogLevel level, const cchar* tag, const cchar* file, int line
  */
 void c_log_print_console (CLogLevel level, const cchar* tag, const cchar* file, int line, const cchar* func, const cchar* fmt, ...);
 
+/**
+ * 输出一行内容到文件，所见即所得，无任何附加信息（行末换行符号除外）
+ */
 void c_log_raw(CLogLevel level, const cchar* fmt, ...);
 
 /**
