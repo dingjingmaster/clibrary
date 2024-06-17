@@ -1039,7 +1039,7 @@ C_STMT_START \
         c_ptr_array_count0(ptr, c); \
         type* ptrT = NULL; \
         c_malloc(ptrT, sizeof(type) * (c + 2)); \
-        memcpy(ptrT, ptr, sizeof(type) * c + 1); \
+        memcpy(ptrT, ptr, sizeof(type) * (c + 1)); \
         ptrT[c] = ele; \
         c_free(ptr); \
         ptr = ptrT; \

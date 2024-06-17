@@ -212,6 +212,11 @@ char**                c_strdupv             (const char** strArray);
  * @return 返回字符串数组的长度
  */
 cuint                 c_strv_length         (char** strArray);
+
+/**
+ * @brief 计算字符串数组的长度
+ * @return 返回字符串数组的长度
+ */
 cuint                 c_strv_const_length   (const char* const* strArray);
 
 /**
@@ -259,6 +264,12 @@ char*                 c_strnfill            (cint64 length, char fillChar) C_MAL
  * @note 无须释放资源
  */
 char*                 c_strrstr             (const char* haystack, const char* needle);
+
+/**
+ * 查找子串，从左到右
+ * @note 无须释放资源
+ */
+char*                 c_strstr              (const char* haystack, const char* needle);
 
 /**
  * @brief 复制指定长度的字符串到 dest
