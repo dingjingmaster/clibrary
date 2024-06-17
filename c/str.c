@@ -1418,6 +1418,53 @@ next:
     return NULL;
 }
 
+void c_strchomp_arr(char *str)
+{
+    cuint64 len;
+
+    c_return_if_fail (str != NULL);
+
+    len = strlen (str);
+
+    while (len--) {
+        if (c_ascii_isspace ((cuchar) str[len])) {
+            str[len] = '\0';
+        }
+        else {
+            break;
+        }
+    }
+}
+
+// 去掉前面空格
+void c_strchug_arr(char *str)
+{
+    int idx = 0;
+    cuint64 len;
+
+    c_return_if_fail (str != NULL);
+
+    len = strlen (str);
+
+    int idxNoSpace = 0;
+    while (str[idxNoSpace])
+
+    while (len > idx) {
+        if (c_ascii_isspace ((cuchar) str[idx])) {
+            str[idx] = '\0';
+        }
+        else {
+            break;
+        }
+        ++idx;
+    }
+}
+
+void c_strip_arr(char *str)
+{
+
+}
+
 
 // static
 

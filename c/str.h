@@ -168,11 +168,29 @@ char*                 c_strup               (const char* str);
 char*                 c_strchug             (const char* str);
 
 /**
+ * @brief 去掉字符串前的空格
+ * @note 无须释放资源，针对数组
+ */
+void                  c_strchug_arr         (char* str);
+
+/**
+ * @brief 去掉字符串前面和后面的空格
+ * @note 无须释放资源，针对数组
+ */
+void                  c_strip_arr           (char* str);
+
+/**
  * @brief 去掉字符串后的空格
  * @return 返回去掉后边空格的字符串
  * @note 须释放资源
  */
 char*                 c_strchomp            (const char* str);
+
+/**
+ * @brief 去掉字符串后面的空格
+ * @note 无须释放资源，针对数组
+ */
+void                  c_strchomp_arr        (char* str);
 
 /**
  * @brief 字符串反转
