@@ -247,8 +247,8 @@ void c_log_raw(CLogLevel level, const cchar *fmt, ...)
     vec[0].iov_base = buf;
     vec[0].iov_len = strlen(buf);
 
-    vec[0].iov_base = "\n";
-    vec[0].iov_len = 1;
+    vec[1].iov_base = "\n";
+    vec[1].iov_len = 1;
 
     log_write(C_LOG_TYPE_FILE, vec, 2);
 }
