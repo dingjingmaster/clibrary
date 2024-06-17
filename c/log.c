@@ -203,12 +203,13 @@ void c_log_print(CLogLevel level, const cchar *tag, const cchar *file, cint line
 
 void c_log_print_console (CLogLevel level, const cchar* tag, const cchar* file, int line, const cchar* func, const cchar* fmt, ...)
 {
-    va_list ap;
-    char buf[LOG_BUF_SIZE] = {0};
-    int n;
     if (level > gsLogLevel) {
         return;
     }
+
+    va_list ap;
+    char buf[LOG_BUF_SIZE] = {0};
+    int n;
 
     va_start(ap, fmt);
     n = vsnprintf(buf, LOG_BUF_SIZE, fmt, ap);
@@ -225,8 +226,12 @@ bool c_log_is_inited()
     return gsIsLogInit;
 }
 
-void c_log_raw(const cchar *fmt, ...)
+void c_log_raw(CLogLevel level, const cchar *fmt, ...)
 {
+    if (level > gsLogLevel) {
+        return;
+    }
+
     va_list ap;
     char buf[LOG_BUF_SIZE] = {0};
     int n;

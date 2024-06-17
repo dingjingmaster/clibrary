@@ -120,7 +120,7 @@ C_BEGIN_EXTERN_C
 #define C_LOG_RAW(level, tag, file, line, fun, ...) \
 { \
     C_LOG_INIT_IF_NOT_INIT \
-    c_log_raw(__VA_ARGS__); \
+    c_log_raw(level, __VA_ARGS__); \
 }
 
 #define C_LOG_RAW_CONSOLE(level, tag, file, line, fun, ...) \
@@ -181,7 +181,7 @@ void c_log_print (CLogLevel level, const cchar* tag, const cchar* file, int line
  */
 void c_log_print_console (CLogLevel level, const cchar* tag, const cchar* file, int line, const cchar* func, const cchar* fmt, ...);
 
-void c_log_raw(const cchar* fmt, ...);
+void c_log_raw(CLogLevel level, const cchar* fmt, ...);
 
 /**
  * @brief 是否完成初始化
