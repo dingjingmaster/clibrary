@@ -865,16 +865,16 @@ char *c_canonicalize_filename(const char *filename, const char *relativeTo)
     return canon;
 }
 
-cuint64 c_file_read_line_arr(FILE * fr, char lineBuf[], cuint64 bufLen)
+cuint64 c_file_read_line_arr(FILE* fr, char lineBuf[], cuint64 bufLen)
 {
     cuint64 len = 0;
 
     c_return_val_if_fail (fr != NULL, 0);
-    c_return_val_if_fail (0 != bufLen, 0);
+    c_return_val_if_fail (bufLen > 0, 0);
     c_return_val_if_fail (lineBuf != NULL, 0);
 
     while (len < bufLen - 1) {
-        int c = fgetc (fr);
+        cchar c = fgetc (fr);
         if (c == EOF) {
             break;
         }
