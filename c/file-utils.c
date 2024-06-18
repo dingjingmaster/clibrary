@@ -1664,8 +1664,6 @@ static void arr_move_left1(cuint64 startPos, char* buf)
 
     cuint64 len = c_strlen(buf);
 
-    printf("%s\n", buf);
-
     // int idx = startPos + 1;
     for (; startPos < len - 1; startPos++) {
         // printf("%d -- %d -- %d -- %c\n", startPos, startPos + 1, len, buf[startPos + 1]);

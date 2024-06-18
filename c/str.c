@@ -1449,7 +1449,7 @@ void c_strchomp_arr(char *str)
 {
     c_return_if_fail (str != NULL);
 
-    cuint64 len = strlen (str);
+    cuint64 len = c_strlen (str);
 
     while (len--) {
         if (c_ascii_isspace ((cuchar) str[len])) {
@@ -1468,7 +1468,7 @@ void c_strchug_arr(char *str)
 
     c_return_if_fail (str != NULL);
 
-    cuint64 len = strlen (str);
+    cuint64 len = c_strlen (str);
 
     int idxNoSpace = 0;
     while ((idxNoSpace < len) && c_ascii_isspace(str[idxNoSpace])) {++idxNoSpace;};
