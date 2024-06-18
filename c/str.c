@@ -467,7 +467,8 @@ int c_vasprintf (char** str, char const* format, va_list args)
 
     va_copy (args2, args);
 
-    c_malloc_type(*str, char, c_printf_string_upper_bound(format, args));
+    cuint64 bufLen = c_printf_string_upper_bound(format, args);
+    c_malloc_type(*str, char, bufLen);
     len = _c_vsprintf (*str, format, args2);
     va_end (args2);
 
@@ -501,8 +502,8 @@ int c_vsnprintf (char* str, culong n, char const* format, va_list args)
 
 cuint64 c_printf_string_upper_bound (const char* format, va_list args)
 {
-    char c;
-    return _c_vsnprintf (&c, 1, format, args) + 1;
+    char c[1];
+    return _c_vsnprintf (c, 1, format, args) + 1;
 }
 
 char* c_strup (const char* str)

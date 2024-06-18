@@ -23,6 +23,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <utime.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>

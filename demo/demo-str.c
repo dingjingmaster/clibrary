@@ -33,9 +33,11 @@ int main (int C_UNUSED argc, char* C_UNUSED argv[])
         }
         c_strfreev(str332);
 
-        char* bbuf = c_strdup_printf("--------------->ppp: %d", idxC);
+        char* ll = c_strdup_printf("asdadadsa: %d", idx);
+        char* bbuf = c_strdup_printf("--------------->ppp: %d -- %s", idxC, ll);
         c_assert(bbuf);
         printf("%s\n", bbuf);
+        c_free(ll);
         c_free(bbuf);
     }
     return 0;
