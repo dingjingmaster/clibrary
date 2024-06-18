@@ -32,6 +32,11 @@ int main (int C_UNUSED argc, char* C_UNUSED argv[])
             c_printf("%d -- %s\n", idx, str332[idx]);
         }
         c_strfreev(str332);
+
+        char* bbuf = c_strdup_printf("--------------->ppp: %d", idxC);
+        c_assert(bbuf);
+        printf("%s\n", bbuf);
+        c_free(bbuf);
     }
     return 0;
 }
