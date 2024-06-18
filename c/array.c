@@ -442,12 +442,12 @@ void c_array_set_clear_func (CArray* array, CDestroyNotify clearFunc)
 
 CPtrArray* c_ptr_array_new (void)
 {
-    return ptr_array_new (0, NULL, false);
+    return ptr_array_new (0, NULL, true);
 }
 
 CPtrArray* c_ptr_array_new_with_free_func (CDestroyNotify elementFreeFunc)
 {
-    return ptr_array_new (0, elementFreeFunc, false);
+    return ptr_array_new (0, elementFreeFunc, true);
 }
 
 void** c_ptr_array_steal (CPtrArray* array, cuint64* len)
@@ -509,7 +509,7 @@ CPtrArray* c_ptr_array_sized_new (cuint reservedSize)
 
 CPtrArray* c_ptr_array_new_full (cuint reservedSize, CDestroyNotify elementFreeFunc)
 {
-    return ptr_array_new (reservedSize, elementFreeFunc, false);
+    return ptr_array_new (reservedSize, elementFreeFunc, true);
 }
 
 CPtrArray* c_ptr_array_new_null_terminated (cuint reservedSize, CDestroyNotify elementFreeFunc, bool nullTerminated)
@@ -698,7 +698,6 @@ void c_ptr_array_extend (CPtrArray* arrayToExtend, CPtrArray* array, CCopyFunc f
     }
 
     if (C_UNLIKELY (array->len == C_MAX_UINT) && rarrayToExtend->nullTerminated) {
-//        g_error ("adding %u to array would overflow", array->len);
         c_assert(false);
     }
 
@@ -1049,7 +1048,7 @@ static void** ptr_array_free (CPtrArray* array, ArrayFreeFlags flags)
     else {
         segment = rarray->pdata;
         if (!segment && rarray->nullTerminated) {
-            segment = (void**) c_malloc0(sizeof(char*));
+            segment = (void**) c_malloc0(sizeof(void*));
         }
     }
 

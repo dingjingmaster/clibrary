@@ -57,7 +57,16 @@ bool            c_hash_table_steal_extended             (CHashTable* hashTable, 
 void            c_hash_table_steal_all                  (CHashTable* hashTable);
 CPtrArray*      c_hash_table_steal_all_keys             (CHashTable* hashTable);
 CPtrArray*      c_hash_table_steal_all_values           (CHashTable* hashTable);
+
+/**
+ * @brief 根据 key 查找 value
+ * @note
+ */
 void*           c_hash_table_lookup                     (CHashTable* hashTable, const void* key);
+
+/**
+ * @brief 判断 hash 表中是否包含 key
+ */
 bool            c_hash_table_contains                   (CHashTable* hashTable, const void* key);
 bool            c_hash_table_lookup_extended            (CHashTable* hashTable, const void* lookupKey, void** origKey, void** value);
 void            c_hash_table_foreach                    (CHashTable* hashTable, CHFunc func, void* udata);

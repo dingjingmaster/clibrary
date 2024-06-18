@@ -1229,7 +1229,7 @@ char** c_strsplit (const char* str, const char* delimiter, int maxTokens)
     }
 
     remainder = str;
-    s = strstr (remainder, delimiter);
+    s = c_strstr (remainder, delimiter);
     if (s) {
         cuint64 delimiterLen = strlen (delimiter);
         while (--maxTokens && s) {
@@ -1237,7 +1237,7 @@ char** c_strsplit (const char* str, const char* delimiter, int maxTokens)
             len = s - remainder;
             c_ptr_array_add(strList, c_strndup(remainder, len));
             remainder = s + delimiterLen;
-            s = strstr (remainder, delimiter);
+            s = c_strstr (remainder, delimiter);
         }
     }
     if (*str) {
@@ -1417,8 +1417,8 @@ char *c_strstr(const char *haystack, const char *needle)
     c_return_val_if_fail (haystack != NULL, NULL);
     c_return_val_if_fail (needle != NULL, NULL);
 
-    needleLen = strlen (needle);
-    haystackLen = strlen (haystack);
+    needleLen = c_strlen (needle);
+    haystackLen = c_strlen (haystack);
 
     if (needleLen == 0) {
         return (char*) haystack;

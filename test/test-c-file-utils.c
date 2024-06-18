@@ -12,7 +12,7 @@
 
 #include "c/test.h"
 
-int main (int argc, char* argv[])
+int main (int C_UNUSED argc, char* C_UNUSED argv[])
 {
     char file1[] = "/////////a/b/c/d/e/f/";
     char file2[] = "/////////a///b///c/////d/////e/////f/";

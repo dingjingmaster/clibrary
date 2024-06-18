@@ -10,6 +10,12 @@ target_link_libraries(demo-bytes PUBLIC clibrary-c)
 add_executable(demo-atomic demo-atomic.c)
 target_link_libraries(demo-atomic PUBLIC clibrary-c)
 
+add_executable(demo-hash-table demo-hash-table.c)
+target_link_libraries(demo-hash-table PUBLIC clibrary-c)
+
+add_executable(demo-str demo-str.c)
+target_link_libraries(demo-str PUBLIC clibrary-c)
+
 add_executable(demo-glog demo-glog.c)
 target_link_libraries(demo-glog PUBLIC clibrary-glib ${GLIB_LIBRARIES})
 target_include_directories(demo-glog PUBLIC ${GLIB_INCLUDE_DIRS})
