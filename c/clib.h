@@ -38,6 +38,7 @@
 #include <c/atomic.h>
 #include <c/macros.h>
 #include <c/base64.h>
+#include <c/option.h>
 #include <c/wakeup.h>
 #include <c/unicode.h>
 #include <c/convert.h>
