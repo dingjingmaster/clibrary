@@ -530,7 +530,9 @@ static bool open_file()
         }
     }
 
-    gsLogFd = open(gsPathName, O_CREAT | O_RDWR | O_APPEND, 0664);
+    const int mask = umask(0);
+    gsLogFd = open(gsPathName, O_CREAT | O_RDWR | O_APPEND, 0666);
+    umask(mask);
     if(-1 == gsLogFd) {
         fprintf(stderr, "open %s error: %s, log_init failed\n",
                 gsPathName, strerror(errno));
