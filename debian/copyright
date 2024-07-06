@@ -1,0 +1,1529 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: clibrary
+Upstream-Contact: <preferred name and address to reach the upstream project>
+Source: <url://example.com>
+#
+# Please double check copyright with the licensecheck(1) command.
+
+Files:     CMakeLists.txt
+           Makefile
+           README.md
+           build-all/CMakeCache.txt
+           build-all/CMakeFiles/3.28.3/CMakeCCompiler.cmake
+           build-all/CMakeFiles/3.28.3/CMakeCXXCompiler.cmake
+           build-all/CMakeFiles/3.28.3/CMakeDetermineCompilerABI_C.bin
+           build-all/CMakeFiles/3.28.3/CMakeDetermineCompilerABI_CXX.bin
+           build-all/CMakeFiles/3.28.3/CMakeSystem.cmake
+           build-all/CMakeFiles/3.28.3/CompilerIdC/CMakeCCompilerId.c
+           build-all/CMakeFiles/3.28.3/CompilerIdC/a.out
+           build-all/CMakeFiles/3.28.3/CompilerIdCXX/CMakeCXXCompilerId.cpp
+           build-all/CMakeFiles/3.28.3/CompilerIdCXX/a.out
+           build-all/CMakeFiles/CMakeConfigureLog.yaml
+           build-all/CMakeFiles/CMakeDirectoryInformation.cmake
+           build-all/CMakeFiles/Makefile.cmake
+           build-all/CMakeFiles/Makefile2
+           build-all/CMakeFiles/TargetDirectories.txt
+           build-all/CMakeFiles/cmake.check_cache
+           build-all/CMakeFiles/progress.marks
+           build-all/CTestTestfile.cmake
+           build-all/Makefile
+           build-all/Testing/Temporary/CTestCostData.txt
+           build-all/Testing/Temporary/LastTest.log
+           build-all/c/CMakeFiles/CMakeDirectoryInformation.cmake
+           build-all/c/CMakeFiles/clibrary-c-static.dir/DependInfo.cmake
+           build-all/c/CMakeFiles/clibrary-c-static.dir/array.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/array.c.o.d
+           build-all/c/CMakeFiles/clibrary-c-static.dir/atomic.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/atomic.c.o.d
+           build-all/c/CMakeFiles/clibrary-c-static.dir/base64.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/base64.c.o.d
+           build-all/c/CMakeFiles/clibrary-c-static.dir/build.make
+           build-all/c/CMakeFiles/clibrary-c-static.dir/bytes.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/bytes.c.o.d
+           build-all/c/CMakeFiles/clibrary-c-static.dir/charset.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/charset.c.o.d
+           build-all/c/CMakeFiles/clibrary-c-static.dir/cmake_clean.cmake
+           build-all/c/CMakeFiles/clibrary-c-static.dir/cmake_clean_target.cmake
+           build-all/c/CMakeFiles/clibrary-c-static.dir/compiler_depend.internal
+           build-all/c/CMakeFiles/clibrary-c-static.dir/compiler_depend.make
+           build-all/c/CMakeFiles/clibrary-c-static.dir/compiler_depend.ts
+           build-all/c/CMakeFiles/clibrary-c-static.dir/convert.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/convert.c.o.d
+           build-all/c/CMakeFiles/clibrary-c-static.dir/cstring.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/cstring.c.o.d
+           build-all/c/CMakeFiles/clibrary-c-static.dir/date.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/date.c.o.d
+           build-all/c/CMakeFiles/clibrary-c-static.dir/depend.make
+           build-all/c/CMakeFiles/clibrary-c-static.dir/error.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/error.c.o.d
+           build-all/c/CMakeFiles/clibrary-c-static.dir/file-utils.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/file-utils.c.o.d
+           build-all/c/CMakeFiles/clibrary-c-static.dir/flags.make
+           build-all/c/CMakeFiles/clibrary-c-static.dir/global.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/global.c.o.d
+           build-all/c/CMakeFiles/clibrary-c-static.dir/hash-table.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/hash-table.c.o.d
+           build-all/c/CMakeFiles/clibrary-c-static.dir/hook.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/hook.c.o.d
+           build-all/c/CMakeFiles/clibrary-c-static.dir/host-utils.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/host-utils.c.o.d
+           build-all/c/CMakeFiles/clibrary-c-static.dir/link.txt
+           build-all/c/CMakeFiles/clibrary-c-static.dir/list.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/list.c.o.d
+           build-all/c/CMakeFiles/clibrary-c-static.dir/log.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/log.c.o.d
+           build-all/c/CMakeFiles/clibrary-c-static.dir/macros.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/macros.c.o.d
+           build-all/c/CMakeFiles/clibrary-c-static.dir/mapped-file.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/mapped-file.c.o.d
+           build-all/c/CMakeFiles/clibrary-c-static.dir/option.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/option.c.o.d
+           build-all/c/CMakeFiles/clibrary-c-static.dir/poll.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/poll.c.o.d
+           build-all/c/CMakeFiles/clibrary-c-static.dir/progress.make
+           build-all/c/CMakeFiles/clibrary-c-static.dir/quark.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/quark.c.o.d
+           build-all/c/CMakeFiles/clibrary-c-static.dir/queue.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/queue.c.o.d
+           build-all/c/CMakeFiles/clibrary-c-static.dir/rcbox.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/rcbox.c.o.d
+           build-all/c/CMakeFiles/clibrary-c-static.dir/slist.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/slist.c.o.d
+           build-all/c/CMakeFiles/clibrary-c-static.dir/source.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/source.c.o.d
+           build-all/c/CMakeFiles/clibrary-c-static.dir/str.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/str.c.o.d
+           build-all/c/CMakeFiles/clibrary-c-static.dir/test.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/test.c.o.d
+           build-all/c/CMakeFiles/clibrary-c-static.dir/thread.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/thread.c.o.d
+           build-all/c/CMakeFiles/clibrary-c-static.dir/time-zone.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/time-zone.c.o.d
+           build-all/c/CMakeFiles/clibrary-c-static.dir/timer.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/timer.c.o.d
+           build-all/c/CMakeFiles/clibrary-c-static.dir/unicode.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/unicode.c.o.d
+           build-all/c/CMakeFiles/clibrary-c-static.dir/uri.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/uri.c.o.d
+           build-all/c/CMakeFiles/clibrary-c-static.dir/utils.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/utils.c.o.d
+           build-all/c/CMakeFiles/clibrary-c-static.dir/uuid.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/uuid.c.o.d
+           build-all/c/CMakeFiles/clibrary-c-static.dir/wakeup.c.o
+           build-all/c/CMakeFiles/clibrary-c-static.dir/wakeup.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/DependInfo.cmake
+           build-all/c/CMakeFiles/clibrary-c.dir/array.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/array.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/atomic.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/atomic.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/base64.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/base64.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/build.make
+           build-all/c/CMakeFiles/clibrary-c.dir/bytes.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/bytes.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/charset.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/charset.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/cmake_clean.cmake
+           build-all/c/CMakeFiles/clibrary-c.dir/compiler_depend.internal
+           build-all/c/CMakeFiles/clibrary-c.dir/compiler_depend.make
+           build-all/c/CMakeFiles/clibrary-c.dir/compiler_depend.ts
+           build-all/c/CMakeFiles/clibrary-c.dir/convert.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/convert.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/cstring.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/cstring.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/date.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/date.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/depend.make
+           build-all/c/CMakeFiles/clibrary-c.dir/error.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/error.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/file-utils.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/file-utils.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/flags.make
+           build-all/c/CMakeFiles/clibrary-c.dir/global.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/global.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/hash-table.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/hash-table.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/hook.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/hook.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/host-utils.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/host-utils.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/link.txt
+           build-all/c/CMakeFiles/clibrary-c.dir/list.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/list.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/log.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/log.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/macros.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/macros.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/mapped-file.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/mapped-file.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/option.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/option.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/poll.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/poll.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/progress.make
+           build-all/c/CMakeFiles/clibrary-c.dir/quark.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/quark.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/queue.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/queue.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/rcbox.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/rcbox.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/slist.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/slist.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/source.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/source.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/str.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/str.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/test.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/test.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/thread.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/thread.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/time-zone.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/time-zone.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/timer.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/timer.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/unicode.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/unicode.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/uri.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/uri.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/utils.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/utils.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/uuid.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/uuid.c.o.d
+           build-all/c/CMakeFiles/clibrary-c.dir/wakeup.c.o
+           build-all/c/CMakeFiles/clibrary-c.dir/wakeup.c.o.d
+           build-all/c/CMakeFiles/progress.marks
+           build-all/c/CTestTestfile.cmake
+           build-all/c/Makefile
+           build-all/c/cmake_install.cmake
+           build-all/cmake_install.cmake
+           build-all/install_manifest.txt
+           build.sh
+           c/CMakeLists.txt
+           c/c.cmake
+           c/queue.c
+           c/uuid.c
+           data/clibrary-c-static.pc
+           data/clibrary-c.pc
+           data/clibrary-glib.pc
+           data/clibrary-qt5.pc
+           data/data.cmake
+           demo/CMakeLists.txt
+           glib/CMakeLists.txt
+           glib/glib.cmake
+           out/.SRCINFO
+           out/PKGBUILD
+           out/clibrary-0.2.0-0-x86_64.pkg.tar.zst
+           out/clibrary-debug-0.2.0-0-x86_64.pkg.tar.zst
+           out/pkg/clibrary-debug/.BUILDINFO
+           out/pkg/clibrary-debug/.MTREE
+           out/pkg/clibrary-debug/.PKGINFO
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/build-all/c/clibrary-c_autogen/mocs_compilation.cpp
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/build-all/glib/clibrary-glib_autogen/mocs_compilation.cpp
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/build-all/qt5/clibrary-qt5_autogen/mocs_compilation.cpp
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/queue.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/uuid.c
+           out/pkg/clibrary/.BUILDINFO
+           out/pkg/clibrary/.MTREE
+           out/pkg/clibrary/.PKGINFO
+           out/pkg/clibrary/usr/lib/libclibrary-glib.so
+           out/pkg/clibrary/usr/lib/libclibrary-qt5.so
+           out/pkg/clibrary/usr/lib/pkgconfig/clibrary-c-static.pc
+           out/pkg/clibrary/usr/lib/pkgconfig/clibrary-c.pc
+           out/pkg/clibrary/usr/lib/pkgconfig/clibrary-glib.pc
+           out/pkg/clibrary/usr/lib/pkgconfig/clibrary-qt5.pc
+           out/src/CMakeLists.txt
+           out/src/Makefile
+           out/src/README.md
+           out/src/build-all/CMakeCache.txt
+           out/src/build-all/CMakeFiles/3.29.3/CMakeCCompiler.cmake
+           out/src/build-all/CMakeFiles/3.29.3/CMakeCXXCompiler.cmake
+           out/src/build-all/CMakeFiles/3.29.3/CMakeDetermineCompilerABI_C.bin
+           out/src/build-all/CMakeFiles/3.29.3/CMakeDetermineCompilerABI_CXX.bin
+           out/src/build-all/CMakeFiles/3.29.3/CMakeSystem.cmake
+           out/src/build-all/CMakeFiles/3.29.3/CompilerIdC/CMakeCCompilerId.c
+           out/src/build-all/CMakeFiles/3.29.3/CompilerIdC/a.out
+           out/src/build-all/CMakeFiles/3.29.3/CompilerIdCXX/CMakeCXXCompilerId.cpp
+           out/src/build-all/CMakeFiles/3.29.3/CompilerIdCXX/a.out
+           out/src/build-all/CMakeFiles/CMakeConfigureLog.yaml
+           out/src/build-all/CMakeFiles/CMakeDirectoryInformation.cmake
+           out/src/build-all/CMakeFiles/CMakeRuleHashes.txt
+           out/src/build-all/CMakeFiles/Makefile.cmake
+           out/src/build-all/CMakeFiles/Makefile2
+           out/src/build-all/CMakeFiles/TargetDirectories.txt
+           out/src/build-all/CMakeFiles/cmake.check_cache
+           out/src/build-all/CMakeFiles/progress.marks
+           out/src/build-all/CTestTestfile.cmake
+           out/src/build-all/Makefile
+           out/src/build-all/Testing/Temporary/CTestCostData.txt
+           out/src/build-all/Testing/Temporary/LastTest.log
+           out/src/build-all/c/CMakeFiles/CMakeDirectoryInformation.cmake
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/DependInfo.cmake
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/array.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/atomic.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/base64.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/build.make
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/bytes.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/charset.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/clibrary-c-static_autogen/mocs_compilation.cpp.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/cmake_clean.cmake
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/cmake_clean_target.cmake
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/compiler_depend.internal
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/compiler_depend.make
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/compiler_depend.ts
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/convert.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/cstring.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/date.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/depend.make
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/error.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/file-utils.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/flags.make
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/global.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/hash-table.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/hook.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/host-utils.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/link.txt
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/list.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/log.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/macros.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/mapped-file.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/option.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/poll.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/progress.make
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/quark.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/queue.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/rcbox.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/slist.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/source.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/str.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/test.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/thread.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/time-zone.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/timer.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/unicode.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/uri.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/utils.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/uuid.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static.dir/wakeup.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c-static_autogen.dir/AutogenInfo.json
+           out/src/build-all/c/CMakeFiles/clibrary-c-static_autogen.dir/AutogenUsed.txt
+           out/src/build-all/c/CMakeFiles/clibrary-c-static_autogen.dir/DependInfo.cmake
+           out/src/build-all/c/CMakeFiles/clibrary-c-static_autogen.dir/ParseCache.txt
+           out/src/build-all/c/CMakeFiles/clibrary-c-static_autogen.dir/build.make
+           out/src/build-all/c/CMakeFiles/clibrary-c-static_autogen.dir/cmake_clean.cmake
+           out/src/build-all/c/CMakeFiles/clibrary-c-static_autogen.dir/compiler_depend.internal
+           out/src/build-all/c/CMakeFiles/clibrary-c-static_autogen.dir/compiler_depend.make
+           out/src/build-all/c/CMakeFiles/clibrary-c-static_autogen.dir/compiler_depend.ts
+           out/src/build-all/c/CMakeFiles/clibrary-c-static_autogen.dir/progress.make
+           out/src/build-all/c/CMakeFiles/clibrary-c-static_autogen_timestamp_deps.dir/DependInfo.cmake
+           out/src/build-all/c/CMakeFiles/clibrary-c-static_autogen_timestamp_deps.dir/build.make
+           out/src/build-all/c/CMakeFiles/clibrary-c-static_autogen_timestamp_deps.dir/cmake_clean.cmake
+           out/src/build-all/c/CMakeFiles/clibrary-c-static_autogen_timestamp_deps.dir/compiler_depend.make
+           out/src/build-all/c/CMakeFiles/clibrary-c-static_autogen_timestamp_deps.dir/compiler_depend.ts
+           out/src/build-all/c/CMakeFiles/clibrary-c-static_autogen_timestamp_deps.dir/progress.make
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/DependInfo.cmake
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/array.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/atomic.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/base64.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/build.make
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/bytes.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/charset.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/clibrary-c_autogen/mocs_compilation.cpp.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/cmake_clean.cmake
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/compiler_depend.internal
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/compiler_depend.make
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/compiler_depend.ts
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/convert.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/cstring.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/date.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/depend.make
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/error.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/file-utils.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/flags.make
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/global.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/hash-table.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/hook.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/host-utils.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/link.txt
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/list.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/log.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/macros.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/mapped-file.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/option.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/poll.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/progress.make
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/quark.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/queue.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/rcbox.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/slist.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/source.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/str.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/test.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/thread.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/time-zone.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/timer.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/unicode.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/uri.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/utils.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/uuid.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c.dir/wakeup.c.o
+           out/src/build-all/c/CMakeFiles/clibrary-c_autogen.dir/AutogenInfo.json
+           out/src/build-all/c/CMakeFiles/clibrary-c_autogen.dir/AutogenUsed.txt
+           out/src/build-all/c/CMakeFiles/clibrary-c_autogen.dir/DependInfo.cmake
+           out/src/build-all/c/CMakeFiles/clibrary-c_autogen.dir/ParseCache.txt
+           out/src/build-all/c/CMakeFiles/clibrary-c_autogen.dir/build.make
+           out/src/build-all/c/CMakeFiles/clibrary-c_autogen.dir/cmake_clean.cmake
+           out/src/build-all/c/CMakeFiles/clibrary-c_autogen.dir/compiler_depend.internal
+           out/src/build-all/c/CMakeFiles/clibrary-c_autogen.dir/compiler_depend.make
+           out/src/build-all/c/CMakeFiles/clibrary-c_autogen.dir/compiler_depend.ts
+           out/src/build-all/c/CMakeFiles/clibrary-c_autogen.dir/progress.make
+           out/src/build-all/c/CMakeFiles/clibrary-c_autogen_timestamp_deps.dir/DependInfo.cmake
+           out/src/build-all/c/CMakeFiles/clibrary-c_autogen_timestamp_deps.dir/build.make
+           out/src/build-all/c/CMakeFiles/clibrary-c_autogen_timestamp_deps.dir/cmake_clean.cmake
+           out/src/build-all/c/CMakeFiles/clibrary-c_autogen_timestamp_deps.dir/compiler_depend.make
+           out/src/build-all/c/CMakeFiles/clibrary-c_autogen_timestamp_deps.dir/compiler_depend.ts
+           out/src/build-all/c/CMakeFiles/clibrary-c_autogen_timestamp_deps.dir/progress.make
+           out/src/build-all/c/CMakeFiles/progress.marks
+           out/src/build-all/c/CTestTestfile.cmake
+           out/src/build-all/c/Makefile
+           out/src/build-all/c/clibrary-c-static_autogen/deps
+           out/src/build-all/c/clibrary-c-static_autogen/moc_predefs.h
+           out/src/build-all/c/clibrary-c-static_autogen/mocs_compilation.cpp
+           out/src/build-all/c/clibrary-c-static_autogen/timestamp
+           out/src/build-all/c/clibrary-c_autogen/deps
+           out/src/build-all/c/clibrary-c_autogen/moc_predefs.h
+           out/src/build-all/c/clibrary-c_autogen/mocs_compilation.cpp
+           out/src/build-all/c/clibrary-c_autogen/timestamp
+           out/src/build-all/c/cmake_install.cmake
+           out/src/build-all/cmake_install.cmake
+           out/src/build-all/demo/CMakeFiles/CMakeDirectoryInformation.cmake
+           out/src/build-all/demo/CMakeFiles/demo-atomic.dir/DependInfo.cmake
+           out/src/build-all/demo/CMakeFiles/demo-atomic.dir/build.make
+           out/src/build-all/demo/CMakeFiles/demo-atomic.dir/cmake_clean.cmake
+           out/src/build-all/demo/CMakeFiles/demo-atomic.dir/compiler_depend.internal
+           out/src/build-all/demo/CMakeFiles/demo-atomic.dir/compiler_depend.make
+           out/src/build-all/demo/CMakeFiles/demo-atomic.dir/compiler_depend.ts
+           out/src/build-all/demo/CMakeFiles/demo-atomic.dir/demo-atomic.c.o
+           out/src/build-all/demo/CMakeFiles/demo-atomic.dir/demo-atomic_autogen/mocs_compilation.cpp.o
+           out/src/build-all/demo/CMakeFiles/demo-atomic.dir/depend.make
+           out/src/build-all/demo/CMakeFiles/demo-atomic.dir/flags.make
+           out/src/build-all/demo/CMakeFiles/demo-atomic.dir/link.txt
+           out/src/build-all/demo/CMakeFiles/demo-atomic.dir/progress.make
+           out/src/build-all/demo/CMakeFiles/demo-atomic_autogen.dir/AutogenInfo.json
+           out/src/build-all/demo/CMakeFiles/demo-atomic_autogen.dir/AutogenUsed.txt
+           out/src/build-all/demo/CMakeFiles/demo-atomic_autogen.dir/DependInfo.cmake
+           out/src/build-all/demo/CMakeFiles/demo-atomic_autogen.dir/ParseCache.txt
+           out/src/build-all/demo/CMakeFiles/demo-atomic_autogen.dir/build.make
+           out/src/build-all/demo/CMakeFiles/demo-atomic_autogen.dir/cmake_clean.cmake
+           out/src/build-all/demo/CMakeFiles/demo-atomic_autogen.dir/compiler_depend.internal
+           out/src/build-all/demo/CMakeFiles/demo-atomic_autogen.dir/compiler_depend.make
+           out/src/build-all/demo/CMakeFiles/demo-atomic_autogen.dir/compiler_depend.ts
+           out/src/build-all/demo/CMakeFiles/demo-atomic_autogen.dir/progress.make
+           out/src/build-all/demo/CMakeFiles/demo-atomic_autogen_timestamp_deps.dir/DependInfo.cmake
+           out/src/build-all/demo/CMakeFiles/demo-atomic_autogen_timestamp_deps.dir/build.make
+           out/src/build-all/demo/CMakeFiles/demo-atomic_autogen_timestamp_deps.dir/cmake_clean.cmake
+           out/src/build-all/demo/CMakeFiles/demo-atomic_autogen_timestamp_deps.dir/compiler_depend.make
+           out/src/build-all/demo/CMakeFiles/demo-atomic_autogen_timestamp_deps.dir/compiler_depend.ts
+           out/src/build-all/demo/CMakeFiles/demo-atomic_autogen_timestamp_deps.dir/progress.make
+           out/src/build-all/demo/CMakeFiles/demo-bytes.dir/DependInfo.cmake
+           out/src/build-all/demo/CMakeFiles/demo-bytes.dir/build.make
+           out/src/build-all/demo/CMakeFiles/demo-bytes.dir/cmake_clean.cmake
+           out/src/build-all/demo/CMakeFiles/demo-bytes.dir/compiler_depend.internal
+           out/src/build-all/demo/CMakeFiles/demo-bytes.dir/compiler_depend.make
+           out/src/build-all/demo/CMakeFiles/demo-bytes.dir/compiler_depend.ts
+           out/src/build-all/demo/CMakeFiles/demo-bytes.dir/demo-bytes.c.o
+           out/src/build-all/demo/CMakeFiles/demo-bytes.dir/demo-bytes_autogen/mocs_compilation.cpp.o
+           out/src/build-all/demo/CMakeFiles/demo-bytes.dir/depend.make
+           out/src/build-all/demo/CMakeFiles/demo-bytes.dir/flags.make
+           out/src/build-all/demo/CMakeFiles/demo-bytes.dir/link.txt
+           out/src/build-all/demo/CMakeFiles/demo-bytes.dir/progress.make
+           out/src/build-all/demo/CMakeFiles/demo-bytes_autogen.dir/AutogenInfo.json
+           out/src/build-all/demo/CMakeFiles/demo-bytes_autogen.dir/AutogenUsed.txt
+           out/src/build-all/demo/CMakeFiles/demo-bytes_autogen.dir/DependInfo.cmake
+           out/src/build-all/demo/CMakeFiles/demo-bytes_autogen.dir/ParseCache.txt
+           out/src/build-all/demo/CMakeFiles/demo-bytes_autogen.dir/build.make
+           out/src/build-all/demo/CMakeFiles/demo-bytes_autogen.dir/cmake_clean.cmake
+           out/src/build-all/demo/CMakeFiles/demo-bytes_autogen.dir/compiler_depend.internal
+           out/src/build-all/demo/CMakeFiles/demo-bytes_autogen.dir/compiler_depend.make
+           out/src/build-all/demo/CMakeFiles/demo-bytes_autogen.dir/compiler_depend.ts
+           out/src/build-all/demo/CMakeFiles/demo-bytes_autogen.dir/progress.make
+           out/src/build-all/demo/CMakeFiles/demo-bytes_autogen_timestamp_deps.dir/DependInfo.cmake
+           out/src/build-all/demo/CMakeFiles/demo-bytes_autogen_timestamp_deps.dir/build.make
+           out/src/build-all/demo/CMakeFiles/demo-bytes_autogen_timestamp_deps.dir/cmake_clean.cmake
+           out/src/build-all/demo/CMakeFiles/demo-bytes_autogen_timestamp_deps.dir/compiler_depend.make
+           out/src/build-all/demo/CMakeFiles/demo-bytes_autogen_timestamp_deps.dir/compiler_depend.ts
+           out/src/build-all/demo/CMakeFiles/demo-bytes_autogen_timestamp_deps.dir/progress.make
+           out/src/build-all/demo/CMakeFiles/demo-file-utils.dir/DependInfo.cmake
+           out/src/build-all/demo/CMakeFiles/demo-file-utils.dir/build.make
+           out/src/build-all/demo/CMakeFiles/demo-file-utils.dir/cmake_clean.cmake
+           out/src/build-all/demo/CMakeFiles/demo-file-utils.dir/compiler_depend.internal
+           out/src/build-all/demo/CMakeFiles/demo-file-utils.dir/compiler_depend.make
+           out/src/build-all/demo/CMakeFiles/demo-file-utils.dir/compiler_depend.ts
+           out/src/build-all/demo/CMakeFiles/demo-file-utils.dir/demo-file-utils.c.o
+           out/src/build-all/demo/CMakeFiles/demo-file-utils.dir/demo-file-utils_autogen/mocs_compilation.cpp.o
+           out/src/build-all/demo/CMakeFiles/demo-file-utils.dir/depend.make
+           out/src/build-all/demo/CMakeFiles/demo-file-utils.dir/flags.make
+           out/src/build-all/demo/CMakeFiles/demo-file-utils.dir/link.txt
+           out/src/build-all/demo/CMakeFiles/demo-file-utils.dir/progress.make
+           out/src/build-all/demo/CMakeFiles/demo-file-utils_autogen.dir/AutogenInfo.json
+           out/src/build-all/demo/CMakeFiles/demo-file-utils_autogen.dir/AutogenUsed.txt
+           out/src/build-all/demo/CMakeFiles/demo-file-utils_autogen.dir/DependInfo.cmake
+           out/src/build-all/demo/CMakeFiles/demo-file-utils_autogen.dir/ParseCache.txt
+           out/src/build-all/demo/CMakeFiles/demo-file-utils_autogen.dir/build.make
+           out/src/build-all/demo/CMakeFiles/demo-file-utils_autogen.dir/cmake_clean.cmake
+           out/src/build-all/demo/CMakeFiles/demo-file-utils_autogen.dir/compiler_depend.internal
+           out/src/build-all/demo/CMakeFiles/demo-file-utils_autogen.dir/compiler_depend.make
+           out/src/build-all/demo/CMakeFiles/demo-file-utils_autogen.dir/compiler_depend.ts
+           out/src/build-all/demo/CMakeFiles/demo-file-utils_autogen.dir/progress.make
+           out/src/build-all/demo/CMakeFiles/demo-file-utils_autogen_timestamp_deps.dir/DependInfo.cmake
+           out/src/build-all/demo/CMakeFiles/demo-file-utils_autogen_timestamp_deps.dir/build.make
+           out/src/build-all/demo/CMakeFiles/demo-file-utils_autogen_timestamp_deps.dir/cmake_clean.cmake
+           out/src/build-all/demo/CMakeFiles/demo-file-utils_autogen_timestamp_deps.dir/compiler_depend.make
+           out/src/build-all/demo/CMakeFiles/demo-file-utils_autogen_timestamp_deps.dir/compiler_depend.ts
+           out/src/build-all/demo/CMakeFiles/demo-file-utils_autogen_timestamp_deps.dir/progress.make
+           out/src/build-all/demo/CMakeFiles/demo-glog.dir/DependInfo.cmake
+           out/src/build-all/demo/CMakeFiles/demo-glog.dir/build.make
+           out/src/build-all/demo/CMakeFiles/demo-glog.dir/cmake_clean.cmake
+           out/src/build-all/demo/CMakeFiles/demo-glog.dir/compiler_depend.internal
+           out/src/build-all/demo/CMakeFiles/demo-glog.dir/compiler_depend.make
+           out/src/build-all/demo/CMakeFiles/demo-glog.dir/compiler_depend.ts
+           out/src/build-all/demo/CMakeFiles/demo-glog.dir/demo-glog.c.o
+           out/src/build-all/demo/CMakeFiles/demo-glog.dir/demo-glog_autogen/mocs_compilation.cpp.o
+           out/src/build-all/demo/CMakeFiles/demo-glog.dir/depend.make
+           out/src/build-all/demo/CMakeFiles/demo-glog.dir/flags.make
+           out/src/build-all/demo/CMakeFiles/demo-glog.dir/link.txt
+           out/src/build-all/demo/CMakeFiles/demo-glog.dir/progress.make
+           out/src/build-all/demo/CMakeFiles/demo-glog_autogen.dir/AutogenInfo.json
+           out/src/build-all/demo/CMakeFiles/demo-glog_autogen.dir/AutogenUsed.txt
+           out/src/build-all/demo/CMakeFiles/demo-glog_autogen.dir/DependInfo.cmake
+           out/src/build-all/demo/CMakeFiles/demo-glog_autogen.dir/ParseCache.txt
+           out/src/build-all/demo/CMakeFiles/demo-glog_autogen.dir/build.make
+           out/src/build-all/demo/CMakeFiles/demo-glog_autogen.dir/cmake_clean.cmake
+           out/src/build-all/demo/CMakeFiles/demo-glog_autogen.dir/compiler_depend.internal
+           out/src/build-all/demo/CMakeFiles/demo-glog_autogen.dir/compiler_depend.make
+           out/src/build-all/demo/CMakeFiles/demo-glog_autogen.dir/compiler_depend.ts
+           out/src/build-all/demo/CMakeFiles/demo-glog_autogen.dir/progress.make
+           out/src/build-all/demo/CMakeFiles/demo-glog_autogen_timestamp_deps.dir/DependInfo.cmake
+           out/src/build-all/demo/CMakeFiles/demo-glog_autogen_timestamp_deps.dir/build.make
+           out/src/build-all/demo/CMakeFiles/demo-glog_autogen_timestamp_deps.dir/cmake_clean.cmake
+           out/src/build-all/demo/CMakeFiles/demo-glog_autogen_timestamp_deps.dir/compiler_depend.make
+           out/src/build-all/demo/CMakeFiles/demo-glog_autogen_timestamp_deps.dir/compiler_depend.ts
+           out/src/build-all/demo/CMakeFiles/demo-glog_autogen_timestamp_deps.dir/progress.make
+           out/src/build-all/demo/CMakeFiles/demo-hash-table.dir/DependInfo.cmake
+           out/src/build-all/demo/CMakeFiles/demo-hash-table.dir/build.make
+           out/src/build-all/demo/CMakeFiles/demo-hash-table.dir/cmake_clean.cmake
+           out/src/build-all/demo/CMakeFiles/demo-hash-table.dir/compiler_depend.internal
+           out/src/build-all/demo/CMakeFiles/demo-hash-table.dir/compiler_depend.make
+           out/src/build-all/demo/CMakeFiles/demo-hash-table.dir/compiler_depend.ts
+           out/src/build-all/demo/CMakeFiles/demo-hash-table.dir/demo-hash-table.c.o
+           out/src/build-all/demo/CMakeFiles/demo-hash-table.dir/demo-hash-table_autogen/mocs_compilation.cpp.o
+           out/src/build-all/demo/CMakeFiles/demo-hash-table.dir/depend.make
+           out/src/build-all/demo/CMakeFiles/demo-hash-table.dir/flags.make
+           out/src/build-all/demo/CMakeFiles/demo-hash-table.dir/link.txt
+           out/src/build-all/demo/CMakeFiles/demo-hash-table.dir/progress.make
+           out/src/build-all/demo/CMakeFiles/demo-hash-table_autogen.dir/AutogenInfo.json
+           out/src/build-all/demo/CMakeFiles/demo-hash-table_autogen.dir/AutogenUsed.txt
+           out/src/build-all/demo/CMakeFiles/demo-hash-table_autogen.dir/DependInfo.cmake
+           out/src/build-all/demo/CMakeFiles/demo-hash-table_autogen.dir/ParseCache.txt
+           out/src/build-all/demo/CMakeFiles/demo-hash-table_autogen.dir/build.make
+           out/src/build-all/demo/CMakeFiles/demo-hash-table_autogen.dir/cmake_clean.cmake
+           out/src/build-all/demo/CMakeFiles/demo-hash-table_autogen.dir/compiler_depend.internal
+           out/src/build-all/demo/CMakeFiles/demo-hash-table_autogen.dir/compiler_depend.make
+           out/src/build-all/demo/CMakeFiles/demo-hash-table_autogen.dir/compiler_depend.ts
+           out/src/build-all/demo/CMakeFiles/demo-hash-table_autogen.dir/progress.make
+           out/src/build-all/demo/CMakeFiles/demo-hash-table_autogen_timestamp_deps.dir/DependInfo.cmake
+           out/src/build-all/demo/CMakeFiles/demo-hash-table_autogen_timestamp_deps.dir/build.make
+           out/src/build-all/demo/CMakeFiles/demo-hash-table_autogen_timestamp_deps.dir/cmake_clean.cmake
+           out/src/build-all/demo/CMakeFiles/demo-hash-table_autogen_timestamp_deps.dir/compiler_depend.make
+           out/src/build-all/demo/CMakeFiles/demo-hash-table_autogen_timestamp_deps.dir/compiler_depend.ts
+           out/src/build-all/demo/CMakeFiles/demo-hash-table_autogen_timestamp_deps.dir/progress.make
+           out/src/build-all/demo/CMakeFiles/demo-log.dir/DependInfo.cmake
+           out/src/build-all/demo/CMakeFiles/demo-log.dir/build.make
+           out/src/build-all/demo/CMakeFiles/demo-log.dir/cmake_clean.cmake
+           out/src/build-all/demo/CMakeFiles/demo-log.dir/compiler_depend.internal
+           out/src/build-all/demo/CMakeFiles/demo-log.dir/compiler_depend.make
+           out/src/build-all/demo/CMakeFiles/demo-log.dir/compiler_depend.ts
+           out/src/build-all/demo/CMakeFiles/demo-log.dir/demo-log.c.o
+           out/src/build-all/demo/CMakeFiles/demo-log.dir/demo-log_autogen/mocs_compilation.cpp.o
+           out/src/build-all/demo/CMakeFiles/demo-log.dir/depend.make
+           out/src/build-all/demo/CMakeFiles/demo-log.dir/flags.make
+           out/src/build-all/demo/CMakeFiles/demo-log.dir/link.txt
+           out/src/build-all/demo/CMakeFiles/demo-log.dir/progress.make
+           out/src/build-all/demo/CMakeFiles/demo-log_autogen.dir/AutogenInfo.json
+           out/src/build-all/demo/CMakeFiles/demo-log_autogen.dir/AutogenUsed.txt
+           out/src/build-all/demo/CMakeFiles/demo-log_autogen.dir/DependInfo.cmake
+           out/src/build-all/demo/CMakeFiles/demo-log_autogen.dir/ParseCache.txt
+           out/src/build-all/demo/CMakeFiles/demo-log_autogen.dir/build.make
+           out/src/build-all/demo/CMakeFiles/demo-log_autogen.dir/cmake_clean.cmake
+           out/src/build-all/demo/CMakeFiles/demo-log_autogen.dir/compiler_depend.internal
+           out/src/build-all/demo/CMakeFiles/demo-log_autogen.dir/compiler_depend.make
+           out/src/build-all/demo/CMakeFiles/demo-log_autogen.dir/compiler_depend.ts
+           out/src/build-all/demo/CMakeFiles/demo-log_autogen.dir/progress.make
+           out/src/build-all/demo/CMakeFiles/demo-log_autogen_timestamp_deps.dir/DependInfo.cmake
+           out/src/build-all/demo/CMakeFiles/demo-log_autogen_timestamp_deps.dir/build.make
+           out/src/build-all/demo/CMakeFiles/demo-log_autogen_timestamp_deps.dir/cmake_clean.cmake
+           out/src/build-all/demo/CMakeFiles/demo-log_autogen_timestamp_deps.dir/compiler_depend.make
+           out/src/build-all/demo/CMakeFiles/demo-log_autogen_timestamp_deps.dir/compiler_depend.ts
+           out/src/build-all/demo/CMakeFiles/demo-log_autogen_timestamp_deps.dir/progress.make
+           out/src/build-all/demo/CMakeFiles/demo-macros.dir/DependInfo.cmake
+           out/src/build-all/demo/CMakeFiles/demo-macros.dir/build.make
+           out/src/build-all/demo/CMakeFiles/demo-macros.dir/cmake_clean.cmake
+           out/src/build-all/demo/CMakeFiles/demo-macros.dir/compiler_depend.internal
+           out/src/build-all/demo/CMakeFiles/demo-macros.dir/compiler_depend.make
+           out/src/build-all/demo/CMakeFiles/demo-macros.dir/compiler_depend.ts
+           out/src/build-all/demo/CMakeFiles/demo-macros.dir/demo-macros.c.o
+           out/src/build-all/demo/CMakeFiles/demo-macros.dir/demo-macros_autogen/mocs_compilation.cpp.o
+           out/src/build-all/demo/CMakeFiles/demo-macros.dir/depend.make
+           out/src/build-all/demo/CMakeFiles/demo-macros.dir/flags.make
+           out/src/build-all/demo/CMakeFiles/demo-macros.dir/link.txt
+           out/src/build-all/demo/CMakeFiles/demo-macros.dir/progress.make
+           out/src/build-all/demo/CMakeFiles/demo-macros_autogen.dir/AutogenInfo.json
+           out/src/build-all/demo/CMakeFiles/demo-macros_autogen.dir/AutogenUsed.txt
+           out/src/build-all/demo/CMakeFiles/demo-macros_autogen.dir/DependInfo.cmake
+           out/src/build-all/demo/CMakeFiles/demo-macros_autogen.dir/ParseCache.txt
+           out/src/build-all/demo/CMakeFiles/demo-macros_autogen.dir/build.make
+           out/src/build-all/demo/CMakeFiles/demo-macros_autogen.dir/cmake_clean.cmake
+           out/src/build-all/demo/CMakeFiles/demo-macros_autogen.dir/compiler_depend.internal
+           out/src/build-all/demo/CMakeFiles/demo-macros_autogen.dir/compiler_depend.make
+           out/src/build-all/demo/CMakeFiles/demo-macros_autogen.dir/compiler_depend.ts
+           out/src/build-all/demo/CMakeFiles/demo-macros_autogen.dir/progress.make
+           out/src/build-all/demo/CMakeFiles/demo-macros_autogen_timestamp_deps.dir/DependInfo.cmake
+           out/src/build-all/demo/CMakeFiles/demo-macros_autogen_timestamp_deps.dir/build.make
+           out/src/build-all/demo/CMakeFiles/demo-macros_autogen_timestamp_deps.dir/cmake_clean.cmake
+           out/src/build-all/demo/CMakeFiles/demo-macros_autogen_timestamp_deps.dir/compiler_depend.make
+           out/src/build-all/demo/CMakeFiles/demo-macros_autogen_timestamp_deps.dir/compiler_depend.ts
+           out/src/build-all/demo/CMakeFiles/demo-macros_autogen_timestamp_deps.dir/progress.make
+           out/src/build-all/demo/CMakeFiles/demo-qlog.dir/DependInfo.cmake
+           out/src/build-all/demo/CMakeFiles/demo-qlog.dir/build.make
+           out/src/build-all/demo/CMakeFiles/demo-qlog.dir/cmake_clean.cmake
+           out/src/build-all/demo/CMakeFiles/demo-qlog.dir/compiler_depend.internal
+           out/src/build-all/demo/CMakeFiles/demo-qlog.dir/compiler_depend.make
+           out/src/build-all/demo/CMakeFiles/demo-qlog.dir/compiler_depend.ts
+           out/src/build-all/demo/CMakeFiles/demo-qlog.dir/demo-qlog.cpp.o
+           out/src/build-all/demo/CMakeFiles/demo-qlog.dir/demo-qlog_autogen/mocs_compilation.cpp.o
+           out/src/build-all/demo/CMakeFiles/demo-qlog.dir/depend.make
+           out/src/build-all/demo/CMakeFiles/demo-qlog.dir/flags.make
+           out/src/build-all/demo/CMakeFiles/demo-qlog.dir/link.txt
+           out/src/build-all/demo/CMakeFiles/demo-qlog.dir/progress.make
+           out/src/build-all/demo/CMakeFiles/demo-qlog_autogen.dir/AutogenInfo.json
+           out/src/build-all/demo/CMakeFiles/demo-qlog_autogen.dir/AutogenUsed.txt
+           out/src/build-all/demo/CMakeFiles/demo-qlog_autogen.dir/DependInfo.cmake
+           out/src/build-all/demo/CMakeFiles/demo-qlog_autogen.dir/ParseCache.txt
+           out/src/build-all/demo/CMakeFiles/demo-qlog_autogen.dir/build.make
+           out/src/build-all/demo/CMakeFiles/demo-qlog_autogen.dir/cmake_clean.cmake
+           out/src/build-all/demo/CMakeFiles/demo-qlog_autogen.dir/compiler_depend.internal
+           out/src/build-all/demo/CMakeFiles/demo-qlog_autogen.dir/compiler_depend.make
+           out/src/build-all/demo/CMakeFiles/demo-qlog_autogen.dir/compiler_depend.ts
+           out/src/build-all/demo/CMakeFiles/demo-qlog_autogen.dir/progress.make
+           out/src/build-all/demo/CMakeFiles/demo-qlog_autogen_timestamp_deps.dir/DependInfo.cmake
+           out/src/build-all/demo/CMakeFiles/demo-qlog_autogen_timestamp_deps.dir/build.make
+           out/src/build-all/demo/CMakeFiles/demo-qlog_autogen_timestamp_deps.dir/cmake_clean.cmake
+           out/src/build-all/demo/CMakeFiles/demo-qlog_autogen_timestamp_deps.dir/compiler_depend.make
+           out/src/build-all/demo/CMakeFiles/demo-qlog_autogen_timestamp_deps.dir/compiler_depend.ts
+           out/src/build-all/demo/CMakeFiles/demo-qlog_autogen_timestamp_deps.dir/progress.make
+           out/src/build-all/demo/CMakeFiles/demo-str.dir/DependInfo.cmake
+           out/src/build-all/demo/CMakeFiles/demo-str.dir/build.make
+           out/src/build-all/demo/CMakeFiles/demo-str.dir/cmake_clean.cmake
+           out/src/build-all/demo/CMakeFiles/demo-str.dir/compiler_depend.internal
+           out/src/build-all/demo/CMakeFiles/demo-str.dir/compiler_depend.make
+           out/src/build-all/demo/CMakeFiles/demo-str.dir/compiler_depend.ts
+           out/src/build-all/demo/CMakeFiles/demo-str.dir/demo-str.c.o
+           out/src/build-all/demo/CMakeFiles/demo-str.dir/demo-str_autogen/mocs_compilation.cpp.o
+           out/src/build-all/demo/CMakeFiles/demo-str.dir/depend.make
+           out/src/build-all/demo/CMakeFiles/demo-str.dir/flags.make
+           out/src/build-all/demo/CMakeFiles/demo-str.dir/link.txt
+           out/src/build-all/demo/CMakeFiles/demo-str.dir/progress.make
+           out/src/build-all/demo/CMakeFiles/demo-str_autogen.dir/AutogenInfo.json
+           out/src/build-all/demo/CMakeFiles/demo-str_autogen.dir/AutogenUsed.txt
+           out/src/build-all/demo/CMakeFiles/demo-str_autogen.dir/DependInfo.cmake
+           out/src/build-all/demo/CMakeFiles/demo-str_autogen.dir/ParseCache.txt
+           out/src/build-all/demo/CMakeFiles/demo-str_autogen.dir/build.make
+           out/src/build-all/demo/CMakeFiles/demo-str_autogen.dir/cmake_clean.cmake
+           out/src/build-all/demo/CMakeFiles/demo-str_autogen.dir/compiler_depend.internal
+           out/src/build-all/demo/CMakeFiles/demo-str_autogen.dir/compiler_depend.make
+           out/src/build-all/demo/CMakeFiles/demo-str_autogen.dir/compiler_depend.ts
+           out/src/build-all/demo/CMakeFiles/demo-str_autogen.dir/progress.make
+           out/src/build-all/demo/CMakeFiles/demo-str_autogen_timestamp_deps.dir/DependInfo.cmake
+           out/src/build-all/demo/CMakeFiles/demo-str_autogen_timestamp_deps.dir/build.make
+           out/src/build-all/demo/CMakeFiles/demo-str_autogen_timestamp_deps.dir/cmake_clean.cmake
+           out/src/build-all/demo/CMakeFiles/demo-str_autogen_timestamp_deps.dir/compiler_depend.make
+           out/src/build-all/demo/CMakeFiles/demo-str_autogen_timestamp_deps.dir/compiler_depend.ts
+           out/src/build-all/demo/CMakeFiles/demo-str_autogen_timestamp_deps.dir/progress.make
+           out/src/build-all/demo/CMakeFiles/progress.marks
+           out/src/build-all/demo/CTestTestfile.cmake
+           out/src/build-all/demo/Makefile
+           out/src/build-all/demo/cmake_install.cmake
+           out/src/build-all/demo/demo-atomic
+           out/src/build-all/demo/demo-atomic_autogen/deps
+           out/src/build-all/demo/demo-atomic_autogen/moc_predefs.h
+           out/src/build-all/demo/demo-atomic_autogen/mocs_compilation.cpp
+           out/src/build-all/demo/demo-atomic_autogen/timestamp
+           out/src/build-all/demo/demo-bytes
+           out/src/build-all/demo/demo-bytes_autogen/deps
+           out/src/build-all/demo/demo-bytes_autogen/moc_predefs.h
+           out/src/build-all/demo/demo-bytes_autogen/mocs_compilation.cpp
+           out/src/build-all/demo/demo-bytes_autogen/timestamp
+           out/src/build-all/demo/demo-file-utils
+           out/src/build-all/demo/demo-file-utils_autogen/deps
+           out/src/build-all/demo/demo-file-utils_autogen/moc_predefs.h
+           out/src/build-all/demo/demo-file-utils_autogen/mocs_compilation.cpp
+           out/src/build-all/demo/demo-file-utils_autogen/timestamp
+           out/src/build-all/demo/demo-glog
+           out/src/build-all/demo/demo-glog_autogen/deps
+           out/src/build-all/demo/demo-glog_autogen/moc_predefs.h
+           out/src/build-all/demo/demo-glog_autogen/mocs_compilation.cpp
+           out/src/build-all/demo/demo-glog_autogen/timestamp
+           out/src/build-all/demo/demo-hash-table
+           out/src/build-all/demo/demo-hash-table_autogen/deps
+           out/src/build-all/demo/demo-hash-table_autogen/moc_predefs.h
+           out/src/build-all/demo/demo-hash-table_autogen/mocs_compilation.cpp
+           out/src/build-all/demo/demo-hash-table_autogen/timestamp
+           out/src/build-all/demo/demo-log
+           out/src/build-all/demo/demo-log_autogen/deps
+           out/src/build-all/demo/demo-log_autogen/moc_predefs.h
+           out/src/build-all/demo/demo-log_autogen/mocs_compilation.cpp
+           out/src/build-all/demo/demo-log_autogen/timestamp
+           out/src/build-all/demo/demo-macros
+           out/src/build-all/demo/demo-macros_autogen/deps
+           out/src/build-all/demo/demo-macros_autogen/moc_predefs.h
+           out/src/build-all/demo/demo-macros_autogen/mocs_compilation.cpp
+           out/src/build-all/demo/demo-macros_autogen/timestamp
+           out/src/build-all/demo/demo-qlog
+           out/src/build-all/demo/demo-qlog_autogen/deps
+           out/src/build-all/demo/demo-qlog_autogen/moc_predefs.h
+           out/src/build-all/demo/demo-qlog_autogen/mocs_compilation.cpp
+           out/src/build-all/demo/demo-qlog_autogen/timestamp
+           out/src/build-all/demo/demo-str
+           out/src/build-all/demo/demo-str_autogen/deps
+           out/src/build-all/demo/demo-str_autogen/moc_predefs.h
+           out/src/build-all/demo/demo-str_autogen/mocs_compilation.cpp
+           out/src/build-all/demo/demo-str_autogen/timestamp
+           out/src/build-all/glib/CMakeFiles/CMakeDirectoryInformation.cmake
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/DependInfo.cmake
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/array.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/atomic.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/base64.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/bytes.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/charset.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/convert.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/cstring.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/date.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/error.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/file-utils.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/global.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/hash-table.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/hook.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/host-utils.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/list.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/log.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/macros.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/mapped-file.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/option.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/poll.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/quark.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/queue.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/rcbox.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/slist.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/source.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/str.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/test.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/thread.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/time-zone.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/timer.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/unicode.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/uri.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/utils.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/uuid.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/__/c/wakeup.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/build.make
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/clibrary-glib_autogen/mocs_compilation.cpp.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/cmake_clean.cmake
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/compiler_depend.internal
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/compiler_depend.make
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/compiler_depend.ts
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/depend.make
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/flags.make
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/glog.c.o
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/link.txt
+           out/src/build-all/glib/CMakeFiles/clibrary-glib.dir/progress.make
+           out/src/build-all/glib/CMakeFiles/clibrary-glib_autogen.dir/AutogenInfo.json
+           out/src/build-all/glib/CMakeFiles/clibrary-glib_autogen.dir/AutogenUsed.txt
+           out/src/build-all/glib/CMakeFiles/clibrary-glib_autogen.dir/DependInfo.cmake
+           out/src/build-all/glib/CMakeFiles/clibrary-glib_autogen.dir/ParseCache.txt
+           out/src/build-all/glib/CMakeFiles/clibrary-glib_autogen.dir/build.make
+           out/src/build-all/glib/CMakeFiles/clibrary-glib_autogen.dir/cmake_clean.cmake
+           out/src/build-all/glib/CMakeFiles/clibrary-glib_autogen.dir/compiler_depend.internal
+           out/src/build-all/glib/CMakeFiles/clibrary-glib_autogen.dir/compiler_depend.make
+           out/src/build-all/glib/CMakeFiles/clibrary-glib_autogen.dir/compiler_depend.ts
+           out/src/build-all/glib/CMakeFiles/clibrary-glib_autogen.dir/progress.make
+           out/src/build-all/glib/CMakeFiles/clibrary-glib_autogen_timestamp_deps.dir/DependInfo.cmake
+           out/src/build-all/glib/CMakeFiles/clibrary-glib_autogen_timestamp_deps.dir/build.make
+           out/src/build-all/glib/CMakeFiles/clibrary-glib_autogen_timestamp_deps.dir/cmake_clean.cmake
+           out/src/build-all/glib/CMakeFiles/clibrary-glib_autogen_timestamp_deps.dir/compiler_depend.make
+           out/src/build-all/glib/CMakeFiles/clibrary-glib_autogen_timestamp_deps.dir/compiler_depend.ts
+           out/src/build-all/glib/CMakeFiles/clibrary-glib_autogen_timestamp_deps.dir/progress.make
+           out/src/build-all/glib/CMakeFiles/progress.marks
+           out/src/build-all/glib/CTestTestfile.cmake
+           out/src/build-all/glib/Makefile
+           out/src/build-all/glib/clibrary-glib_autogen/deps
+           out/src/build-all/glib/clibrary-glib_autogen/moc_predefs.h
+           out/src/build-all/glib/clibrary-glib_autogen/mocs_compilation.cpp
+           out/src/build-all/glib/clibrary-glib_autogen/timestamp
+           out/src/build-all/glib/cmake_install.cmake
+           out/src/build-all/install_manifest.txt
+           out/src/build-all/qt5/CMakeFiles/CMakeDirectoryInformation.cmake
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/DependInfo.cmake
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/array.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/atomic.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/base64.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/bytes.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/charset.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/convert.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/cstring.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/date.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/error.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/file-utils.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/global.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/hash-table.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/hook.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/host-utils.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/list.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/log.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/macros.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/mapped-file.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/option.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/poll.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/quark.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/queue.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/rcbox.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/slist.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/source.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/str.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/test.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/thread.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/time-zone.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/timer.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/unicode.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/uri.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/utils.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/uuid.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/__/c/wakeup.c.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/build.make
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/clibrary-qt5_autogen/mocs_compilation.cpp.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/cmake_clean.cmake
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/compiler_depend.internal
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/compiler_depend.make
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/compiler_depend.ts
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/depend.make
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/flags.make
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/link.txt
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/progress.make
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5.dir/qlog.cpp.o
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5_autogen.dir/AutogenInfo.json
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5_autogen.dir/AutogenUsed.txt
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5_autogen.dir/DependInfo.cmake
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5_autogen.dir/ParseCache.txt
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5_autogen.dir/build.make
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5_autogen.dir/cmake_clean.cmake
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5_autogen.dir/compiler_depend.internal
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5_autogen.dir/compiler_depend.make
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5_autogen.dir/compiler_depend.ts
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5_autogen.dir/progress.make
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5_autogen_timestamp_deps.dir/DependInfo.cmake
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5_autogen_timestamp_deps.dir/build.make
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5_autogen_timestamp_deps.dir/cmake_clean.cmake
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5_autogen_timestamp_deps.dir/compiler_depend.make
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5_autogen_timestamp_deps.dir/compiler_depend.ts
+           out/src/build-all/qt5/CMakeFiles/clibrary-qt5_autogen_timestamp_deps.dir/progress.make
+           out/src/build-all/qt5/CMakeFiles/progress.marks
+           out/src/build-all/qt5/CTestTestfile.cmake
+           out/src/build-all/qt5/Makefile
+           out/src/build-all/qt5/clibrary-qt5_autogen/deps
+           out/src/build-all/qt5/clibrary-qt5_autogen/moc_predefs.h
+           out/src/build-all/qt5/clibrary-qt5_autogen/mocs_compilation.cpp
+           out/src/build-all/qt5/clibrary-qt5_autogen/timestamp
+           out/src/build-all/qt5/cmake_install.cmake
+           out/src/build-all/test/CMakeFiles/CMakeDirectoryInformation.cmake
+           out/src/build-all/test/CMakeFiles/progress.marks
+           out/src/build-all/test/CMakeFiles/test-c-file-utils.dir/DependInfo.cmake
+           out/src/build-all/test/CMakeFiles/test-c-file-utils.dir/build.make
+           out/src/build-all/test/CMakeFiles/test-c-file-utils.dir/cmake_clean.cmake
+           out/src/build-all/test/CMakeFiles/test-c-file-utils.dir/compiler_depend.internal
+           out/src/build-all/test/CMakeFiles/test-c-file-utils.dir/compiler_depend.make
+           out/src/build-all/test/CMakeFiles/test-c-file-utils.dir/compiler_depend.ts
+           out/src/build-all/test/CMakeFiles/test-c-file-utils.dir/depend.make
+           out/src/build-all/test/CMakeFiles/test-c-file-utils.dir/flags.make
+           out/src/build-all/test/CMakeFiles/test-c-file-utils.dir/link.txt
+           out/src/build-all/test/CMakeFiles/test-c-file-utils.dir/progress.make
+           out/src/build-all/test/CMakeFiles/test-c-file-utils.dir/test-c-file-utils.c.o
+           out/src/build-all/test/CMakeFiles/test-c-file-utils.dir/test-c-file-utils_autogen/mocs_compilation.cpp.o
+           out/src/build-all/test/CMakeFiles/test-c-file-utils_autogen.dir/AutogenInfo.json
+           out/src/build-all/test/CMakeFiles/test-c-file-utils_autogen.dir/AutogenUsed.txt
+           out/src/build-all/test/CMakeFiles/test-c-file-utils_autogen.dir/DependInfo.cmake
+           out/src/build-all/test/CMakeFiles/test-c-file-utils_autogen.dir/ParseCache.txt
+           out/src/build-all/test/CMakeFiles/test-c-file-utils_autogen.dir/build.make
+           out/src/build-all/test/CMakeFiles/test-c-file-utils_autogen.dir/cmake_clean.cmake
+           out/src/build-all/test/CMakeFiles/test-c-file-utils_autogen.dir/compiler_depend.internal
+           out/src/build-all/test/CMakeFiles/test-c-file-utils_autogen.dir/compiler_depend.make
+           out/src/build-all/test/CMakeFiles/test-c-file-utils_autogen.dir/compiler_depend.ts
+           out/src/build-all/test/CMakeFiles/test-c-file-utils_autogen.dir/progress.make
+           out/src/build-all/test/CMakeFiles/test-c-file-utils_autogen_timestamp_deps.dir/DependInfo.cmake
+           out/src/build-all/test/CMakeFiles/test-c-file-utils_autogen_timestamp_deps.dir/build.make
+           out/src/build-all/test/CMakeFiles/test-c-file-utils_autogen_timestamp_deps.dir/cmake_clean.cmake
+           out/src/build-all/test/CMakeFiles/test-c-file-utils_autogen_timestamp_deps.dir/compiler_depend.make
+           out/src/build-all/test/CMakeFiles/test-c-file-utils_autogen_timestamp_deps.dir/compiler_depend.ts
+           out/src/build-all/test/CMakeFiles/test-c-file-utils_autogen_timestamp_deps.dir/progress.make
+           out/src/build-all/test/CMakeFiles/test-c-str.dir/DependInfo.cmake
+           out/src/build-all/test/CMakeFiles/test-c-str.dir/build.make
+           out/src/build-all/test/CMakeFiles/test-c-str.dir/cmake_clean.cmake
+           out/src/build-all/test/CMakeFiles/test-c-str.dir/compiler_depend.internal
+           out/src/build-all/test/CMakeFiles/test-c-str.dir/compiler_depend.make
+           out/src/build-all/test/CMakeFiles/test-c-str.dir/compiler_depend.ts
+           out/src/build-all/test/CMakeFiles/test-c-str.dir/depend.make
+           out/src/build-all/test/CMakeFiles/test-c-str.dir/flags.make
+           out/src/build-all/test/CMakeFiles/test-c-str.dir/link.txt
+           out/src/build-all/test/CMakeFiles/test-c-str.dir/progress.make
+           out/src/build-all/test/CMakeFiles/test-c-str.dir/test-c-str.c.o
+           out/src/build-all/test/CMakeFiles/test-c-str.dir/test-c-str_autogen/mocs_compilation.cpp.o
+           out/src/build-all/test/CMakeFiles/test-c-str_autogen.dir/AutogenInfo.json
+           out/src/build-all/test/CMakeFiles/test-c-str_autogen.dir/AutogenUsed.txt
+           out/src/build-all/test/CMakeFiles/test-c-str_autogen.dir/DependInfo.cmake
+           out/src/build-all/test/CMakeFiles/test-c-str_autogen.dir/ParseCache.txt
+           out/src/build-all/test/CMakeFiles/test-c-str_autogen.dir/build.make
+           out/src/build-all/test/CMakeFiles/test-c-str_autogen.dir/cmake_clean.cmake
+           out/src/build-all/test/CMakeFiles/test-c-str_autogen.dir/compiler_depend.internal
+           out/src/build-all/test/CMakeFiles/test-c-str_autogen.dir/compiler_depend.make
+           out/src/build-all/test/CMakeFiles/test-c-str_autogen.dir/compiler_depend.ts
+           out/src/build-all/test/CMakeFiles/test-c-str_autogen.dir/progress.make
+           out/src/build-all/test/CMakeFiles/test-c-str_autogen_timestamp_deps.dir/DependInfo.cmake
+           out/src/build-all/test/CMakeFiles/test-c-str_autogen_timestamp_deps.dir/build.make
+           out/src/build-all/test/CMakeFiles/test-c-str_autogen_timestamp_deps.dir/cmake_clean.cmake
+           out/src/build-all/test/CMakeFiles/test-c-str_autogen_timestamp_deps.dir/compiler_depend.make
+           out/src/build-all/test/CMakeFiles/test-c-str_autogen_timestamp_deps.dir/compiler_depend.ts
+           out/src/build-all/test/CMakeFiles/test-c-str_autogen_timestamp_deps.dir/progress.make
+           out/src/build-all/test/CTestTestfile.cmake
+           out/src/build-all/test/Makefile
+           out/src/build-all/test/cmake_install.cmake
+           out/src/build-all/test/test-c-file-utils
+           out/src/build-all/test/test-c-file-utils_autogen/deps
+           out/src/build-all/test/test-c-file-utils_autogen/moc_predefs.h
+           out/src/build-all/test/test-c-file-utils_autogen/mocs_compilation.cpp
+           out/src/build-all/test/test-c-file-utils_autogen/timestamp
+           out/src/build-all/test/test-c-str
+           out/src/build-all/test/test-c-str_autogen/deps
+           out/src/build-all/test/test-c-str_autogen/moc_predefs.h
+           out/src/build-all/test/test-c-str_autogen/mocs_compilation.cpp
+           out/src/build-all/test/test-c-str_autogen/timestamp
+           out/src/c/CMakeLists.txt
+           out/src/c/c.cmake
+           out/src/c/queue.c
+           out/src/c/uuid.c
+           out/src/data/clibrary-c-static.pc
+           out/src/data/clibrary-c.pc
+           out/src/data/clibrary-glib.pc
+           out/src/data/clibrary-qt5.pc
+           out/src/data/data.cmake
+           out/src/demo/CMakeLists.txt
+           out/src/glib/CMakeLists.txt
+           out/src/glib/glib.cmake
+           out/src/qt5/CMakeLists.txt
+           out/src/qt5/qt5.cmake
+           out/src/test/CMakeLists.txt
+           qt5/CMakeLists.txt
+           qt5/qt5.cmake
+           test/CMakeLists.txt
+Copyright: __NO_COPYRIGHT_NOR_LICENSE__
+License:   __NO_COPYRIGHT_NOR_LICENSE__
+
+Files:     c/cstring.c
+           c/cstring.h
+           c/date.c
+           c/date.h
+           c/file-utils.c
+           c/file-utils.h
+           c/mapped-file.c
+           c/mapped-file.h
+           c/timer.c
+           c/timer.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/cstring.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/cstring.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/date.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/date.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/file-utils.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/file-utils.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/mapped-file.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/mapped-file.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/timer.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/timer.h
+           out/pkg/clibrary/usr/include/clibrary/c/cstring.h
+           out/pkg/clibrary/usr/include/clibrary/c/date.h
+           out/pkg/clibrary/usr/include/clibrary/c/file-utils.h
+           out/pkg/clibrary/usr/include/clibrary/c/mapped-file.h
+           out/pkg/clibrary/usr/include/clibrary/c/timer.h
+           out/pkg/clibrary/usr/include/clibrary/glib/cstring.h
+           out/pkg/clibrary/usr/include/clibrary/glib/date.h
+           out/pkg/clibrary/usr/include/clibrary/glib/file-utils.h
+           out/pkg/clibrary/usr/include/clibrary/glib/mapped-file.h
+           out/pkg/clibrary/usr/include/clibrary/glib/timer.h
+           out/src/c/cstring.c
+           out/src/c/cstring.h
+           out/src/c/date.c
+           out/src/c/date.h
+           out/src/c/file-utils.c
+           out/src/c/file-utils.h
+           out/src/c/mapped-file.c
+           out/src/c/mapped-file.h
+           out/src/c/timer.c
+           out/src/c/timer.h
+Copyright: 2024 <dingjing@live.cn>
+License:   Expat
+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ .
+ Created by dingjing on 24-4-24.
+
+Files:     c/bytes.c
+           c/bytes.h
+           c/poll.c
+           c/poll.h
+           c/uuid.h
+           c/wakeup.c
+           c/wakeup.h
+           demo/demo-atomic.c
+           demo/demo-bytes.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/bytes.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/bytes.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/poll.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/poll.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/wakeup.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/wakeup.h
+           out/pkg/clibrary/usr/include/clibrary/c/bytes.h
+           out/pkg/clibrary/usr/include/clibrary/c/poll.h
+           out/pkg/clibrary/usr/include/clibrary/c/uuid.h
+           out/pkg/clibrary/usr/include/clibrary/c/wakeup.h
+           out/pkg/clibrary/usr/include/clibrary/glib/bytes.h
+           out/pkg/clibrary/usr/include/clibrary/glib/poll.h
+           out/pkg/clibrary/usr/include/clibrary/glib/uuid.h
+           out/pkg/clibrary/usr/include/clibrary/glib/wakeup.h
+           out/src/c/bytes.c
+           out/src/c/bytes.h
+           out/src/c/poll.c
+           out/src/c/poll.h
+           out/src/c/uuid.h
+           out/src/c/wakeup.c
+           out/src/c/wakeup.h
+           out/src/demo/demo-atomic.c
+           out/src/demo/demo-bytes.c
+Copyright: 2024 <dingjing@live.cn>
+License:   Expat
+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ .
+ Created by dingjing on 24-4-18.
+
+Files:     c/charset.c
+           c/charset.h
+           c/host-utils.c
+           c/host-utils.h
+           c/rcbox.c
+           c/rcbox.h
+           c/uri.c
+           c/uri.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/charset.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/charset.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/host-utils.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/host-utils.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/rcbox.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/rcbox.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/uri.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/uri.h
+           out/pkg/clibrary/usr/include/clibrary/c/charset.h
+           out/pkg/clibrary/usr/include/clibrary/c/host-utils.h
+           out/pkg/clibrary/usr/include/clibrary/c/rcbox.h
+           out/pkg/clibrary/usr/include/clibrary/c/uri.h
+           out/pkg/clibrary/usr/include/clibrary/glib/charset.h
+           out/pkg/clibrary/usr/include/clibrary/glib/host-utils.h
+           out/pkg/clibrary/usr/include/clibrary/glib/rcbox.h
+           out/pkg/clibrary/usr/include/clibrary/glib/uri.h
+           out/src/c/charset.c
+           out/src/c/charset.h
+           out/src/c/host-utils.c
+           out/src/c/host-utils.h
+           out/src/c/rcbox.c
+           out/src/c/rcbox.h
+           out/src/c/uri.c
+           out/src/c/uri.h
+Copyright: __NO_COPYRIGHT__ in: c/charset.c
+           __NO_COPYRIGHT__ in: c/charset.h
+           __NO_COPYRIGHT__ in: c/host-utils.c
+           __NO_COPYRIGHT__ in: c/host-utils.h
+           __NO_COPYRIGHT__ in: c/rcbox.c
+           __NO_COPYRIGHT__ in: c/rcbox.h
+           __NO_COPYRIGHT__ in: c/uri.c
+           __NO_COPYRIGHT__ in: c/uri.h
+           __NO_COPYRIGHT__ in: out/pkg/clibrary-debug/usr/src/debug/clibrary/c/charset.c
+           __NO_COPYRIGHT__ in: out/pkg/clibrary-debug/usr/src/debug/clibrary/c/charset.h
+           __NO_COPYRIGHT__ in: out/pkg/clibrary-debug/usr/src/debug/clibrary/c/host-utils.c
+           __NO_COPYRIGHT__ in: out/pkg/clibrary-debug/usr/src/debug/clibrary/c/host-utils.h
+           __NO_COPYRIGHT__ in: out/pkg/clibrary-debug/usr/src/debug/clibrary/c/rcbox.c
+           __NO_COPYRIGHT__ in: out/pkg/clibrary-debug/usr/src/debug/clibrary/c/rcbox.h
+           __NO_COPYRIGHT__ in: out/pkg/clibrary-debug/usr/src/debug/clibrary/c/uri.c
+           __NO_COPYRIGHT__ in: out/pkg/clibrary-debug/usr/src/debug/clibrary/c/uri.h
+           __NO_COPYRIGHT__ in: out/pkg/clibrary/usr/include/clibrary/c/charset.h
+           __NO_COPYRIGHT__ in: out/pkg/clibrary/usr/include/clibrary/c/host-utils.h
+           __NO_COPYRIGHT__ in: out/pkg/clibrary/usr/include/clibrary/c/rcbox.h
+           __NO_COPYRIGHT__ in: out/pkg/clibrary/usr/include/clibrary/c/uri.h
+           __NO_COPYRIGHT__ in: out/pkg/clibrary/usr/include/clibrary/glib/charset.h
+           __NO_COPYRIGHT__ in: out/pkg/clibrary/usr/include/clibrary/glib/host-utils.h
+           __NO_COPYRIGHT__ in: out/pkg/clibrary/usr/include/clibrary/glib/rcbox.h
+           __NO_COPYRIGHT__ in: out/pkg/clibrary/usr/include/clibrary/glib/uri.h
+           __NO_COPYRIGHT__ in: out/src/c/charset.c
+           __NO_COPYRIGHT__ in: out/src/c/charset.h
+           __NO_COPYRIGHT__ in: out/src/c/host-utils.c
+           __NO_COPYRIGHT__ in: out/src/c/host-utils.h
+           __NO_COPYRIGHT__ in: out/src/c/rcbox.c
+           __NO_COPYRIGHT__ in: out/src/c/rcbox.h
+           __NO_COPYRIGHT__ in: out/src/c/uri.c
+           __NO_COPYRIGHT__ in: out/src/c/uri.h
+License:   __UNKNOWN__
+ Created by dingjing on 6/9/24.
+
+Files:     c/convert.c
+           c/convert.h
+           c/hook.c
+           c/hook.h
+           c/source.c
+           c/source.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/convert.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/convert.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/hook.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/hook.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/source.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/source.h
+           out/pkg/clibrary/usr/include/clibrary/c/convert.h
+           out/pkg/clibrary/usr/include/clibrary/c/hook.h
+           out/pkg/clibrary/usr/include/clibrary/c/source.h
+           out/pkg/clibrary/usr/include/clibrary/glib/convert.h
+           out/pkg/clibrary/usr/include/clibrary/glib/hook.h
+           out/pkg/clibrary/usr/include/clibrary/glib/source.h
+           out/src/c/convert.c
+           out/src/c/convert.h
+           out/src/c/hook.c
+           out/src/c/hook.h
+           out/src/c/source.c
+           out/src/c/source.h
+Copyright: 2024 <dingjing@live.cn>
+License:   Expat
+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ .
+ Created by dingjing on 24-4-25.
+
+Files:     c/error.c
+           c/error.h
+           c/quark.c
+           c/quark.h
+           c/thread.c
+           c/thread.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/error.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/error.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/quark.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/quark.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/thread.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/thread.h
+           out/pkg/clibrary/usr/include/clibrary/c/error.h
+           out/pkg/clibrary/usr/include/clibrary/c/quark.h
+           out/pkg/clibrary/usr/include/clibrary/c/thread.h
+           out/pkg/clibrary/usr/include/clibrary/glib/error.h
+           out/pkg/clibrary/usr/include/clibrary/glib/quark.h
+           out/pkg/clibrary/usr/include/clibrary/glib/thread.h
+           out/src/c/error.c
+           out/src/c/error.h
+           out/src/c/quark.c
+           out/src/c/quark.h
+           out/src/c/thread.c
+           out/src/c/thread.h
+Copyright: 2024 <dingjing@live.cn>
+License:   Expat
+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ .
+ Created by dingjing on 24-4-19.
+
+Files:     c/mirror-priv.h
+           c/unicode-comp-priv.h
+           c/unicode-decomp-priv.h
+           c/unicode-script-priv.h
+           c/unicode.c
+           c/unicode.h
+           c/utils.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/mirror-priv.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/unicode-comp-priv.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/unicode-decomp-priv.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/unicode-script-priv.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/unicode.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/unicode.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/utils.c
+           out/pkg/clibrary/usr/include/clibrary/c/unicode.h
+           out/pkg/clibrary/usr/include/clibrary/glib/unicode.h
+           out/src/c/mirror-priv.h
+           out/src/c/unicode-comp-priv.h
+           out/src/c/unicode-decomp-priv.h
+           out/src/c/unicode-script-priv.h
+           out/src/c/unicode.c
+           out/src/c/unicode.h
+           out/src/c/utils.c
+Copyright: 2024 <dingjing@live.cn>
+License:   Expat
+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ .
+ Created by dingjing on 24-6-7.
+
+Files:     c/list.c
+           c/list.h
+           c/macros.c
+           c/slist.c
+           c/slist.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/list.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/list.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/macros.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/slist.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/slist.h
+           out/pkg/clibrary/usr/include/clibrary/c/list.h
+           out/pkg/clibrary/usr/include/clibrary/c/slist.h
+           out/pkg/clibrary/usr/include/clibrary/glib/list.h
+           out/pkg/clibrary/usr/include/clibrary/glib/slist.h
+           out/src/c/list.c
+           out/src/c/list.h
+           out/src/c/macros.c
+           out/src/c/slist.c
+           out/src/c/slist.h
+Copyright: 2024 <dingjing@live.cn>
+License:   Expat
+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ .
+ Created by dingjing on 24-4-9.
+
+Files:     c/log.c
+           c/log.h
+           demo/demo-glog.c
+           demo/demo-log.c
+           glib/glog.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/log.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/log.h
+           out/pkg/clibrary/usr/include/clibrary/c/log.h
+           out/pkg/clibrary/usr/include/clibrary/glib/log.h
+           out/src/c/log.c
+           out/src/c/log.h
+           out/src/demo/demo-glog.c
+           out/src/demo/demo-log.c
+           out/src/glib/glog.h
+Copyright: 2024 <dingjing@live.cn>
+License:   Expat
+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ .
+ Created by dingjing on 24-3-7.
+
+Files:     demo/demo-qlog.cpp
+           glib/glog.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/glib/glog.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/qt5/qlog.cpp
+           out/pkg/clibrary/usr/include/clibrary/qt5/qlog.h
+           out/src/demo/demo-qlog.cpp
+           out/src/glib/glog.c
+           out/src/qt5/qlog.cpp
+           out/src/qt5/qlog.h
+           qt5/qlog.cpp
+           qt5/qlog.h
+Copyright: 2024 <dingjing@live.cn>
+License:   Expat
+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ .
+ Created by dingjing on 24-3-8.
+
+Files:     c/test.c
+           c/test.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/test.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/test.h
+           out/pkg/clibrary/usr/include/clibrary/c/test.h
+           out/pkg/clibrary/usr/include/clibrary/glib/test.h
+           out/src/c/test.c
+           out/src/c/test.h
+           out/src/test/test-c-str.c
+           test/test-c-str.c
+Copyright: 2024 <dingjing@live.cn>
+License:   Expat
+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ .
+ Created by dingjing on 24-3-13.
+
+Files:     c/atomic.h
+           c/global.c
+           c/global.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/atomic.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/global.c
+           out/pkg/clibrary/usr/include/clibrary/c/atomic.h
+           out/pkg/clibrary/usr/include/clibrary/glib/atomic.h
+           out/src/c/atomic.h
+           out/src/c/global.c
+           out/src/c/global.h
+Copyright: __NO_COPYRIGHT__ in: c/atomic.h
+           __NO_COPYRIGHT__ in: c/global.c
+           __NO_COPYRIGHT__ in: c/global.h
+           __NO_COPYRIGHT__ in: out/pkg/clibrary-debug/usr/src/debug/clibrary/c/atomic.h
+           __NO_COPYRIGHT__ in: out/pkg/clibrary-debug/usr/src/debug/clibrary/c/global.c
+           __NO_COPYRIGHT__ in: out/pkg/clibrary/usr/include/clibrary/c/atomic.h
+           __NO_COPYRIGHT__ in: out/pkg/clibrary/usr/include/clibrary/glib/atomic.h
+           __NO_COPYRIGHT__ in: out/src/c/atomic.h
+           __NO_COPYRIGHT__ in: out/src/c/global.c
+           __NO_COPYRIGHT__ in: out/src/c/global.h
+License:   __UNKNOWN__
+ Created by dingjing on 5/26/24.
+
+Files:     c/time-zone.c
+           c/time-zone.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/time-zone.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/time-zone.h
+           out/pkg/clibrary/usr/include/clibrary/c/time-zone.h
+           out/pkg/clibrary/usr/include/clibrary/glib/time-zone.h
+           out/src/c/time-zone.c
+           out/src/c/time-zone.h
+Copyright: 2024 <dingjing@live.cn>
+License:   Expat
+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ .
+ Created by dingjing on 24-4-23.
+
+Files:     c/str.c
+           c/str.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/str.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/str.h
+           out/pkg/clibrary/usr/include/clibrary/c/str.h
+           out/pkg/clibrary/usr/include/clibrary/glib/str.h
+           out/src/c/str.c
+           out/src/c/str.h
+Copyright: 2024 <dingjing@live.cn>
+License:   Expat
+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ .
+ Created by dingjing on 24-3-12.
+
+Files:     c/hash-table.c
+           c/hash-table.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/hash-table.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/hash-table.h
+           out/pkg/clibrary/usr/include/clibrary/c/hash-table.h
+           out/pkg/clibrary/usr/include/clibrary/glib/hash-table.h
+           out/src/c/hash-table.c
+           out/src/c/hash-table.h
+Copyright: 2024 <dingjing@live.cn>
+License:   Expat
+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ .
+ Created by dingjing on 24-4-22.
+
+Files:     c/array.c
+           c/array.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/array.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/array.h
+           out/pkg/clibrary/usr/include/clibrary/c/array.h
+           out/pkg/clibrary/usr/include/clibrary/glib/array.h
+           out/src/c/array.c
+           out/src/c/array.h
+Copyright: 2024 <dingjing@live.cn>
+License:   Expat
+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ .
+ Created by dingjing on 24-4-16.
+
+Files:     c/option.c
+           c/option.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/option.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/option.h
+           out/pkg/clibrary/usr/include/clibrary/c/option.h
+           out/pkg/clibrary/usr/include/clibrary/glib/option.h
+           out/src/c/option.c
+           out/src/c/option.h
+Copyright: 2024 <dingjing@live.cn>
+License:   Expat
+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ .
+ Created by dingjing on 24-6-12.
+
+Files:     c/base64.c
+           c/base64.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/base64.c
+           out/pkg/clibrary/usr/include/clibrary/c/base64.h
+           out/pkg/clibrary/usr/include/clibrary/glib/base64.h
+           out/src/c/base64.c
+           out/src/c/base64.h
+Copyright: 2024 <dingjing@live.cn>
+License:   Expat
+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ .
+ Created by dingjing on 24-3-18.
+
+Files:     demo/demo-file-utils.c
+           demo/demo-hash-table.c
+           demo/demo-str.c
+           out/src/demo/demo-file-utils.c
+           out/src/demo/demo-hash-table.c
+           out/src/demo/demo-str.c
+Copyright: 2024 <dingjing@live.cn>
+License:   Expat
+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ .
+ Created by dingjing on 24-6-18.
+
+Files:     c/utils.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/utils.h
+           out/pkg/clibrary/usr/include/clibrary/c/utils.h
+           out/pkg/clibrary/usr/include/clibrary/glib/utils.h
+           out/src/c/utils.h
+Copyright: 2024 <dingjing@live.cn>
+License:   Expat
+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ .
+ > FileName: utils.h
+ > Author  : DingJing
+ > Mail    : dingjing@live.cn
+ > Created Time: Thu 08 Sep 2022 23:17:34 AM CST
+
+Files:     c/macros.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/macros.h
+           out/pkg/clibrary/usr/include/clibrary/c/macros.h
+           out/pkg/clibrary/usr/include/clibrary/glib/macros.h
+           out/src/c/macros.h
+Copyright: 2024 <dingjing@live.cn>
+License:   Expat
+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ .
+ > FileName: macros.h
+ > Author  : DingJing
+ > Mail    : dingjing@live.cn
+ > Created Time: Wed 07 Sep 2022 21:09:31 PM CST
+
+Files:     c/clib.h
+           out/pkg/clibrary/usr/include/clibrary/c/clib.h
+           out/pkg/clibrary/usr/include/clibrary/glib/clib.h
+           out/src/c/clib.h
+Copyright: 2024 <dingjing@live.cn>
+License:   Expat
+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ .
+ Created by dingjing on 24-4-8.
+
+Files:     c/atomic.c
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/atomic.c
+           out/src/c/atomic.c
+Copyright: 2024 <dingjing@live.cn>
+License:   Expat
+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ .
+ > FileName: atomic.c
+ > Author  : DingJing
+ > Mail    : dingjing@live.cn
+ > Created Time: Thu 07 Sep 2022 22:20:19 PM CST
+ .
+ #include "atomic.h"
+
+Files:     c/queue.h
+           out/pkg/clibrary-debug/usr/src/debug/clibrary/c/queue.h
+           out/src/c/queue.h
+Copyright: 2024 <dingjing@live.cn>
+License:   Expat
+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ .
+ Created by dingjing on 5/1/24.
+
+Files:     demo/demo-macros.c
+           out/src/demo/demo-macros.c
+Copyright: 2024 <dingjing@live.cn>
+License:   Expat
+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Files:     out/src/test/test-c-file-utils.c
+           test/test-c-file-utils.c
+Copyright: __NO_COPYRIGHT__ in: out/src/test/test-c-file-utils.c
+           __NO_COPYRIGHT__ in: test/test-c-file-utils.c
+License:   __UNKNOWN__
+ Created by dingjing on 6/17/24.
+
+#----------------------------------------------------------------------------
+# huge files   (skipped):
+#         c/unicode-chars-priv.h
+#         out/clibrary-0.2.0.0.tar.gz
+#         out/src/c/unicode-chars-priv.h
+#         out/src/build-all/c/libclibrary-c.a
+#         out/src/build-all/glib/libclibrary-glib.so
+#         out/src/build-all/qt5/libclibrary-qt5.so
+#         out/pkg/clibrary-debug/usr/src/debug/clibrary/c/unicode-chars-priv.h
+#         build-all/c/libclibrary-c.a
+#         build-all/c/libclibrary-c.so.0.2.0.0
+
+#----------------------------------------------------------------------------
+# Files marked as NO_LICENSE_TEXT_FOUND may be covered by the following
+# license/copyright files.
+
+#----------------------------------------------------------------------------
+# License file: LICENSE
+ MIT License
+ .
+ Copyright (c) 2022 丁敬
+ .
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+ .
+ The above copyright notice and this permission notice shall be included in all
+ copies or substantial portions of the Software.
+ .
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ SOFTWARE.
