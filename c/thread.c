@@ -503,7 +503,7 @@ bool c_cond_wait_until (CCond* cond, CMutex* mutex, cint64 endTime)
 
         /* Make sure to only ever call this if the end time actually fits into the target type */
         if (C_UNLIKELY (sizeof (__kernel_long_t) < 8 && span.tv_sec > C_MAX_INT32)) {
-            C_LOG_ERROR_CONSOLE("%s: Can’t wait for more than %us", C_STRFUNC, C_MAX_INT32)
+            C_LOG_ERROR_CONSOLE("%s: Can’t wait for more than %us", C_STRFUNC, C_MAX_INT32);
         }
 
         spanArg.tv_sec = span.tv_sec;
@@ -821,7 +821,7 @@ static void c_mutex_lock_slowpath (CMutex *mutex)
 static void c_mutex_unlock_slowpath (CMutex* mutex, cuint prev)
 {
     if C_UNLIKELY (prev == C_MUTEX_STATE_EMPTY) {
-        C_LOG_ERROR_CONSOLE("Attempt to unlock mutex that was not locked")
+        C_LOG_ERROR_CONSOLE("Attempt to unlock mutex that was not locked");
         c_abort ();
     }
 

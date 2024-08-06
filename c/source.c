@@ -559,7 +559,7 @@ bool c_unix_fd_source_dispatch (CSource* source, CSourceFunc callback, void* uda
     CUnixFDSourceFunc func = (CUnixFDSourceFunc) callback;
 
     if (!callback) {
-        C_LOG_WARNING_CONSOLE("GUnixFDSource dispatched without callback. You must call g_source_set_callback().")
+        C_LOG_WARNING_CONSOLE("GUnixFDSource dispatched without callback. You must call g_source_set_callback().");
         return false;
     }
 
@@ -2310,7 +2310,7 @@ static bool c_unix_signal_watch_dispatch (CSource* source, CSourceFunc callback,
     CUnixSignalWatchSource* unixSignalSource = (CUnixSignalWatchSource*) source;
 
     if (!callback) {
-        C_LOG_WARNING_CONSOLE("Unix signal source dispatched without callback. You must call g_source_set_callback().")
+        C_LOG_WARNING_CONSOLE("Unix signal source dispatched without callback. You must call g_source_set_callback().");
         return false;
     }
 
@@ -2427,7 +2427,7 @@ static bool c_child_watch_dispatch (CSource* source, CSourceFunc callback, void*
     child_watch_source = (CChildWatchSource*) source;
 
     if (!callback) {
-        C_LOG_WARNING_CONSOLE("Child watch source dispatched without callback. You must call g_source_set_callback().")
+        C_LOG_WARNING_CONSOLE("Child watch source dispatched without callback. You must call g_source_set_callback().");
         return false;
     }
 
@@ -2466,7 +2466,7 @@ static bool c_idle_dispatch (CSource* source, CSourceFunc callback, void* udata)
     bool again;
 
     if (!callback) {
-        C_LOG_WARNING_CONSOLE("Idle source dispatched without callback. You must call g_source_set_callback().")
+        C_LOG_WARNING_CONSOLE("Idle source dispatched without callback. You must call g_source_set_callback().");
         return false;
     }
 
@@ -2704,7 +2704,7 @@ static bool c_timeout_dispatch (CSource* source, CSourceFunc callback, void* use
     bool again;
 
     if (!callback) {
-        C_LOG_WARNING_CONSOLE("Timeout source dispatched without callback. You must call g_source_set_callback().")
+        C_LOG_WARNING_CONSOLE("Timeout source dispatched without callback. You must call g_source_set_callback().");
         return false;
     }
 

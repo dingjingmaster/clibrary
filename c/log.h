@@ -68,7 +68,7 @@ C_STMT_START { \
 
 #define C_LOG_INFO(...) \
 C_STMT_START { \
-    C_LOG_INIT_IF_NOT_INIT \
+    C_LOG_INIT_IF_NOT_INIT; \
     c_log_print(C_LOG_LEVEL_INFO, C_LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__); \
 } C_STMT_END
 
@@ -103,13 +103,13 @@ C_STMT_START { \
 #ifdef DEBUG
 #define C_LOG_DEBUG(...) \
 C_STMT_START { \
-    C_LOG_INIT_IF_NOT_INIT \
+    C_LOG_INIT_IF_NOT_INIT; \
     c_log_print(C_LOG_LEVEL_DEBUG, C_LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__); \
 } C_STMT_END
 
 #define C_LOG_VERB(...) \
 C_STMT_START { \
-    C_LOG_INIT_IF_NOT_INIT \
+    C_LOG_INIT_IF_NOT_INIT; \
     c_log_print(C_LOG_LEVEL_VERB, C_LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__); \
 } C_STMT_END
 #else

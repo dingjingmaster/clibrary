@@ -96,7 +96,7 @@ extern char** environ;
 
 void c_abort (void)
 {
-    C_LOG_WARNING_CONSOLE("c_abort!")
+    C_LOG_WARNING_CONSOLE("c_abort!");
 
     abort();
 }

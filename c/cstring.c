@@ -629,7 +629,7 @@ CString* c_string_up (CString* str)
 static void c_string_maybe_expand (CString* str, csize len)
 {
     if C_UNLIKELY ((C_MAX_SIZE - str->len - 1) < len) {
-        C_LOG_ERROR_CONSOLE("adding %ul to string would overflow", len)
+        C_LOG_ERROR_CONSOLE("adding %ul to string would overflow", len);
     }
 
     if (str->len + len >= str->allocatedLen) {

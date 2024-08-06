@@ -41,12 +41,12 @@ CWakeup* c_wakeup_new (void)
     }
 
     if (!c_unix_open_pipe (wakeup->fds, FD_CLOEXEC, &error)) {
-        C_LOG_ERROR_CONSOLE("Creating pipes for GWakeup: %s", error->message)
+        C_LOG_ERROR_CONSOLE("Creating pipes for GWakeup: %s", error->message);
     }
 
     if (!c_unix_set_fd_nonblocking (wakeup->fds[0], true, &error)
         || !c_unix_set_fd_nonblocking (wakeup->fds[1], true, &error)) {
-        C_LOG_ERROR_CONSOLE("Set pipes non-blocking for GWakeup: %s", error->message)
+        C_LOG_ERROR_CONSOLE("Set pipes non-blocking for GWakeup: %s", error->message);
     }
 
     return wakeup;
