@@ -22,8 +22,8 @@
 #include <c/macros.h>
 
 
-const char* c_get_tmp_dir (void);
-const char* c_get_prgname (void);
+const char* c_get_tmp_dir       (void);
+const char* c_get_prgname       (void);
 //const char* c_get_home_dir (void);
 //const char* c_get_user_name (void);
 //const char* c_get_real_name (void);
@@ -32,6 +32,12 @@ void  c_set_prgname (const char* prgname);
 //const char* c_get_application_name (void);
 //char* c_get_os_info  (const char* keyName);
 //void  c_set_application_name (const char* applicationName);
+
+/**
+ * @brief
+ *  根据程序名称检查是否只启动此一份实例
+ */
+bool        c_check_is_first    (const char* appName);
 
 void c_print (const cchar *format, ...);
 

@@ -4,6 +4,9 @@ target_link_libraries(demo-macros PUBLIC clibrary-c)
 add_executable(demo-log demo-log.c)
 target_link_libraries(demo-log PUBLIC clibrary-c)
 
+add_executable(demo-base64 demo-base64.c)
+target_link_libraries(demo-base64 PUBLIC clibrary-c)
+
 add_executable(demo-bytes demo-bytes.c)
 target_link_libraries(demo-bytes PUBLIC clibrary-c)
 

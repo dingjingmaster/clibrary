@@ -13,6 +13,9 @@
 
 #include "utils.h"
 
+#include <sys/stat.h>
+#include <sys/file.h>
+
 #include "clib.h"
 
 #define CHAR_IS_SAFE(wc)    (!((wc < 0x20 && wc != '\t' && wc != '\n' && wc != '\r') || (wc == 0x7f) || (wc >= 0x80 && wc < 0xa0)))
@@ -115,6 +118,39 @@ int c_drop_permissions(void)
     } while (0);
 
     return ok ? 0 : (errno ? -errno : -1);
+}
+
+bool c_check_is_first(const char *appName)
+{
+    static bool ret = false;
+    static cuint inited = 0;
+
+    if (c_once_init_enter(&inited)) {
+        do {
+            static int fw = 0; // 不要释放
+            const cuint m = umask(0);
+
+            cchar* base64 = c_base64_encode((const cuchar*) appName, strlen(appName));
+            if (!base64) {
+                break;
+            }
+
+            fw = open(base64, O_RDWR | O_CREAT, 0777);
+            umask(m);
+            if (-1 == fw) {
+                break;
+            }
+
+            if (0 == flock(fw, LOCK_EX | LOCK_NB)) {
+                ret = true;
+                break;
+            }
+        } while (false);
+        c_once_init_leave(&inited, 1);
+    }
+
+    return ret;
+
 }
 
 static void print_string (FILE* stream, const cchar* str)
