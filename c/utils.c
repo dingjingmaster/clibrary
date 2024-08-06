@@ -132,19 +132,28 @@ bool c_check_is_first(const char *appName)
 
             cchar* base64 = c_base64_encode((const cuchar*) appName, strlen(appName));
             if (!base64) {
+                c_free(base64);
                 break;
             }
 
-            fw = open(base64, O_RDWR | O_CREAT, 0777);
-            umask(m);
-            if (-1 == fw) {
-                break;
+            cchar* path = c_strdup_printf("%s/%s.lock", c_get_tmp_dir(), base64);
+            c_free(base64);
+            if (path) {
+                fw = open(base64, O_RDWR | O_CREAT, 0777);
+                umask(m);
+                if (-1 == fw) {
+                    c_free(path);
+                    break;
+                }
+
+                if (0 == flock(fw, LOCK_EX | LOCK_NB)) {
+                    ret = true;
+                    c_free(path);
+                    break;
+                }
+                c_free(path);
             }
 
-            if (0 == flock(fw, LOCK_EX | LOCK_NB)) {
-                ret = true;
-                break;
-            }
         } while (false);
         c_once_init_leave(&inited, 1);
     }
