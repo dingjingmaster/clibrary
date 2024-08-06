@@ -21,6 +21,7 @@
 #endif
 #include <c/macros.h>
 
+C_BEGIN_EXTERN_C
 
 const char* c_get_tmp_dir       (void);
 const char* c_get_prgname       (void);
@@ -46,5 +47,7 @@ void c_print (const cchar *format, ...);
  * @return 成功返回 0，否则返回错误码
  */
 int c_drop_permissions (void);
+
+C_END_EXTERN_C
 
 #endif
