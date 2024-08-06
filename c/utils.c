@@ -120,14 +120,14 @@ int c_drop_permissions(void)
     return ok ? 0 : (errno ? -errno : -1);
 }
 
-bool c_check_is_first(const char *appName)
+bool c_program_check_is_first(const char *appName)
 {
     static bool ret = false;
     static cuint inited = 0;
 
     if (c_once_init_enter(&inited)) {
         do {
-            static int fw = 0; // 不要释放
+            static int fw = 0;
             const cuint m = umask(0);
 
             cchar* base64 = c_base64_encode((const cuchar*) appName, strlen(appName));
@@ -159,7 +159,6 @@ bool c_check_is_first(const char *appName)
     }
 
     return ret;
-
 }
 
 static void print_string (FILE* stream, const cchar* str)

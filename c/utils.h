@@ -37,7 +37,7 @@ void  c_set_prgname (const char* prgname);
  * @brief
  *  根据程序名称检查是否只启动此一份实例
  */
-bool        c_check_is_first    (const char* appName);
+bool        c_program_check_is_first        (const char* appName);
 
 void c_print (const cchar *format, ...);
 
