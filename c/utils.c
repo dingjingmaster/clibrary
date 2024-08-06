@@ -139,7 +139,7 @@ bool c_program_check_is_first(const char *appName)
             cchar* path = c_strdup_printf("%s/%s.lock", c_get_tmp_dir(), base64);
             c_free(base64);
             if (path) {
-                fw = open(base64, O_RDWR | O_CREAT, 0777);
+                fw = open(path, O_RDWR | O_CREAT, 0777);
                 umask(m);
                 if (-1 == fw) {
                     c_free(path);
