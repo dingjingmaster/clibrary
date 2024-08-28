@@ -660,36 +660,29 @@ CMainContext* c_main_context_new (void)
 CMainContext* c_main_context_new_with_flags (CMainContextFlags flags)
 {
     static csize initialised;
-    CMainContext* context;
 
     if (c_once_init_enter (&initialised)) {
+        //
         c_once_init_leave (&initialised, true);
     }
 
-    context = c_malloc0(sizeof(CMainContext));
+    CMainContext* context = c_malloc0(sizeof(CMainContext));
 
     c_mutex_init (&context->mutex);
     c_cond_init (&context->cond);
 
-    context->sources = c_hash_table_new (NULL, NULL);
+    context->nextId = 1;
+    context->refCount = 1;
     context->owner = NULL;
     context->flags = flags;
     context->waiters = NULL;
-
-    context->refCount = 1;
-
-    context->nextId = 1;
-
-    context->sourceLists = NULL;
-
     context->pollFunc = c_poll;
-
+    context->sourceLists = NULL;
+    context->timeIsFresh = false;
     context->cachedPollArray = NULL;
     context->cachedPollArraySize = 0;
-
     context->pendingDispatches = c_ptr_array_new ();
-
-    context->timeIsFresh = false;
+    context->sources = c_hash_table_new (NULL, NULL);
 
     context->wakeup = c_wakeup_new ();
     c_wakeup_get_pollfd (context->wakeup, &context->wakeupRec);
@@ -697,7 +690,6 @@ CMainContext* c_main_context_new_with_flags (CMainContextFlags flags)
 
     C_LOCK (gsMainContextList);
     gsMainContextList = c_slist_append (gsMainContextList, context);
-
     C_UNLOCK (gsMainContextList);
 
     return context;
@@ -705,17 +697,14 @@ CMainContext* c_main_context_new_with_flags (CMainContextFlags flags)
 
 CMainContext* c_main_context_default (void)
 {
-    static CMainContext* default_main_context = NULL;
+    static CMainContext* defaultMainContext = NULL;
 
-    if (c_once_init_enter (&default_main_context)) {
-        CMainContext *context;
-
-        context = c_main_context_new ();
-
-        c_once_init_leave (&default_main_context, (culong) context);
+    if (c_once_init_enter (&defaultMainContext)) {
+        CMainContext *context = c_main_context_new ();
+        c_once_init_leave (&defaultMainContext, (culong) context);
     }
 
-    return default_main_context;
+    return defaultMainContext;
 }
 
 bool c_main_context_iteration (CMainContext* context, bool mayBlock)
@@ -846,16 +835,27 @@ void c_main_context_wakeup (CMainContext* context)
 bool c_main_context_acquire (CMainContext* context)
 {
     bool result = false;
+    CThread* self = C_THREAD_SELF;
 
     if (context == NULL) {
         context = c_main_context_default ();
     }
 
+    C_LOG_DEBUG_CONSOLE("lock 1");
     LOCK_CONTEXT (context);
+    C_LOG_DEBUG_CONSOLE("lock 2");
 
-    result = c_main_context_acquire_unlocked (context);
+    if (NULL == context->owner) {
+        context->owner = self;
+        c_assert(context->ownerCount == 0);
+    }
 
-    UNLOCK_CONTEXT (context);
+    if (context->owner == self) {
+        context->ownerCount++;
+        result = true;
+    }
+
+    // UNLOCK_CONTEXT (context);
 
     return result;
 }
@@ -867,19 +867,20 @@ void c_main_context_release (CMainContext* context)
     }
 
     LOCK_CONTEXT (context);
+
     context->ownerCount--;
     if (context->ownerCount == 0) {
         context->owner = NULL;
         if (context->waiters) {
             CMainWaiter *waiter = context->waiters->data;
-            bool loop_internal_waiter = (waiter->mutex == &context->mutex);
+            bool loopInternalWaiter = (waiter->mutex == &context->mutex);
             context->waiters = c_slist_delete_link (context->waiters, context->waiters);
-            if (!loop_internal_waiter) {
+            if (!loopInternalWaiter) {
                 c_mutex_lock (waiter->mutex);
             }
             c_cond_signal (waiter->cond);
 
-            if (!loop_internal_waiter) {
+            if (!loopInternalWaiter) {
                 c_mutex_unlock (waiter->mutex);
             }
         }
@@ -922,9 +923,10 @@ bool c_main_context_wait (CMainContext* context, CCond* cond, CMutex* mutex)
 
 bool c_main_context_prepare (CMainContext* context, cint* priority)
 {
+    C_LOG_DEBUG_CONSOLE("");
     cuint i;
     cint n_ready = 0;
-    cint current_priority = C_MAX_INT32;
+    cint currentPriority = C_MAX_INT32;
     CSource *source;
     CSourceIter iter;
 
@@ -937,7 +939,7 @@ bool c_main_context_prepare (CMainContext* context, cint* priority)
     context->timeIsFresh = false;
 
     if (context->inCheckOrPrepare) {
-        C_LOG_WARNING_CONSOLE("g_main_context_prepare() called recursively from within a source's check() or prepare() member.");
+        C_LOG_WARNING_CONSOLE("c_main_context_prepare() called recursively from within a source's check() or prepare() member.");
         UNLOCK_CONTEXT (context);
         return false;
     }
@@ -955,13 +957,12 @@ bool c_main_context_prepare (CMainContext* context, cint* priority)
 
     c_source_iter_init (&iter, context, true);
     while (c_source_iter_next (&iter, &source)) {
-        cint source_timeout = -1;
-
+        cint sourceTimeout = -1;
         if (SOURCE_DESTROYED (source) || SOURCE_BLOCKED (source)) {
             continue;
         }
 
-        if ((n_ready > 0) && (source->priority > current_priority)) {
+        if ((n_ready > 0) && (source->priority > currentPriority)) {
             break;
         }
 
@@ -974,12 +975,12 @@ bool c_main_context_prepare (CMainContext* context, cint* priority)
                 cint64 begin_time_nsec C_UNUSED;
                 context->inCheckOrPrepare++;
                 UNLOCK_CONTEXT (context);
-                result = (* prepare) (source, &source_timeout);
+                result = (*prepare) (source, &sourceTimeout);
                 LOCK_CONTEXT (context);
                 context->inCheckOrPrepare--;
             }
             else {
-                source_timeout = -1;
+                sourceTimeout = -1;
                 result = false;
             }
 
@@ -990,40 +991,40 @@ bool c_main_context_prepare (CMainContext* context, cint* priority)
                 }
 
                 if (source->priv->readyTime <= context->time) {
-                    source_timeout = 0;
+                    sourceTimeout = 0;
                     result = true;
                 }
                 else {
                     cint64 timeout;
                     /* rounding down will lead to spinning, so always round up */
                     timeout = (source->priv->readyTime - context->time + 999) / 1000;
-                    if (source_timeout < 0 || timeout < source_timeout) {
-                        source_timeout = C_MIN (timeout, C_MAX_INT32);
+                    if (sourceTimeout < 0 || timeout < sourceTimeout) {
+                        sourceTimeout = C_MIN (timeout, C_MAX_INT32);
                     }
                 }
             }
 
             if (result) {
-                CSource *ready_source = source;
-                while (ready_source) {
-                    ready_source->flags |= C_SOURCE_READY;
-                    ready_source = ready_source->priv->parentSource;
+                CSource *readySource = source;
+                while (readySource) {
+                    readySource->flags |= C_SOURCE_READY;
+                    readySource = readySource->priv->parentSource;
                 }
             }
         }
 
         if (source->flags & C_SOURCE_READY) {
             n_ready++;
-            current_priority = source->priority;
+                currentPriority = source->priority;
             context->timeoutUsec = 0;
         }
 
-        if (source_timeout >= 0) {
+        if (sourceTimeout >= 0) {
             if (context->timeoutUsec < 0) {
-                context->timeoutUsec = source_timeout;
+                context->timeoutUsec = sourceTimeout;
             }
             else {
-                context->timeoutUsec = C_MIN (context->timeoutUsec, source_timeout);
+                context->timeoutUsec = C_MIN (context->timeoutUsec, sourceTimeout);
             }
         }
     }
@@ -1032,7 +1033,7 @@ bool c_main_context_prepare (CMainContext* context, cint* priority)
     UNLOCK_CONTEXT (context);
 
     if (priority) {
-        *priority = current_priority;
+        *priority = currentPriority;
     }
 
     return (n_ready > 0);
@@ -1269,9 +1270,13 @@ CMainContext* c_main_context_ref_thread_default (void)
 
 CSource* c_child_watch_source_new (CPid pid)
 {
+    C_LOG_DEBUG_CONSOLE("");
     CSource* source;
     CChildWatchSource *child_watch_source;
+
+#ifdef SYS_pidfd_open
     int errsv;
+#endif
 
     c_return_val_if_fail (pid > 0, NULL);
 
@@ -1282,19 +1287,25 @@ CSource* c_child_watch_source_new (CPid pid)
 
     child_watch_source->pid = pid;
 
+#ifdef SYS_pidfd_open
     child_watch_source->poll.fd = (int) syscall (SYS_pidfd_open, pid, 0);
     errsv = errno;
-
     if (child_watch_source->poll.fd >= 0) {
         child_watch_source->usingPidFd = true;
         child_watch_source->poll.events = C_IO_IN;
         c_source_add_poll (source, &child_watch_source->poll);
-
         return source;
     }
     else {
         C_LOG_DEBUG_CONSOLE("pidfd_open(%ul) failed with error: %s", pid, c_strerror (errsv));
     }
+#else
+    // FIXME://
+    child_watch_source->poll.fd = -1;
+    child_watch_source->poll.fd = (gintptr) pid;
+    child_watch_source->poll.events = G_IO_IN;
+    c_source_add_poll (source, &child_watch_source->poll);
+#endif
 
     C_LOCK (gsUnixSignalLock);
     ref_unix_signal_handler_unlocked (SIGCHLD);
@@ -1399,7 +1410,7 @@ void c_main_context_invoke_full (CMainContext* context, cint priority, CSourceFu
     }
 }
 
-CMainLoop *c_main_loop_new(CMainContext *context, bool isRunning)
+CMainLoop* c_main_loop_new(CMainContext *context, bool isRunning)
 {
     CMainLoop *loop;
 
@@ -1427,37 +1438,39 @@ void c_main_loop_run(CMainLoop *loop)
     /* Hold a reference in case the loop is unreffed from a callback function */
     c_atomic_int_inc (&loop->refCount);
 
+    C_LOG_DEBUG_CONSOLE("loop run");
     if (!c_main_context_acquire (loop->context)) {
-        bool got_ownership = false;
+        bool gotOwnership = false;
 
         /* Another thread owns this context */
         LOCK_CONTEXT (loop->context);
         c_atomic_bool_set (&loop->isRunning, true);
 
-        while (c_atomic_bool_get (&loop->isRunning) && !got_ownership) {
-            got_ownership = c_main_context_wait_internal (loop->context, &loop->context->cond, &loop->context->mutex);
+        while (c_atomic_bool_get (&loop->isRunning) && !gotOwnership) {
+            gotOwnership = c_main_context_wait_internal (loop->context, &loop->context->cond, &loop->context->mutex);
         }
 
         if (!c_atomic_bool_get (&loop->isRunning)) {
             UNLOCK_CONTEXT (loop->context);
-            if (got_ownership) {
+            if (gotOwnership) {
                 c_main_context_release (loop->context);
             }
             c_main_loop_unref (loop);
             return;
         }
-        c_assert (got_ownership);
+        c_assert (gotOwnership);
     }
     else {
         LOCK_CONTEXT (loop->context);
     }
 
     if (loop->context->inCheckOrPrepare) {
-        C_LOG_WARNING_CONSOLE("g_main_loop_run(): called recursively from within a source's check() or prepare() member, iteration not possible.");
+        C_LOG_WARNING_CONSOLE("c_main_loop_run(): called recursively from within a source's check() or prepare() member, iteration not possible.");
         c_main_loop_unref (loop);
         return;
     }
 
+    C_LOG_DEBUG_CONSOLE("2");
     c_atomic_bool_set (&loop->isRunning, true);
     while (c_atomic_bool_get (&loop->isRunning)) {
         c_main_context_iterate (loop->context, true, true, self);
@@ -2229,6 +2242,7 @@ static void unref_unix_signal_handler_unlocked (int signum)
 
 static void ref_unix_signal_handler_unlocked (int signum)
 {
+    C_LOG_DEBUG_CONSOLE("");
     /* Ensure we have the worker context */
     c_get_worker_context ();
     gsUnixSignalRefcount[signum]++;
@@ -2847,11 +2861,11 @@ static void c_main_context_add_poll_unlocked (CMainContext* context, cint priori
     newrec->prev = prevrec;
     newrec->next = nextrec;
 
-    if (nextrec)
+    if (nextrec) {
         nextrec->prev = newrec;
+    }
 
     context->nPollRecords++;
-
     context->pollChanged = true;
 
     if (fd != &context->wakeupRec) {
@@ -3166,7 +3180,7 @@ static bool c_main_context_check_unlocked (CMainContext *context, cint max_prior
                 /* If the check function is set, call it. */
                 context->inCheckOrPrepare++;
                 UNLOCK_CONTEXT (context);
-                result = (* check) (source);
+                result = (*check) (source);
                 LOCK_CONTEXT (context);
                 context->inCheckOrPrepare--;
             }
@@ -3290,10 +3304,8 @@ static cint c_main_context_query_unlocked (CMainContext* context, cint max_prior
 static CMainDispatch* get_dispatch (void)
 {
     static CPrivate depth_private = C_PRIVATE_INIT (c_main_dispatch_free);
-    CMainDispatch *dispatch;
 
-    dispatch = c_private_get (&depth_private);
-
+    CMainDispatch *dispatch = c_private_get (&depth_private);
     if (!dispatch) {
         dispatch = c_private_set_alloc0 (&depth_private, sizeof (CMainDispatch));
     }
@@ -3323,9 +3335,14 @@ static bool c_main_context_wait_internal (CMainContext* context, CCond* cond, CM
 {
     bool result = false;
     CThread* self = C_THREAD_SELF;
-    bool loop_internal_waiter = (mutex == &context->mutex);
 
-    if (!loop_internal_waiter) {
+    if (context == NULL) {
+        context = c_main_context_default();
+    }
+
+    bool loopInternalWaiter = (mutex == &context->mutex);
+
+    if (!loopInternalWaiter) {
         LOCK_CONTEXT (context);
     }
 
@@ -3337,19 +3354,20 @@ static bool c_main_context_wait_internal (CMainContext* context, CCond* cond, CM
 
         context->waiters = c_slist_append (context->waiters, &waiter);
 
-        if (!loop_internal_waiter) {
+        if (!loopInternalWaiter) {
             UNLOCK_CONTEXT (context);
         }
 
         c_cond_wait (cond, mutex);
-        if (!loop_internal_waiter) {
+
+        if (!loopInternalWaiter) {
             LOCK_CONTEXT (context);
         }
 
         context->waiters = c_slist_remove (context->waiters, &waiter);
     }
 
-    if (!context->owner) {
+    if (NULL == context->owner) {
         context->owner = self;
         c_assert (context->ownerCount == 0);
     }
@@ -3359,7 +3377,7 @@ static bool c_main_context_wait_internal (CMainContext* context, CCond* cond, CM
         result = true;
     }
 
-    if (!loop_internal_waiter) {
+    if (!loopInternalWaiter) {
         UNLOCK_CONTEXT (context);
     }
 
@@ -3520,9 +3538,10 @@ static void c_main_context_release_unlocked (CMainContext* context)
 
 static void c_main_dispatch (CMainContext* context)
 {
+    C_LOG_DEBUG_CONSOLE("");
     CMainDispatch *current = get_dispatch ();
-    cuint i;
 
+    cuint i;
     for (i = 0; i < context->pendingDispatches->len; i++) {
         CSource *source = context->pendingDispatches->pdata[i];
         context->pendingDispatches->pdata[i] = NULL;
@@ -3659,28 +3678,26 @@ static void block_source (CSource *source)
 
 static void unblock_source (CSource *source)
 {
-    CSList *tmp_list;
-
     c_return_if_fail (SOURCE_BLOCKED (source)); /* Source already unblocked */
     c_return_if_fail (!SOURCE_DESTROYED (source));
 
     source->flags &= ~C_SOURCE_BLOCKED;
 
-    tmp_list = source->pollFds;
-    while (tmp_list) {
-        c_main_context_add_poll_unlocked (source->context, source->priority, tmp_list->data);
-        tmp_list = tmp_list->next;
+    CSList *tmpList = source->pollFds;
+    while (tmpList) {
+        c_main_context_add_poll_unlocked (source->context, source->priority, tmpList->data);
+        tmpList = tmpList->next;
     }
 
-    for (tmp_list = source->priv->fds; tmp_list; tmp_list = tmp_list->next) {
-        c_main_context_add_poll_unlocked (source->context, source->priority, tmp_list->data);
+    for (tmpList = source->priv->fds; tmpList; tmpList = tmpList->next) {
+        c_main_context_add_poll_unlocked (source->context, source->priority, tmpList->data);
     }
 
     if (source->priv && source->priv->childSources) {
-        tmp_list = source->priv->childSources;
-        while (tmp_list) {
-            unblock_source (tmp_list->data);
-            tmp_list = tmp_list->next;
+        tmpList = source->priv->childSources;
+        while (tmpList) {
+            unblock_source (tmpList->data);
+            tmpList = tmpList->next;
         }
     }
 }
@@ -3692,27 +3709,26 @@ static void free_context_stack (void* data)
 
 static bool c_main_context_iterate (CMainContext* context, bool block, bool dispatch, CThread* self)
 {
-    cint max_priority = 0;
+    C_LOG_DEBUG_CONSOLE("");
+
+    cint maxPriority = 0;
     cint timeout;
-    cboolean some_ready;
-    cint nfds, allocated_nfds;
+    cboolean someReady;
+    cint nfds, allocatedNfds;
     CPollFD *fds = NULL;
     cint64 begin_time_nsec C_UNUSED;
 
     UNLOCK_CONTEXT (context);
 
+    C_LOG_DEBUG_CONSOLE("start iterate");
     if (!c_main_context_acquire (context)) {
-        bool got_ownership;
-
         LOCK_CONTEXT (context);
-
         if (!block) {
             return false;
         }
 
-        got_ownership = c_main_context_wait_internal (context, &context->cond, &context->mutex);
-
-        if (!got_ownership) {
+        bool gotOwnership = c_main_context_wait_internal (context, &context->cond, &context->mutex);
+        if (!gotOwnership) {
             return false;
         }
     }
@@ -3720,22 +3736,22 @@ static bool c_main_context_iterate (CMainContext* context, bool block, bool disp
         LOCK_CONTEXT (context);
     }
 
-    if (!context->cachedPollArray) {
+    if (NULL == context->cachedPollArray) {
         context->cachedPollArraySize = context->nPollRecords;
         context->cachedPollArray = c_malloc0(sizeof(CPollFD) * context->nPollRecords);
     }
 
-    allocated_nfds = context->cachedPollArraySize;
+    allocatedNfds = context->cachedPollArraySize;
     fds = context->cachedPollArray;
 
     UNLOCK_CONTEXT (context);
 
-    c_main_context_prepare (context, &max_priority);
+    c_main_context_prepare (context, &maxPriority);
 
-    while ((nfds = c_main_context_query (context, max_priority, &timeout, fds, allocated_nfds)) > allocated_nfds) {
+    while ((nfds = c_main_context_query (context, maxPriority, &timeout, fds, allocatedNfds)) > allocatedNfds) {
         LOCK_CONTEXT (context);
         c_free (fds);
-        context->cachedPollArraySize = allocated_nfds = nfds;
+        context->cachedPollArraySize = allocatedNfds = nfds;
         context->cachedPollArray = fds = c_malloc0(sizeof(CPollFD) * nfds);
         UNLOCK_CONTEXT (context);
     }
@@ -3744,8 +3760,8 @@ static bool c_main_context_iterate (CMainContext* context, bool block, bool disp
         timeout = 0;
     }
 
-    c_main_context_poll (context, timeout, max_priority, fds, nfds);
-    some_ready = c_main_context_check (context, max_priority, fds, nfds);
+    c_main_context_poll (context, timeout, maxPriority, fds, nfds);
+    someReady = c_main_context_check (context, maxPriority, fds, nfds);
 
     if (dispatch) {
         c_main_context_dispatch (context);
@@ -3755,27 +3771,26 @@ static bool c_main_context_iterate (CMainContext* context, bool block, bool disp
 
     LOCK_CONTEXT (context);
 
-    return some_ready;
+    return someReady;
 }
 
-static void c_main_context_poll (CMainContext* context, cint timeout, cint priority, CPollFD* fds, cint n_fds)
+static void c_main_context_poll (CMainContext* context, cint timeout, cint priority, CPollFD* fds, cint nFds)
 {
-    CPollFunc poll_func;
+    CPollFunc pollFunc;
 
-    if (n_fds || timeout != 0) {
+    if (nFds || timeout != 0) {
         int ret, errsv;
 
         LOCK_CONTEXT (context);
-
-        poll_func = context->pollFunc;
-
+        pollFunc = context->pollFunc;
         UNLOCK_CONTEXT (context);
-        ret = (*poll_func) (fds, n_fds, timeout);
+
+        ret = (*pollFunc) (fds, nFds, timeout);
         errsv = errno;
         if (ret < 0 && errsv != EINTR) {
             C_LOG_WARNING_CONSOLE("poll(2) failed due to: %s.", c_strerror (errsv));
         }
-    } /* if (n_fds || timeout != 0) */
+    }
 }
 
 

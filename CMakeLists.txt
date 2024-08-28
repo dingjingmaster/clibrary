@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.27)
+cmake_minimum_required(VERSION 3.10)
 project(clibrary LANGUAGES C CXX)
 
 set(PROJECT_VERSION_MAJOR 0)
@@ -36,6 +36,7 @@ enable_testing()
 find_package(PkgConfig)
 find_package(Qt5 COMPONENTS Core)
 
+pkg_check_modules(GIO REQUIRED gio-2.0)
 pkg_check_modules(GLIB REQUIRED glib-2.0)
 pkg_check_modules(QT_CORE REQUIRED Qt5Core)
 pkg_check_modules(GOBJECT REQUIRED gobject-2.0)

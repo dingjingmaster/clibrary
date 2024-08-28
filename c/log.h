@@ -75,26 +75,31 @@ C_STMT_START { \
 
 #define C_LOG_ERROR_CONSOLE(...) \
 C_STMT_START { \
+    C_LOG_INIT_IF_NOT_INIT; \
     c_log_print_console(C_LOG_LEVEL_ERROR, C_LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__); \
 } C_STMT_END
 
 #define C_LOG_CRIT_CONSOLE(...) \
 C_STMT_START { \
+    C_LOG_INIT_IF_NOT_INIT; \
     c_log_print_console(C_LOG_LEVEL_CRIT, C_LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__); \
 } C_STMT_END
 
 #define C_LOG_WARNING_CONSOLE(...) \
 C_STMT_START { \
+    C_LOG_INIT_IF_NOT_INIT; \
     c_log_print_console(C_LOG_LEVEL_WARNING, C_LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__); \
 } C_STMT_END
 
 #define C_LOG_INFO_CONSOLE(...) \
 C_STMT_START { \
+    C_LOG_INIT_IF_NOT_INIT; \
     c_log_print_console(C_LOG_LEVEL_INFO, C_LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__); \
 } C_STMT_END
 
 #define C_LOG_DEBUG_CONSOLE(...) \
 C_STMT_START { \
+    C_LOG_INIT_IF_NOT_INIT; \
     c_log_print_console(C_LOG_LEVEL_DEBUG, C_LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__); \
 } C_STMT_END
 
@@ -132,6 +137,7 @@ C_STMT_START { \
 
 #define C_LOG_RAW_CONSOLE(level, tag, file, line, fun, ...) \
 C_STMT_START { \
+    C_LOG_INIT_IF_NOT_INIT; \
     c_log_print_console(level, tag, file, line, fun, __VA_ARGS__); \
 } C_STMT_END
 

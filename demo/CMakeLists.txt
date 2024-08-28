@@ -7,6 +7,10 @@ target_link_libraries(demo-log PUBLIC clibrary-c)
 add_executable(demo-base64 demo-base64.c)
 target_link_libraries(demo-base64 PUBLIC clibrary-c)
 
+add_executable(demo-main-loop demo-main-loop.c)
+target_include_directories(demo-main-loop PUBLIC ${GLIB_INCLUDE_DIRS} ${GIO_INCLUDE_DIRS})
+target_link_libraries(demo-main-loop PUBLIC clibrary-c ${GLIB_LIBRARIES} ${GIO_LIBRARIES})
+
 add_executable(demo-bytes demo-bytes.c)
 target_link_libraries(demo-bytes PUBLIC clibrary-c)
 
