@@ -7,5 +7,5 @@ Name: clibrary-c
 Description: C Library
 Version: 0.7.6
 Requires:
-Libs: -L${libdir} -Wl,-Bstatic -lclibrary-c -Wl,-Bdynamic
+Libs: -Wl,-Bstatic -L${libdir} -l${libdir}/libclibrary-c.a -Wl,-Bshared
 Cflags: -I${includedir}/clibrary/
