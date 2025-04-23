@@ -49,6 +49,7 @@ cat << EOF > ${workDir}/dev-libs/clibrary/clibrary-${version}.ebuild
 
 EAPI=8
 
+IUSE="test"
 RESTRICT="fetch"
 DESCRIPTION="clibrary"
 HOMEPAGE="https://github.com/dingjingmaster/clibrary"
@@ -58,9 +59,17 @@ LICENSE="MIT"
 SLOT="0"
 KEYWORDS="~amd64"
 
+# 编译时需要的依赖
 DEPEND=""
-RDEPEND="\${DEPEND}"
-BDEPEND=""
+# 运行时需要的依赖
+RDEPEND=""
+# 构建工具依赖
+BDEPEND="
+	dev-build/cmake
+	virtual/pkgconfig
+"
+# 安装后推荐依赖
+PDEPEND=""
 
 export BASEDIR="\`pwd\`/.."
 export WORKDIR="\${BASEDIR}/work"
@@ -110,6 +119,7 @@ src_compile() {
 
 src_test() {
         elog "Start test ..."
+		make -C "\${BUILDDIR}" test || die "test error!"
 }
 
 src_install() {

@@ -67,8 +67,6 @@ int main (C_UNUSED int argc, C_UNUSED char* argv[])
     c_test_str_equal("10.000000", c_ascii_formatd(buf, sizeof(buf) - 1, "%f", 10));
     c_test_str_equal(NULL, c_ascii_formatd(buf, sizeof(buf) - 1, "%d", 10));
 
-//    c_printf ("%s", "c_printf\n");
-
     char* str22 = "  abcdef";
     char* str23 = "  abcdef  ";
     char* str24 = " ABCD ";
@@ -90,23 +88,23 @@ int main (C_UNUSED int argc, C_UNUSED char* argv[])
     c_test_double (10, c_strtod ("10adasdas", NULL));
 
     // split
-    c_printf("split...\n");
+    // c_printf("split...\n");
     char* str31 = "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z";
     char* str32 = "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z";
 
     char** str331 = c_strsplit(str31, ",", -1);
     c_test_true(NULL != str331, "malloc");
     int idx = 0;
-    for (idx = 0; str331[idx]; ++idx) {
-        c_printf("%d -- %s\n", idx, str331[idx]);
-    }
+    // for (idx = 0; str331[idx]; ++idx) {
+        // c_printf("%d -- %s\n", idx, str331[idx]);
+    // }
     c_strfreev(str331);
 
     char** str332 = c_strsplit(str32, ",", 2);
     c_test_true(NULL != str332, "malloc");
-    for (idx = 0; str332[idx]; ++idx) {
-        c_printf("%d -- %s\n", idx, str332[idx]);
-    }
+    // for (idx = 0; str332[idx]; ++idx) {
+        // c_printf("%d -- %s\n", idx, str332[idx]);
+    // }
     c_strfreev(str332);
 
     return c_test_result();

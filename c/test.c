@@ -42,11 +42,23 @@ double c_test_get_seconds()
 void c_test_print(CTestStatus status, const char *format, ...)
 {
     char message[4096];
+    const int msgLen = (int) sizeof(message) - 1;
 
     va_list args;
     va_start(args, format);
-    vsnprintf(message, sizeof (message) - 1, format, args);
+    vsnprintf(message, msgLen, format, args);
     va_end(args);
+
+    for (int i = 0; i < msgLen; i++) {
+        if (message[i] == '\n') {
+            for (int j = msgLen - 1; j > i; --j) {
+                message[j] = message[j - 1];
+            }
+            message[i] = '\\';
+            message[i + 1] = 'n';
+            ++i;
+        }
+    }
 
     (status == C_TEST_SUCCESS) ? ++gsSuccess : ++gsFailed;
 
