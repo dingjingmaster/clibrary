@@ -900,6 +900,9 @@ C_STMT_START \
 } \
 C_STMT_END
 
+#define c_assert_cmpint(n1, cmp, n2)
+#define c_ignore_leak(p)
+
 #define c_assert_not_reached() \
 C_STMT_START \
 { \

@@ -77,6 +77,9 @@ file(GLOB C_SRC
         ${CMAKE_SOURCE_DIR}/c/wakeup.h
         ${CMAKE_SOURCE_DIR}/c/wakeup.c
 
+        ${CMAKE_SOURCE_DIR}/c/variant.h
+        ${CMAKE_SOURCE_DIR}/c/variant.c
+
         ${CMAKE_SOURCE_DIR}/c/charset.h
         ${CMAKE_SOURCE_DIR}/c/charset.c
 
