@@ -14,8 +14,9 @@ packageName="clibrary-${version}.tar.gz"
 
 [[ -d "${workDir}" ]] && rm -rf "${workDir}"
 [[ ! -d "${workDir}" ]] && mkdir -p "${workDir}"
-[[ -d ${workDir}/dev-libs ]] && rm -rf "${workDir}/dev-libs"
-[[ ! -d ${workDir}/dev-libs ]] && mkdir -p "${workDir}/dev-libs"
+[[ ! -d ${workDir}/metadata ]] && mkdir -p "${workDir}/metadata"
+[[ ! -d ${workDir}/profiled ]] && mkdir -p "${workDir}/profiles"
+[[ ! -d ${workDir}/dev-libs/clibrary ]] && mkdir -p "${workDir}/dev-libs/clibrary"
 
 sed -i -E "s/^set\(PROJECT_VERSION_MAJOR\ [0-9]+\)$/set\(PROJECT_VERSION_MAJOR\ ${versionMajor}\)/" \
     "${curDir}/CMakeLists.txt"
@@ -23,38 +24,56 @@ sed -i -E "s/^set\(PROJECT_VERSION_MINOR\ [0-9]+\)$/set\(PROJECT_VERSION_MINOR\ 
     "${curDir}/CMakeLists.txt"
 sed -i -E "s/^set\(PROJECT_VERSION_PATCH\ [0-9]+\)$/set\(PROJECT_VERSION_PATCH\ ${versionPatch}\)/" \
     "${curDir}/CMakeLists.txt"
-sed -i -E "s/^set\(PROJECT_VERSION_TWEAK\ [0-9]+\)$/set\(PROJECT_VERSION_TWEAK\ ${versionTweak}\)/" \
-    "${curDir}/CMakeLists.txt"
 
-tar cf "${packageName}" ./c ./data ./demo ./test ./Makefile ./CMakeLists.txt ./LICENSE ./README.md
+tar zcf "${packageName}" ./c ./data ./demo ./test ./Makefile ./CMakeLists.txt ./LICENSE ./README.md
 [[ -f "./${packageName}" ]] && mv "./${packageName}" "${workDir}"
 [[ -f "${workDir}/${packageName}" ]] && packageMD5=$(sha512sum "${workDir}/${packageName}" | awk '{print $1}')
+#/var/tmp/portage/dev-libs/clibrary-0.2.0/distdir/clibrary-0.2.0.tar.gz
+#[[ ! -f "/var/tmp/portage" ]]
+sudo cp ${workDir}/${packageName} /var/cache/distfiles/
 
-cat << EOF > ${workDir}/dev-libs/clibrary-${version}.ebuild
+cat << EOF > ${workDir}/metadata/layout.conf
+masters = gentoo
+EOF
+
+cat << EOF > ${workDir}/profiles/eapi
+8
+EOF
+
+cat << EOF > ${workDir}/profiles/repo_name
+local-gentoo-clibrary
+EOF
+
+cat << EOF > ${workDir}/dev-libs/clibrary/clibrary-${version}.ebuild
 # Maintainer: dingjing <dingjing@live.cn>
 
 EAPI=8
 
+RESTRICT="fetch"
 DESCRIPTION="clibrary"
 HOMEPAGE="https://github.com/dingjingmaster/clibrary"
+SRC_URI="${packageName}"
 
 LICENSE="MIT"
 SLOT="0"
 KEYWORDS="~amd64"
 
 DEPEND=""
-RDEPEND="${DEPEND}"
+RDEPEND="\${DEPEND}"
 BDEPEND=""
 
-export BASEDIR="`pwd`/.."
-export WORKDIR="${BASEDIR}/work"
-export BUILDDIR="${WORKDIR}/build/"
-export SRCDIR="${WORKDIR}/data-analysis-${PV}"
+export BASEDIR="\`pwd\`/.."
+export WORKDIR="\${BASEDIR}/work"
+export BUILDDIR="\${WORKDIR}/build/"
+export SRCDIR="\${WORKDIR}/clibrary-\${PV}"
+
+#CMAKE_MAKEFILE_GENERATOR="makefiles"
+#inherit cmake
 
 pkg_pretend() {
-        elog "BASEDIR   :       ${BASEDIR}"
-        elog "BUILDDIR  :       ${BUILDDIR}"
-        elog "SRCDIR    :       ${SRCDIR}"
+        elog "BASEDIR   :       \${BASEDIR}"
+        elog "BUILDDIR  :       \${BUILDDIR}"
+        elog "SRCDIR    :       \${SRCDIR}"
         elog "Pretent ..."
 }
 
@@ -65,7 +84,11 @@ pkg_setup() {
 src_unpack() {
         elog "Unpacking ..."
         default
-        mv "${WORKDIR}/clibrary-${PV}" "${WORKDIR}/clibrary-${PV}"
+		elog "Move from \${WORKDIR}/clibrary-\${PV} To \${WORKDIR}/clibrary-\${PV}"
+		mv \${WORKDIR} \${WORKDIR}.bak
+		[[ ! -d "\${WORKDIR}/" ]] && mkdir -p "\${WORKDIR}/"
+		mv \${WORKDIR}.bak \${WORKDIR}/../clibrary-\${PV}
+		mv \${WORKDIR}/../clibrary-\${PV} \${WORKDIR}/clibrary-\${PV}
 }
 
 src_prepare() {
@@ -75,14 +98,14 @@ src_prepare() {
 
 src_configure() {
         elog "Configure ..."
-        cd "${WORKDIR}/clibrary-${PV}" 
-        mkdir -p ${BUILDDIR}
-        cmake -B "${BUILDDIR}" "${SRCDIR}" 
+        cd "\${WORKDIR}/" 
+        mkdir -p \${BUILDDIR}
+        cmake -DCMAKE_INSTALL_PREFIX=/usr/ -B "\${BUILDDIR}" "\${SRCDIR}" 
 }
 
 src_compile() {
         elog "Start compile ..."
-        make -C "${BUILDDIR}" -j$(nproc)
+        make -C "\${BUILDDIR}" -j\$(nproc)
 }
 
 src_test() {
@@ -91,7 +114,8 @@ src_test() {
 
 src_install() {
         elog "Start Install ..."
-#        install -Dm 0555 "${BUILDDIR}/app/data-analysis" "${D}${bindir}/bin/data-analysis"
+		cd "\${BUILDDIR}/"
+		DESTDIR="\${D}" make -C \${BUILDDIR} install
 }
 
 pkg_preinst() {
@@ -105,5 +129,8 @@ pkg_postinst() {
 EOF
 
 cd "${workDir}"
+ebuild dev-libs/clibrary/clibrary-${version}.ebuild digest
+#sudo ebuild dev-libs/clibrary/clibrary-${version}.ebuild package
+sudo ebuild dev-libs/clibrary/clibrary-${version}.ebuild merge
 cd "${curDir}"
 
