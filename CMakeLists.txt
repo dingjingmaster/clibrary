@@ -9,10 +9,6 @@ set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 11)
 
-#set(CMAKE_AUTOUIC ON)
-#set(CMAKE_AUTOMOC ON)
-#set(CMAKE_AUTORCC ON)
-
 if (NOT CMAKE_BUILD_TYPE)
     set (CMAKE_BUILD_TYPE "Debug" FORCE)
 endif ()
@@ -28,22 +24,13 @@ elseif (CMAKE_BUILD_TYPE STREQUAL "Debug")
 endif ()
 
 include_directories(${CMAKE_SOURCE_DIR})
-add_definitions(-DQT_NO_KEYWORDS -DQT_MESSAGELOGCONTEXT -D__CLIB_H_INSIDE__ -DPACKAGE_NAME=\"clib\")
+add_definitions(-D__CLIB_H_INSIDE__ -DPACKAGE_NAME=\"clib\")
 
 enable_testing()
 
 find_package(PkgConfig)
-#find_package(Qt5 COMPONENTS Core)
-#
-#pkg_check_modules(GIO REQUIRED gio-2.0)
-#pkg_check_modules(GLIB REQUIRED glib-2.0)
-#pkg_check_modules(QT_CORE REQUIRED Qt5Core)
-#pkg_check_modules(GOBJECT REQUIRED gobject-2.0)
 
 add_subdirectory(c)
-#add_subdirectory(qt5)
-#add_subdirectory(glib)
-#add_subdirectory(demo)
 add_subdirectory(test)
 
 include(data/data.cmake)
