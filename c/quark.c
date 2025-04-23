@@ -13,10 +13,10 @@
 
 #include "quark.h"
 
-#include "c/hash-table.h"
-#include "c/thread.h"
 #include "str.h"
 #include "atomic.h"
+#include "c/thread.h"
+#include "c/hash-table.h"
 
 #define QUARK_BLOCK_SIZE            2048
 #define QUARK_STRING_BLOCK_SIZE     (4096 - sizeof (csize))

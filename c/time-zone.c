@@ -18,11 +18,11 @@
 
 #include "str.h"
 #include "date.h"
-#include "hash-table.h"
 #include "bytes.h"
 #include "thread.h"
 #include "atomic.h"
 #include "file-utils.h"
+#include "hash-table.h"
 #include "mapped-file.h"
 
 #define TRANSITION(n)         c_array_index (tz->transitions, Transition, n)

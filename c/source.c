@@ -24,14 +24,14 @@
 
 #include "log.h"
 #include "str.h"
-#include "hash-table.h"
 #include "hook.h"
 #include "queue.h"
 #include "error.h"
+#include "timer.h"
 #include "thread.h"
 #include "atomic.h"
-#include "timer.h"
 #include "wakeup.h"
+#include "hash-table.h"
 
 #ifndef W_STOPCODE
 #define W_STOPCODE(sig)      ((sig) << 8 | 0x7f)
