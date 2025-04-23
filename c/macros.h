@@ -364,14 +364,8 @@ typedef struct _CError                  CError;
 typedef struct _CSList                  CSList;
 typedef struct _CBytes                  CBytes;
 typedef struct _CString                 CString;
-typedef struct _CSource                 CSource;
 typedef struct stat                     CStatBuf;
 typedef struct _CTimeVal                CTimeVal;
-typedef struct _CMainLoop               CMainLoop;
-typedef struct _CMainContext            CMainContext;
-typedef struct _CSourceFuncs            CSourceFuncs;
-typedef struct _CSourcePrivate          CSourcePrivate;
-typedef struct _CSourceCallbackFuncs    CSourceCallbackFuncs;
 
 
 typedef cint            (*CCompareFunc)         (void* data1, void* data2);
@@ -387,57 +381,6 @@ typedef void            (*CHFunc)               (void* key, void* value, void* u
 typedef void*           (*CCopyFunc)            (const void* src, void* udata);
 typedef void            (*CFreeFunc)            (void* data);
 typedef const char*     (*CTranslateFunc)       (const char* str, void* udata);
-typedef bool            (*CUnixFDSourceFunc)    (cint fd, CIOCondition condition, void* udata);
-typedef bool            (*CSourceFunc)          (void* udata);
-typedef void            (*CSourceOnceFunc)      (void* udata);
-typedef void            (*CChildWatchFunc)      (CPid pid, cint waitStatus, void* udata);
-typedef void            (*CSourceDisposeFunc)   (CSource* source);
-typedef void            (*CSourceDummyMarshal)  (void);
-
-
-struct _CSource
-{
-    /*< private >*/
-    void*                           callbackData;
-    CSourceCallbackFuncs*           callbackFuncs;
-    const CSourceFuncs*             sourceFuncs;
-    cuint                           refCount;
-
-    CMainContext*                   context;
-
-    cint                            priority;
-    cuint                           flags;
-    cuint                           sourceId;
-
-    CSList*                         pollFds;
-
-    CSource*                        prev;
-    CSource*                        next;
-
-    char*                           name;
-
-    CSourcePrivate*                 priv;
-};
-
-struct _CSourceCallbackFuncs
-{
-    void (*ref)   (void* cbData);
-    void (*unref) (void* cbData);
-    void (*get)   (void* cbData, CSource* source, CSourceFunc* func, void** data);
-};
-
-struct _CSourceFuncs
-{
-    bool (*prepare)  (CSource* source, cint* timeout_); // Can be NULL
-    bool (*check)    (CSource* source); // Can be NULL
-    bool (*dispatch) (CSource* source, CSourceFunc callback, void* udata);
-    void (*finalize) (CSource* source); // Can be NULL
-
-    /*< private >*/
-    /* For use by g_source_set_closure */
-    CSourceFunc             closureCallback;
-    CSourceDummyMarshal     closureMarshal; /* Really is of type GClosureMarshal */
-};
 
 
 /********************************* 汉化 *****************************************/

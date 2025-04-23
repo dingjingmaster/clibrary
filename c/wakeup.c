@@ -12,13 +12,14 @@
 //
 
 #include "wakeup.h"
-#include "error.h"
+
 #include "log.h"
-#include "source.h"
+#include "error.h"
+#include "utils.h"
 
 #include <fcntl.h>
-#include <sys/eventfd.h>
 #include <unistd.h>
+#include <sys/eventfd.h>
 
 
 struct _CWakeup

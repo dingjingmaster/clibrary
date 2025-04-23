@@ -22,10 +22,10 @@
 
 #include "log.h"
 #include "str.h"
+#include "utils.h"
 #include "timer.h"
 #include "thread.h"
 #include "macros.h"
-#include "source.h"
 #include "file-utils.h"
 
 #ifndef GETTEXT_PACKAGE
