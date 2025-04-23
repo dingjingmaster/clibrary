@@ -23,6 +23,8 @@
 
 C_BEGIN_EXTERN_C
 
+#define C_UNIX_ERROR (c_unix_error_quark())
+
 typedef struct _CError              CError;
 
 struct _CError
@@ -95,6 +97,7 @@ void        c_prefix_error                  (CError** err, const char* format, .
 void        c_prefix_error_literal          (CError** err, const char* prefix);
 void        c_propagate_prefixed_error      (CError** dest, CError* src, const char* format, ...) C_PRINTF (3, 4);
 
+CQuark      c_unix_error_quark              (void);
 
 C_END_EXTERN_C
 

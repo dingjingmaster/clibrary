@@ -336,38 +336,6 @@ CSourceFuncs c_idle_funcs =
         NULL, NULL, NULL
     };
 
-bool c_unix_open_pipe (cint* fds, cint flags, CError** error)
-{
-    int eCode;
-
-    c_return_val_if_fail ((flags & (FD_CLOEXEC)) == flags, false);
-
-    eCode = pipe (fds);
-    if (eCode == -1) {
-        return c_unix_set_error_from_errno (error, errno);
-    }
-
-    if (flags == 0) {
-        return true;
-    }
-
-    eCode = fcntl (fds[0], F_SETFD, flags);
-    if (eCode == -1) {
-        int savedErrno = errno;
-        close (fds[0]);
-        close (fds[1]);
-        return c_unix_set_error_from_errno (error, savedErrno);
-    }
-    eCode = fcntl (fds[1], F_SETFD, flags);
-    if (eCode == -1) {
-        int savedErrno = errno;
-        close (fds[0]);
-        close (fds[1]);
-        return c_unix_set_error_from_errno (error, savedErrno);
-    }
-
-    return true;
-}
 
 bool c_unix_set_fd_nonblocking (cint fd, bool nonblock, CError** error)
 {

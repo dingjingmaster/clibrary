@@ -13,6 +13,8 @@
 
 #include "error.h"
 
+C_DEFINE_QUARK (c-unix-error-quark, c_unix_error)
+
 CQuark c_error_domain_register_static (const char* errorTypeName, csize errorTypePrivateSize, CErrorInitFunc errorTypeInit, CErrorCopyFunc errorTypeCopy, CErrorClearFunc errorTypeClear)
 {}
 

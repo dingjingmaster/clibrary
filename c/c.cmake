@@ -59,9 +59,6 @@ file(GLOB C_SRC
         ${CMAKE_SOURCE_DIR}/c/global.h
         ${CMAKE_SOURCE_DIR}/c/global.c
 
-        ${CMAKE_SOURCE_DIR}/c/source.h
-        ${CMAKE_SOURCE_DIR}/c/source.c
-
         ${CMAKE_SOURCE_DIR}/c/thread.h
         ${CMAKE_SOURCE_DIR}/c/thread.c
 
@@ -129,7 +126,6 @@ file(GLOB C_HEADERS
         ${CMAKE_SOURCE_DIR}/c/rcbox.h
         ${CMAKE_SOURCE_DIR}/c/quark.h
         ${CMAKE_SOURCE_DIR}/c/option.h
-        ${CMAKE_SOURCE_DIR}/c/source.h
         ${CMAKE_SOURCE_DIR}/c/thread.h
         ${CMAKE_SOURCE_DIR}/c/atomic.h
         ${CMAKE_SOURCE_DIR}/c/base64.h

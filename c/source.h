@@ -46,7 +46,7 @@ extern CSourceFuncs c_unix_signal_funcs;
 extern CSourceFuncs c_unix_fd_source_funcs;
 
 
-#define C_UNIX_ERROR (c_unix_error_quark())
+// #define C_UNIX_ERROR (c_unix_error_quark())
 CQuark          c_unix_error_quark          (void);
 bool            c_unix_open_pipe            (cint* fds, cint flags, CError** error);
 bool            c_unix_set_fd_nonblocking   (cint fd, bool nonblock, CError** error);

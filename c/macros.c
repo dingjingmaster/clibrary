@@ -580,31 +580,6 @@ void c_clear_pointer (void** pp, CDestroyNotify destroy)
     }
 }
 
-cint64 c_get_monotonic_time (void)
-{
-    struct timespec ts;
-    cint result;
-
-    result = clock_gettime (CLOCK_MONOTONIC, &ts);
-
-    if C_UNLIKELY (result != 0) {
-        C_LOG_ERROR_CONSOLE("CLib requires working CLOCK_MONOTONIC");
-    }
-
-    return (((cint64) ts.tv_sec) * 1000000) + (ts.tv_nsec / 1000);
-}
-
-cint64 c_get_real_time (void)
-{
-    struct timeval r;
-
-    /* this is required on alpha, there the timeval structs are ints
-     * not longs and a cast only would fail horribly */
-    gettimeofday (&r, NULL);
-
-    return (((cint64) r.tv_sec) * 1000000) + r.tv_usec;
-}
-
 int c_access (const char* filename, int mode)
 {
     return access (filename, mode);

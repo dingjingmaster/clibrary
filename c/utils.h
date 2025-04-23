@@ -23,6 +23,13 @@
 
 C_BEGIN_EXTERN_C
 
+static inline int c_steal_fd (int* fdPtr)
+{
+    int fd = *fdPtr;
+    *fdPtr = -1;
+    return fd;
+}
+
 const char* c_get_tmp_dir       (void);
 const char* c_get_prgname       (void);
 //const char* c_get_home_dir (void);
@@ -47,6 +54,13 @@ void c_print (const cchar *format, ...);
  * @return 成功返回 0，否则返回错误码
  */
 int c_drop_permissions (void);
+
+cint64          c_get_monotonic_time                (void);
+cint64          c_get_real_time                     (void);
+
+bool            c_unix_set_fd_nonblocking           (cint fd, bool nonblock, CError** error);
+bool            c_unix_open_pipe                    (cint* fds, cint flags, CError** error);
+
 
 C_END_EXTERN_C
 

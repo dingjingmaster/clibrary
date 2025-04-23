@@ -15,6 +15,7 @@
 
 #include <sys/stat.h>
 #include <sys/file.h>
+#include <sys/time.h>
 
 #include "clib.h"
 
@@ -22,6 +23,14 @@
 
 static void print_string (FILE* stream, const cchar* str);
 static cchar* strdup_convert (const cchar *string, const cchar *charset);
+
+static bool c_unix_set_error_from_errno (CError** error, int savedErrno)
+{
+    c_set_error_literal (error, C_UNIX_ERROR, 0, c_strerror (savedErrno));
+    errno = savedErrno;
+
+    return false;
+}
 
 static char* gsTmpDir = NULL;
 C_LOCK_DEFINE_STATIC (gsUtilsLocker);
@@ -215,4 +224,92 @@ static cchar* strdup_convert (const cchar *str, const cchar *charset)
             return c_strdup (str);
         }
     }
+}
+
+cint64 c_get_monotonic_time (void)
+{
+    struct timespec ts;
+    cint result;
+
+    result = clock_gettime (CLOCK_MONOTONIC, &ts);
+
+    if C_UNLIKELY (result != 0) {
+        C_LOG_ERROR_CONSOLE("CLib requires working CLOCK_MONOTONIC");
+    }
+
+    return (((cint64) ts.tv_sec) * 1000000) + (ts.tv_nsec / 1000);
+}
+
+cint64 c_get_real_time (void)
+{
+    struct timeval r;
+
+    gettimeofday (&r, NULL);
+
+    return (((cint64) r.tv_sec) * 1000000) + r.tv_usec;
+}
+
+bool c_unix_set_fd_nonblocking (cint fd, bool nonblock, CError** error)
+{
+#ifdef F_GETFL
+    clong fcntlFlags = fcntl (fd, F_GETFL);
+    if (fcntlFlags == -1) {
+        return c_unix_set_error_from_errno (error, errno);
+    }
+
+    if (nonblock) {
+#ifdef O_NONBLOCK
+        fcntlFlags |= O_NONBLOCK;
+#else
+        fcntlFlags |= O_NDELAY;
+#endif
+    }
+    else {
+#ifdef O_NONBLOCK
+        fcntlFlags &= ~O_NONBLOCK;
+#else
+        fcntlFlags &= ~O_NDELAY;
+#endif
+    }
+
+    if (fcntl (fd, F_SETFL, fcntlFlags) == -1) {
+        return c_unix_set_error_from_errno (error, errno);
+    }
+    return true;
+#else
+    return c_unix_set_error_from_errno (error, EINVAL);
+#endif
+}
+
+bool c_unix_open_pipe (cint* fds, cint flags, CError** error)
+{
+    int eCode;
+
+    c_return_val_if_fail ((flags & (FD_CLOEXEC)) == flags, false);
+
+    eCode = pipe (fds);
+    if (eCode == -1) {
+        return c_unix_set_error_from_errno (error, errno);
+    }
+
+    if (flags == 0) {
+        return true;
+    }
+
+    eCode = fcntl (fds[0], F_SETFD, flags);
+    if (eCode == -1) {
+        int savedErrno = errno;
+        close (fds[0]);
+        close (fds[1]);
+        return c_unix_set_error_from_errno (error, savedErrno);
+    }
+    eCode = fcntl (fds[1], F_SETFD, flags);
+    if (eCode == -1) {
+        int savedErrno = errno;
+        close (fds[0]);
+        close (fds[1]);
+        return c_unix_set_error_from_errno (error, savedErrno);
+    }
+
+    return true;
 }
