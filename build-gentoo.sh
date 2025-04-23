@@ -55,8 +55,8 @@ DESCRIPTION="clibrary"
 HOMEPAGE="https://github.com/dingjingmaster/clibrary"
 SRC_URI="${packageName}"
 
-LICENSE="MIT"
 SLOT="0"
+LICENSE="MIT"
 KEYWORDS="~amd64"
 
 # 编译时需要的依赖
@@ -141,6 +141,6 @@ EOF
 cd "${workDir}"
 ebuild dev-libs/clibrary/clibrary-${version}.ebuild digest
 #sudo ebuild dev-libs/clibrary/clibrary-${version}.ebuild package
-sudo ebuild dev-libs/clibrary/clibrary-${version}.ebuild merge
+sudo FEATURES="test" ebuild dev-libs/clibrary/clibrary-${version}.ebuild merge
 cd "${curDir}"
 
