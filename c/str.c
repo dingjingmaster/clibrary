@@ -835,7 +835,7 @@ char* c_strndup (const char* str, cuint64 n)
     char* newStr = NULL;
     if (str) {
         c_malloc_type(newStr, char, n + 1);
-        strncpy (newStr, str, n);
+        strncpy(newStr, str, n);
         newStr[n] = '\0';
     }
 
