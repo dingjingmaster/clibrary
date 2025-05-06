@@ -65,6 +65,16 @@ struct _CVariantMemberInfo
     cuint8 ending_type;
 };
 
+typedef struct
+{
+    CVariantTypeInfo *type_info;
+    cuchar           *data;
+    csize             size;
+    csize             depth;  /* same semantics as GVariant.depth */
+    csize             ordered_offsets_up_to;
+    csize             checked_offsets_up_to;
+} CVariantSerialised;
+
 
 /**
  * @brief
@@ -214,6 +224,10 @@ struct _CVariantMemberInfo
 
 #define C_VARIANT_MAX_RECURSION_DEPTH       ((csize) 128)
 
+
+typedef void                (*CVariantSerialisedFiller)             (CVariantSerialised* serialised, void* data);
+
+
 bool                        c_variant_type_string_is_valid          (const cchar* typeStr) C_CONST;
 bool                        c_variant_type_string_scan              (const cchar* str, const cchar* limit, const cchar** endPtr);
 void                        c_variant_type_free                     (CVariantType* type);
@@ -276,7 +290,6 @@ CVariantTypeInfo*           c_variant_type_info_ref                 (CVariantTyp
 void                        c_variant_type_info_unref               (CVariantTypeInfo* typeinfo);
 void                        c_variant_type_info_assert_no_infos     (void);
 
-CVariantTypeInfo*           c_variant_get_type_info                 (CVariant* value);
 
 void                    c_variant_unref                     (CVariant* value);
 CVariant*               c_variant_ref                       (CVariant* value);
@@ -471,7 +484,23 @@ CVariant*               c_variant_dict_end                  (CVariantDict* dict)
 CVariantDict*           c_variant_dict_ref                  (CVariantDict* dict);
 void                    c_variant_dict_unref                (CVariantDict* dict);
 
+// Core
+CVariantTypeInfo*       c_variant_get_type_info             (CVariant* value);
+bool                    c_variant_is_trusted                (CVariant* value);
+csize                   c_variant_get_depth                 (CVariant* value);
+CVariant*               c_variant_maybe_get_child_value     (CVariant *value, csize index_);
+CVariant*               c_variant_new_take_bytes            (const CVariantType* type, CBytes* bytes, bool trusted);
+CVariant*               c_variant_new_preallocated_trusted  (const CVariantType* type, const void* data, csize size);
+CVariant*               c_variant_new_from_children         (const CVariantType* type, CVariant** children, csize n_children, bool trusted);
 
+// serialiser
+bool                    c_variant_serialised_check          (CVariantSerialised serialised);
+csize                   c_variant_serialised_n_children     (CVariantSerialised serialised);
+CVariantSerialised      c_variant_serialised_get_child      (CVariantSerialised serialised, csize index_);
+void                    c_variant_serialiser_serialise      (CVariantSerialised serialised, CVariantSerialisedFiller gvs_filler, const void** children, csize n_children);
+csize                   c_variant_serialiser_needed_size    (CVariantTypeInfo* type_info, CVariantSerialisedFiller gvs_filler, const void** children, csize n_children);
+void                    c_variant_serialised_byteswap       (CVariantSerialised serialised);
+bool                    c_variant_serialised_is_normal (CVariantSerialised serialised);
 
 C_END_EXTERN_C
 

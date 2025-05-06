@@ -48,6 +48,39 @@
         return data != NULL ? *data : 0; \
     }
 
+#define DISPATCH_FIXED(type_info, before, after) \
+    { \
+        csize fixed_size; \
+        c_variant_type_info_query_element (type_info, NULL, &fixed_size); \
+        if (fixed_size) { \
+            before ## fixed_sized ## after \
+        } \
+        else { \
+            before ## variable_sized ## after \
+        } \
+    }
+
+#define DISPATCH_CASES(type_info, before, after) \
+    switch (c_variant_type_info_get_type_char (type_info))        \
+    {                                                           \
+      case C_VARIANT_TYPE_INFO_CHAR_MAYBE:                      \
+        DISPATCH_FIXED (type_info, before, _maybe ## after)     \
+                                                                \
+      case C_VARIANT_TYPE_INFO_CHAR_ARRAY:                      \
+        DISPATCH_FIXED (type_info, before, _array ## after)     \
+                                                                \
+      case C_VARIANT_TYPE_INFO_CHAR_DICT_ENTRY:                 \
+      case C_VARIANT_TYPE_INFO_CHAR_TUPLE:                      \
+        {                                                       \
+          before ## tuple ## after                              \
+        }                                                       \
+                                                                \
+      case C_VARIANT_TYPE_INFO_CHAR_VARIANT:                    \
+        {                                                       \
+          before ## variant ## after                            \
+        }                                                       \
+    }
+
 struct _CVariant
 {
     CVariantTypeInfo *type_info;
@@ -109,6 +142,17 @@ typedef struct
     csize n_members;
 } TupleInfo;
 
+struct Offsets
+{
+    csize     data_size;
+
+    cuchar   *array;
+    csize     length;
+    cuint     offset_size;
+
+    bool  is_normal;
+};
+
 /* == array == */
 #define CV_ARRAY_INFO_CLASS 'a'
 static void array_info_free (CVariantTypeInfo *info);
@@ -148,8 +192,46 @@ static CVariantType* c_variant_type_new_tuple_slow (const CVariantType * const *
 static bool variant_type_string_scan_internal(const cchar *string, const cchar *limit, const cchar **endPtr,
                                               csize *depth, csize depth_limit);
 
+static cuint cvs_get_offset_size (csize size);
+static bool cvs_tuple_is_normal (CVariantSerialised value);
+static csize cvs_tuple_n_children (CVariantSerialised value);
+static csize cvs_calculate_total_size (csize body_size, csize offsets);
+static bool cvs_fixed_sized_array_is_normal (CVariantSerialised value);
+static bool cvs_fixed_sized_maybe_is_normal (CVariantSerialised value);
+static csize cvs_fixed_sized_maybe_n_children (CVariantSerialised value);
+static csize cvs_fixed_sized_array_n_children (CVariantSerialised value);
+static csize cvs_offsets_get_offset_n (struct Offsets *offsets, csize n);
+static bool cvs_variable_sized_array_is_normal (CVariantSerialised value);
+static bool cvs_variable_sized_maybe_is_normal (CVariantSerialised value);
+static csize cvs_variable_sized_array_n_children (CVariantSerialised value);
+static csize cvs_variable_sized_maybe_n_children (CVariantSerialised value);
+static CVariantSerialised cvs_tuple_get_child (CVariantSerialised value, csize index_);
+static struct Offsets cvs_variable_sized_array_get_frame_offsets (CVariantSerialised value);
+static CVariantSerialised cvs_fixed_sized_maybe_get_child (CVariantSerialised value, csize index_);
+static CVariantSerialised cvs_fixed_sized_array_get_child (CVariantSerialised value, csize index_);
+static CVariantSerialised cvs_variable_sized_array_get_child (CVariantSerialised value, csize index_);
+static CVariantSerialised cvs_variable_sized_maybe_get_child (CVariantSerialised value, csize index_);
+static void cvs_tuple_serialise (CVariantSerialised value, CVariantSerialisedFiller gvs_filler, const void** children, csize n_children);
+static csize cvs_tuple_needed_size (CVariantTypeInfo* type_info, CVariantSerialisedFiller gvs_filler, const void** children, csize n_children);
+static void cvs_tuple_get_member_bounds (CVariantSerialised value, csize index_, csize offset_size, csize* out_member_start, csize* out_member_end);
+static void cvs_variable_sized_array_serialise (CVariantSerialised value, CVariantSerialisedFiller gvs_filler, const void** children, csize n_children);
+static csize cvs_variable_sized_array_needed_size (CVariantTypeInfo* type_info, CVariantSerialisedFiller gvs_filler, const void** children, csize n_children);
+static void cvs_fixed_sized_array_serialise (CVariantSerialised value, CVariantSerialisedFiller gvs_filler, const void** children, csize n_children);
+static void cvs_fixed_sized_maybe_serialise (CVariantSerialised value, CVariantSerialisedFiller gvs_filler, const void** children, csize n_children);
+static void cvs_variable_sized_maybe_serialise (CVariantSerialised value, CVariantSerialisedFiller gvs_filler, const void** children, csize n_children);
+static csize cvs_fixed_sized_array_needed_size (CVariantTypeInfo* type_info, CVariantSerialisedFiller gvs_filler, const void** children, csize n_children);
+static csize cvs_fixed_sized_maybe_needed_size (CVariantTypeInfo* type_info, CVariantSerialisedFiller gvs_filler, const void** children, csize n_children);
+static csize cvs_variable_sized_maybe_needed_size (CVariantTypeInfo* type_info, CVariantSerialisedFiller gvs_filler, const void** children, csize n_children);
+
 static void c_variant_lock (CVariant *value);
 static void c_variant_unlock (CVariant *value);
+static void c_variant_ensure_size (CVariant *value);
+static void c_variant_release_children (CVariant *value);
+static void c_variant_ensure_serialised (CVariant *value);
+static void c_variant_fill_gvs (CVariantSerialised*, void*);
+static void c_variant_serialise (CVariant *value, void* data);
+static CVariant* c_variant_alloc (const CVariantType* type, bool serialised, bool trusted, csize suffix_size);
+
 
 static const char c_variant_type_info_basic_chars[24][2] = {
     "b", " ", "d", " ", " ", "g", "h", "i", " ", " ", " ", " ",
@@ -190,6 +272,144 @@ static const CVariantTypeInfo c_variant_type_info_basic_table[24] = {
   #undef unaligned
   #undef aligned
 };
+
+inline static CVariantSerialised c_variant_to_serialised (CVariant *value)
+{
+    c_assert (value->state & STATE_SERIALISED);
+    {
+        CVariantSerialised serialised = {
+            value->type_info,
+            (void*) value->contents.serialised.data,
+            value->size,
+            value->depth,
+            value->contents.serialised.ordered_offsets_up_to,
+            value->contents.serialised.checked_offsets_up_to,
+        };
+        return serialised;
+    }
+}
+
+static inline csize cvs_read_unaligned_le (cuchar* bytes, cuint size)
+{
+    union {
+        cuchar bytes[CLIB_SIZEOF_SIZE_T];
+        csize integer;
+    } tmpvalue;
+
+    tmpvalue.integer = 0;
+    if (bytes != NULL) {
+        memcpy (&tmpvalue.bytes, bytes, size);
+    }
+
+    return C_SIZE_FROM_LE (tmpvalue.integer);
+}
+
+static inline void cvs_write_unaligned_le (cuchar *bytes, csize value, cuint size)
+{
+    union {
+        cuchar bytes[CLIB_SIZEOF_SIZE_T];
+        csize integer;
+    } tmpvalue;
+
+    tmpvalue.integer = C_SIZE_TO_LE (value);
+    memcpy (bytes, &tmpvalue.bytes, size);
+}
+
+
+static inline csize cvs_variant_n_children (CVariantSerialised value)
+{
+    return 1;
+}
+
+static inline CVariantSerialised cvs_variant_get_child (CVariantSerialised value, csize index_)
+{
+    CVariantSerialised child = { 0, };
+
+    if (value.size) {
+        /* find '\0' character */
+        for (child.size = value.size - 1; child.size; child.size--)
+            if (value.data[child.size] == '\0')
+                break;
+
+        /* ensure we didn't just hit the start of the string */
+        if (value.data[child.size] == '\0') {
+            const cchar *type_string = (cchar*) &value.data[child.size + 1];
+            const cchar *limit = (cchar*) &value.data[value.size];
+            const cchar *end;
+
+            if (c_variant_type_string_scan (type_string, limit, &end) && end == limit) {
+                const CVariantType *type = (CVariantType*) type_string;
+                if (c_variant_type_is_definite (type)) {
+                    csize fixed_size;
+                    csize child_type_depth;
+                    child.type_info = c_variant_type_info_get (type);
+                    child.depth = value.depth + 1;
+                    if (child.size != 0) {
+                        child.data = value.data;
+                    }
+                    c_variant_type_info_query (child.type_info, NULL, &fixed_size);
+                    child_type_depth = c_variant_type_info_query_depth (child.type_info);
+
+                    if ((!fixed_size || fixed_size == child.size)
+                        && value.depth < C_VARIANT_MAX_RECURSION_DEPTH - child_type_depth) {
+                        return child;
+                    }
+                    c_variant_type_info_unref (child.type_info);
+                }
+            }
+        }
+    }
+
+    child.type_info = c_variant_type_info_get (C_VARIANT_TYPE_UNIT);
+    child.data = NULL;
+    child.size = 1;
+    child.depth = value.depth + 1;
+
+    return child;
+}
+
+static inline csize cvs_variant_needed_size (CVariantTypeInfo* type_info, CVariantSerialisedFiller gvs_filler, const void** children, csize n_children)
+{
+    CVariantSerialised child = { 0, };
+    const cchar *type_string;
+
+    gvs_filler (&child, children[0]);
+    type_string = c_variant_type_info_get_type_string (child.type_info);
+
+    return child.size + 1 + strlen (type_string);
+}
+
+static inline void cvs_variant_serialise (CVariantSerialised value, CVariantSerialisedFiller gvs_filler, const void** children, csize n_children)
+{
+    CVariantSerialised child = { 0, };
+    const cchar *type_string;
+
+    child.data = value.data;
+
+    gvs_filler (&child, children[0]);
+    type_string = c_variant_type_info_get_type_string (child.type_info);
+    value.data[child.size] = '\0';
+    memcpy (value.data + child.size + 1, type_string, strlen (type_string));
+}
+
+static inline bool cvs_variant_is_normal (CVariantSerialised value)
+{
+    CVariantSerialised child;
+    bool normal;
+    csize child_type_depth;
+
+    child = cvs_variant_get_child (value, 0);
+    child_type_depth = c_variant_type_info_query_depth (child.type_info);
+
+    normal = (value.depth < C_VARIANT_MAX_RECURSION_DEPTH - child_type_depth) &&
+           (child.data != NULL || child.size == 0) && c_variant_serialised_is_normal (child);
+
+    c_variant_type_info_unref (child.type_info);
+
+    return normal;
+}
+
+
 
 bool c_variant_type_string_is_valid(const cchar *typeStr)
 {
@@ -833,9 +1053,45 @@ void c_variant_type_info_assert_no_infos(void)
     c_assert(empty);
 }
 
-CVariantTypeInfo *c_variant_get_type_info(CVariant *value)
+CVariantTypeInfo *c_variant_get_type_info(CVariant *value) { return value->type_info; }
+
+bool c_variant_is_trusted(CVariant *value) { return (value->state & STATE_TRUSTED) != 0; }
+
+csize c_variant_get_depth(CVariant *value) { return value->depth; }
+
+CVariant *c_variant_maybe_get_child_value(CVariant *value, csize index_)
 {
-    return value->type_info;
+    c_return_val_if_fail (value->depth < C_MAX_SIZE, NULL);
+
+    if (~c_atomic_int_get (&value->state) & STATE_SERIALISED) {
+        c_return_val_if_fail (index_ < c_variant_n_children (value), NULL);
+        c_variant_lock (value);
+
+        if (~value->state & STATE_SERIALISED) {
+            CVariant *child;
+            child = c_variant_ref (value->contents.tree.children[index_]);
+            c_variant_unlock (value);
+
+            return child;
+        }
+        c_variant_unlock (value);
+    }
+
+    {
+        CVariantSerialised serialised = c_variant_to_serialised (value);
+        CVariantSerialised s_child;
+
+        s_child = c_variant_serialised_get_child (serialised, index_);
+
+        if (!(value->state & STATE_TRUSTED) && s_child.data == NULL) {
+            c_variant_type_info_unref (s_child.type_info);
+            return NULL;
+        }
+
+        c_variant_type_info_unref (s_child.type_info);
+
+        return c_variant_get_child_value (value, index_);
+    }
 }
 
 
@@ -851,12 +1107,75 @@ NUMERIC_TYPE (DOUBLE, double, cdouble)
 
 
 void c_variant_unref(CVariant *value)
-{}
+{
+    c_return_if_fail (value != NULL);
 
-CVariant *c_variant_ref(CVariant *value) {}
-CVariant *c_variant_ref_sink(CVariant *value) {}
-bool c_variant_is_floating(CVariant *value) {}
-CVariant *c_variant_take_ref(CVariant *value) {}
+    if (c_atomic_ref_count_dec (&value->ref_count)) {
+        if C_UNLIKELY (value->state & STATE_LOCKED) {
+            C_LOG_CRIT("attempting to free a locked GVariant instance. This should never happen.");
+        }
+
+        value->state |= STATE_LOCKED;
+        c_variant_type_info_unref (value->type_info);
+
+        if (value->state & STATE_SERIALISED) {
+            c_bytes_unref (value->contents.serialised.bytes);
+        }
+        else {
+            c_variant_release_children (value);
+        }
+
+        memset (value, 0, sizeof (CVariant));
+        c_free (value);
+    }
+}
+
+CVariant *c_variant_ref(CVariant *value)
+{
+    c_return_val_if_fail (value != NULL, NULL);
+
+    c_atomic_ref_count_inc (&value->ref_count);
+
+    return value;
+}
+
+CVariant *c_variant_ref_sink(CVariant *value)
+{
+    int old_state;
+
+    c_return_val_if_fail (value != NULL, NULL);
+    c_return_val_if_fail (!c_atomic_ref_count_compare (&value->ref_count, 0), NULL);
+
+    old_state = value->state;
+
+    while (old_state & STATE_FLOATING) {
+        int new_state = old_state & ~STATE_FLOATING;
+        if (c_atomic_int_compare_and_exchange_full (&value->state, old_state, new_state, &old_state)) {
+            return value;
+        }
+    }
+
+    c_atomic_ref_count_inc (&value->ref_count);
+
+    return value;
+}
+
+bool c_variant_is_floating(CVariant *value)
+{
+    c_return_val_if_fail (value != NULL, false);
+
+    return (value->state & STATE_FLOATING) != 0;
+}
+
+CVariant *c_variant_take_ref(CVariant *value)
+{
+    c_return_val_if_fail (value != NULL, NULL);
+    c_return_val_if_fail (!c_atomic_ref_count_compare (&value->ref_count, 0), NULL);
+
+    c_atomic_int_and (&value->state, ~STATE_FLOATING);
+
+    return value;
+}
 
 const CVariantType *c_variant_get_type(CVariant *value)
 {
@@ -1481,9 +1800,72 @@ CVariant *c_variant_get_maybe(CVariant *value)
     return NULL;
 }
 
-csize c_variant_n_children(CVariant *value) {}
+csize c_variant_n_children(CVariant *value)
+{
+    csize n_children;
+
+    c_variant_lock (value);
+
+    if (value->state & STATE_SERIALISED)
+        n_children = c_variant_serialised_n_children (c_variant_to_serialised (value));
+    else
+        n_children = value->contents.tree.n_children;
+
+    c_variant_unlock (value);
+
+    return n_children;
+}
+
 void c_variant_get_child(CVariant *value, csize idx, const cchar *formatStr, ...) {}
-CVariant *c_variant_get_child_value(CVariant *value, csize idx) {}
+
+CVariant *c_variant_get_child_value(CVariant *value, csize index_)
+{
+    c_return_val_if_fail (value->depth < C_MAX_SIZE, NULL);
+
+    if (~c_atomic_int_get (&value->state) & STATE_SERIALISED) {
+        c_return_val_if_fail (index_ < c_variant_n_children (value), NULL);
+        c_variant_lock (value);
+        if (~value->state & STATE_SERIALISED) {
+            CVariant *child;
+            child = c_variant_ref (value->contents.tree.children[index_]);
+            c_variant_unlock (value);
+            return child;
+        }
+        c_variant_unlock (value);
+    }
+
+    {
+        CVariantSerialised serialised = c_variant_to_serialised (value);
+        CVariantSerialised s_child;
+        CVariant *child;
+
+        s_child = c_variant_serialised_get_child (serialised, index_);
+
+        value->contents.serialised.ordered_offsets_up_to = C_MAX (value->contents.serialised.ordered_offsets_up_to, serialised.ordered_offsets_up_to);
+        value->contents.serialised.checked_offsets_up_to = C_MAX (value->contents.serialised.checked_offsets_up_to, serialised.checked_offsets_up_to);
+
+        if (!(value->state & STATE_TRUSTED)
+            && c_variant_type_info_query_depth (s_child.type_info) >= C_VARIANT_MAX_RECURSION_DEPTH - value->depth) {
+            c_assert (c_variant_is_of_type (value, C_VARIANT_TYPE_VARIANT));
+            c_variant_type_info_unref (s_child.type_info);
+            return c_variant_new_tuple (NULL, 0);
+        }
+
+        /* create a new serialized instance out of it */
+        child = c_malloc0(sizeof(CVariant));
+        child->type_info = s_child.type_info;
+        child->state = (value->state & STATE_TRUSTED) | STATE_SERIALISED;
+        child->size = s_child.size;
+        c_atomic_ref_count_init (&child->ref_count);
+        child->depth = value->depth + 1;
+        child->contents.serialised.bytes = c_bytes_ref (value->contents.serialised.bytes);
+        child->contents.serialised.data = s_child.data;
+        child->contents.serialised.ordered_offsets_up_to = (value->state & STATE_TRUSTED) ? C_MAX_SIZE : s_child.ordered_offsets_up_to;
+        child->contents.serialised.checked_offsets_up_to = (value->state & STATE_TRUSTED) ? C_MAX_SIZE : s_child.checked_offsets_up_to;
+
+        return child;
+    }
+}
 
 bool c_variant_lookup(CVariant *dictionary, const cchar *key, const cchar *format_string, ...)
 {
@@ -1604,10 +1986,74 @@ const void *c_variant_get_fixed_array(CVariant *value, csize *n_elements, csize 
     return NULL;
 }
 
-csize c_variant_get_size(CVariant *value) {}
-const void *c_variant_get_data(CVariant *value) {}
-CBytes *c_variant_get_data_as_bytes(CVariant *value) {}
-void c_variant_store(CVariant *value, void *data) {}
+csize c_variant_get_size(CVariant *value)
+{
+    c_variant_lock (value);
+    c_variant_ensure_size (value);
+    c_variant_unlock (value);
+
+    return value->size;
+}
+
+const void *c_variant_get_data(CVariant *value)
+{
+    c_variant_lock (value);
+    c_variant_ensure_serialised (value);
+    c_variant_unlock (value);
+
+    return value->contents.serialised.data;
+}
+
+CBytes *c_variant_get_data_as_bytes(CVariant *value)
+{
+    const cchar *bytes_data;
+    const cchar *data;
+    csize bytes_size = 0;
+    csize size;
+
+    c_variant_lock (value);
+    c_variant_ensure_serialised (value);
+    c_variant_unlock (value);
+
+    if (value->contents.serialised.bytes != NULL) {
+        bytes_data = c_bytes_get_data (value->contents.serialised.bytes, &bytes_size);
+    }
+    else {
+        bytes_data = NULL;
+    }
+
+    data = value->contents.serialised.data;
+    size = value->size;
+
+    if (data == NULL) {
+        c_assert (size == 0);
+        data = bytes_data;
+    }
+
+    if (bytes_data != NULL && data == bytes_data && size == bytes_size)
+        return c_bytes_ref (value->contents.serialised.bytes);
+    else if (bytes_data != NULL)
+        return c_bytes_new_from_bytes (value->contents.serialised.bytes, data - bytes_data, size);
+    else
+        return c_bytes_new (value->contents.serialised.data, size);
+}
+
+void c_variant_store(CVariant *value, void *data)
+{
+    c_variant_lock (value);
+
+    if (value->state & STATE_SERIALISED) {
+        if (value->contents.serialised.data != NULL)
+            memcpy (data, value->contents.serialised.data, value->size);
+        else
+            memset (data, 0, value->size);
+    }
+    else {
+        c_variant_serialise (value, data);
+    }
+
+    c_variant_unlock (value);
+}
 
 cchar *c_variant_print(CVariant *value, bool type_annotate)
 {
@@ -2030,9 +2476,49 @@ bool c_variant_equal(const void *one, const void *two)
 }
 
 CVariant *c_variant_get_normal_form(CVariant *value) {}
-bool c_variant_is_normal_form(CVariant *value) {}
+
+bool c_variant_is_normal_form(CVariant *value)
+{
+    if (value->state & STATE_TRUSTED) {
+        return true;
+    }
+
+    c_variant_lock (value);
+
+    if (value->depth >= C_VARIANT_MAX_RECURSION_DEPTH) {
+        return false;
+    }
+
+    if (value->state & STATE_SERIALISED) {
+        if (c_variant_serialised_is_normal (c_variant_to_serialised (value))) {
+            value->state |= STATE_TRUSTED;
+        }
+    }
+    else {
+        bool normal = true;
+        csize i;
+
+        for (i = 0; i < value->contents.tree.n_children; i++) {
+            normal &= c_variant_is_normal_form (value->contents.tree.children[i]);
+        }
+
+        if (normal) {
+            value->state |= STATE_TRUSTED;
+        }
+    }
+
+    c_variant_unlock (value);
+
+    return (value->state & STATE_TRUSTED) != 0;
+}
+
 CVariant *c_variant_byteswap(CVariant *value) {}
-CVariant *c_variant_new_from_bytes(const CVariantType *type, CBytes *bytes, bool trusted) {}
+
+CVariant *c_variant_new_from_bytes(const CVariantType *type, CBytes *bytes, bool trusted)
+{
+    return c_variant_new_take_bytes (type, c_bytes_ref (bytes), trusted);
+}
+
 CVariant *c_variant_new_from_data(const CVariantType *type, const void *data, csize size, bool trusted,
                                   CDestroyNotify notify, void *user_data)
 {
@@ -2082,6 +2568,226 @@ void c_variant_dict_clear(CVariantDict *dict) {}
 CVariant *c_variant_dict_end(CVariantDict *dict) {}
 CVariantDict *c_variant_dict_ref(CVariantDict *dict) {}
 void c_variant_dict_unref(CVariantDict *dict) {}
+
+CVariant *c_variant_new_take_bytes(const CVariantType *type, CBytes *bytes, bool trusted)
+{
+    CVariant *value;
+    cuint alignment;
+    csize size;
+    CBytes *owned_bytes = NULL;
+    CVariantSerialised serialised;
+
+    value = c_variant_alloc (type, true, trusted, 0);
+
+    c_variant_type_info_query (value->type_info, &alignment, &size);
+
+    serialised.type_info = value->type_info;
+    serialised.data = (cuchar*) c_bytes_get_data (bytes, &serialised.size);
+    serialised.depth = 0;
+    serialised.ordered_offsets_up_to = trusted ? C_MAX_SIZE : 0;
+    serialised.checked_offsets_up_to = trusted ? C_MAX_SIZE : 0;
+
+    if (!c_variant_serialised_check (serialised)) {
+#ifdef HAVE_POSIX_MEMALIGN
+        void* aligned_data = NULL;
+        csize aligned_size = c_bytes_get_size (bytes);
+        if (aligned_size != 0
+            && posix_memalign (&aligned_data, C_MAX (sizeof (void *), alignment + 1), aligned_size) != 0) {
+            C_LOG_ERROR("posix_memalign failed");
+        }
+
+        if (aligned_size != 0) {
+            memcpy (aligned_data, c_bytes_get_data (bytes, NULL), aligned_size);
+        }
+
+        owned_bytes = bytes;
+        bytes = c_bytes_new_with_free_func (aligned_data, aligned_size, free, aligned_data);
+        aligned_data = NULL;
+#else
+        owned_bytes = bytes;
+        bytes = c_bytes_new (c_bytes_get_data (bytes, NULL), c_bytes_get_size (bytes));
+#endif
+    }
+
+    value->contents.serialised.bytes = bytes;
+
+    if (size && c_bytes_get_size (bytes) != size) {
+        value->contents.serialised.data = NULL;
+        value->size = size;
+    }
+    else {
+        value->contents.serialised.data = c_bytes_get_data (bytes, &value->size);
+    }
+
+    value->contents.serialised.ordered_offsets_up_to = trusted ? C_MAX_SIZE : 0;
+    value->contents.serialised.checked_offsets_up_to = trusted ? C_MAX_SIZE : 0;
+
+    c_clear_pointer (&owned_bytes, c_bytes_unref);
+
+    return value;
+}
+
+CVariant *c_variant_new_preallocated_trusted(const CVariantType *type, const void *data, csize size)
+{
+    CVariant *value;
+    csize expected_size;
+    cuint alignment;
+
+    value = c_variant_alloc(type, true, true, size);
+
+    c_variant_type_info_query(value->type_info, &alignment, &expected_size);
+
+    c_assert(expected_size == 0 || size == expected_size);
+
+    value->contents.serialised.ordered_offsets_up_to = C_MAX_SIZE;
+    value->contents.serialised.checked_offsets_up_to = C_MAX_SIZE;
+    value->contents.serialised.bytes = NULL;
+    value->contents.serialised.data = value->suffix;
+    value->size = size;
+
+    memcpy(value->suffix, data, size);
+
+    return value;
+}
+
+CVariant *c_variant_new_from_children(const CVariantType *type, CVariant **children, csize n_children, bool trusted)
+{
+    CVariant *value;
+
+    value = c_variant_alloc(type, false, trusted, 0);
+    value->contents.tree.children = children;
+    value->contents.tree.n_children = n_children;
+
+    return value;
+}
+
+bool c_variant_serialised_check(CVariantSerialised serialised)
+{
+    csize fixed_size;
+    cuint alignment;
+
+    if (serialised.type_info == NULL) {
+        return false;
+    }
+    c_variant_type_info_query(serialised.type_info, &alignment, &fixed_size);
+
+    if (fixed_size != 0 && serialised.size != fixed_size) {
+        return false;
+    }
+    else if (fixed_size == 0 && !(serialised.size == 0 || serialised.data != NULL)) {
+        return false;
+    }
+
+    if (serialised.ordered_offsets_up_to > serialised.checked_offsets_up_to) {
+        return false;
+    }
+
+    alignment &= sizeof(struct {
+                     char a;
+                     union
+                     {
+                         cuint64 x;
+                         void *y;
+                         cdouble z;
+                     } b;
+                 }) -
+        9;
+
+    return (serialised.size <= alignment || (alignment & (csize)serialised.data) == 0);
+}
+
+csize c_variant_serialised_n_children(CVariantSerialised serialised)
+{
+    c_assert(c_variant_serialised_check(serialised));
+
+    DISPATCH_CASES(serialised.type_info, return cvs_ /**/, /**/ _n_children(serialised);)
+    c_assert_not_reached();
+}
+
+CVariantSerialised c_variant_serialised_get_child(CVariantSerialised serialised, csize index_)
+{
+    CVariantSerialised child;
+
+    c_assert(c_variant_serialised_check(serialised));
+
+    if C_LIKELY (index_ < c_variant_serialised_n_children(serialised)) {
+        DISPATCH_CASES(serialised.type_info, child = cvs_ /**/, /**/ _get_child(serialised, index_);
+                       c_assert(child.size || child.data == NULL); c_assert(c_variant_serialised_check(child));
+                       return child;)
+        c_assert_not_reached();
+    }
+
+    C_LOG_CRIT("Attempt to access item %lu"
+               " in a container with only %llu items",
+               index_, c_variant_serialised_n_children(serialised));
+}
+
+void c_variant_serialiser_serialise(CVariantSerialised serialised, CVariantSerialisedFiller gvs_filler,
+                                    const void **children, csize n_children)
+{
+    c_assert(c_variant_serialised_check(serialised));
+
+    DISPATCH_CASES(serialised.type_info, cvs_ /**/, /**/ _serialise(serialised, gvs_filler, children, n_children);
+                   return;)
+    c_assert_not_reached();
+}
+
+csize c_variant_serialiser_needed_size(CVariantTypeInfo *type_info, CVariantSerialisedFiller gvs_filler,
+                                       const void **children, csize n_children)
+{
+    DISPATCH_CASES(type_info, return cvs_ /**/, /**/ _needed_size(type_info, gvs_filler, children, n_children);)
+    c_assert_not_reached();
+}
+
+void c_variant_serialised_byteswap(CVariantSerialised serialised)
+{
+    csize fixed_size;
+    cuint alignment;
+
+    c_assert (c_variant_serialised_check (serialised));
+
+    if (!serialised.data)
+        return;
+
+    c_variant_type_info_query (serialised.type_info, &alignment, &fixed_size);
+    if (!alignment)
+        return;
+
+    if (alignment + 1 == fixed_size) {
+        switch (fixed_size) {
+        case 2: {
+            cuint16 *ptr = (cuint16 *) serialised.data;
+            c_assert_cmpint (serialised.size, ==, 2);
+            *ptr = C_UINT16_SWAP_LE_BE (*ptr);
+            return;
+        }
+        case 4: {
+            cuint32 *ptr = (cuint32*) serialised.data;
+            c_assert_cmpint (serialised.size, ==, 4);
+            *ptr = C_UINT32_SWAP_LE_BE (*ptr);
+            return;
+        }
+        case 8: {
+            cuint64 *ptr = (cuint64*) serialised.data;
+            c_assert_cmpint (serialised.size, ==, 8);
+            *ptr = C_UINT64_SWAP_LE_BE (*ptr);
+            return;
+        }
+        default:
+            c_assert_not_reached ();
+        }
+    }
+    else {
+        csize children, i;
+        children = c_variant_serialised_n_children (serialised);
+        for (i = 0; i < children; i++) {
+            CVariantSerialised child;
+            child = c_variant_serialised_get_child (serialised, i);
+            c_variant_serialised_byteswap (child);
+            c_variant_type_info_unref (child.type_info);
+        }
+    }
+}
 
 
 static bool variant_type_string_scan_internal(const cchar *string, const cchar *limit, const cchar **endptr,
@@ -2525,4 +3231,901 @@ static void c_variant_lock (CVariant *value)
 static void c_variant_unlock (CVariant *value)
 {
     c_bit_unlock (&value->state, 0);
+}
+
+static void c_variant_release_children (CVariant *value)
+{
+    csize i;
+
+    c_assert (value->state & STATE_LOCKED);
+    c_assert (~value->state & STATE_SERIALISED);
+
+    for (i = 0; i < value->contents.tree.n_children; i++)
+        c_variant_unref (value->contents.tree.children[i]);
+
+    c_free (value->contents.tree.children);
+}
+
+static void c_variant_ensure_size (CVariant *value)
+{
+    c_assert (value->state & STATE_LOCKED);
+
+    if (value->size == (csize) -1) {
+        void** children;
+        csize n_children;
+
+        children = (void**) value->contents.tree.children;
+        n_children = value->contents.tree.n_children;
+        value->size = c_variant_serialiser_needed_size (value->type_info, c_variant_fill_gvs, children, n_children);
+    }
+}
+
+static void c_variant_serialise (CVariant *value, void* data)
+{
+    CVariantSerialised serialised = { 0, };
+    void** children;
+    csize n_children;
+
+    c_assert (~value->state & STATE_SERIALISED);
+    c_assert (value->state & STATE_LOCKED);
+
+    serialised.type_info = value->type_info;
+    serialised.size = value->size;
+    serialised.data = data;
+    serialised.depth = value->depth;
+    serialised.ordered_offsets_up_to = 0;
+    serialised.checked_offsets_up_to = 0;
+
+    children = (void**) value->contents.tree.children;
+    n_children = value->contents.tree.n_children;
+
+    c_variant_serialiser_serialise (serialised, c_variant_fill_gvs, children, n_children);
+}
+
+static void c_variant_fill_gvs (CVariantSerialised *serialised, void* data)
+{
+    CVariant *value = data;
+
+    c_variant_lock (value);
+    c_variant_ensure_size (value);
+    c_variant_unlock (value);
+
+    if (serialised->type_info == NULL) {
+        serialised->type_info = value->type_info;
+    }
+    c_assert (serialised->type_info == value->type_info);
+
+    if (serialised->size == 0) {
+        serialised->size = value->size;
+    }
+    c_assert (serialised->size == value->size);
+    serialised->depth = value->depth;
+
+    if (value->state & STATE_SERIALISED) {
+        serialised->ordered_offsets_up_to = value->contents.serialised.ordered_offsets_up_to;
+        serialised->checked_offsets_up_to = value->contents.serialised.checked_offsets_up_to;
+    }
+    else {
+        serialised->ordered_offsets_up_to = 0;
+        serialised->checked_offsets_up_to = 0;
+    }
+
+    if (serialised->data) {
+        c_variant_store (value, serialised->data);
+    }
+}
+
+static void c_variant_ensure_serialised (CVariant *value)
+{
+    c_assert (value->state & STATE_LOCKED);
+
+    if (~value->state & STATE_SERIALISED) {
+        CBytes *bytes;
+        void* data;
+
+        c_variant_ensure_size (value);
+        data = c_malloc0 (value->size);
+        c_variant_serialise (value, data);
+
+        c_variant_release_children (value);
+
+        bytes = c_bytes_new_take (data, value->size);
+        value->contents.serialised.data = c_bytes_get_data (bytes, NULL);
+        value->contents.serialised.bytes = bytes;
+        value->contents.serialised.ordered_offsets_up_to = C_MAX_SIZE;
+        value->contents.serialised.checked_offsets_up_to = C_MAX_SIZE;
+        value->state |= STATE_SERIALISED;
+    }
+}
+
+static CVariant* c_variant_alloc (const CVariantType* type, bool serialised, bool trusted, csize suffix_size)
+{
+    C_UNUSED bool size_check;
+    CVariant *value;
+    csize size;
+
+    size_check = c_size_checked_add (&size, sizeof *value, suffix_size);
+    c_assert (size_check);
+
+    value = c_malloc0 (size);
+    value->type_info = c_variant_type_info_get (type);
+    value->state = (serialised ? STATE_SERIALISED : 0) | (trusted ? STATE_TRUSTED : 0) | STATE_FLOATING;
+    value->size = (cssize) -1;
+    c_atomic_ref_count_init (&value->ref_count);
+    value->depth = 0;
+
+    return value;
+}
+
+static csize cvs_fixed_sized_maybe_n_children (CVariantSerialised value)
+{
+    csize element_fixed_size;
+
+    c_variant_type_info_query_element (value.type_info, NULL, &element_fixed_size);
+
+    return (element_fixed_size == value.size) ? 1 : 0;
+}
+
+static CVariantSerialised cvs_fixed_sized_maybe_get_child (CVariantSerialised value, csize index_)
+{
+    value.type_info = c_variant_type_info_element (value.type_info);
+    c_variant_type_info_ref (value.type_info);
+    value.depth++;
+    value.ordered_offsets_up_to = 0;
+    value.checked_offsets_up_to = 0;
+
+    return value;
+}
+
+static csize cvs_fixed_sized_maybe_needed_size (CVariantTypeInfo* type_info, CVariantSerialisedFiller gvs_filler, const void** children, csize n_children)
+{
+    if (n_children) {
+        csize element_fixed_size;
+        c_variant_type_info_query_element (type_info, NULL, &element_fixed_size);
+        return element_fixed_size;
+    }
+
+    return 0;
+}
+
+static void cvs_fixed_sized_maybe_serialise (CVariantSerialised value, CVariantSerialisedFiller gvs_filler, const void** children, csize n_children)
+{
+    if (n_children) {
+        CVariantSerialised child = { NULL, value.data, value.size, value.depth + 1, 0, 0 };
+        gvs_filler (&child, children[0]);
+    }
+}
+
+static bool cvs_fixed_sized_maybe_is_normal (CVariantSerialised value)
+{
+    if (value.size > 0) {
+        csize element_fixed_size;
+        c_variant_type_info_query_element (value.type_info, NULL, &element_fixed_size);
+
+        if (value.size != element_fixed_size) {
+            return false;
+        }
+
+        value.type_info = c_variant_type_info_element (value.type_info);
+        value.depth++;
+        value.ordered_offsets_up_to = 0;
+        value.checked_offsets_up_to = 0;
+
+        return c_variant_serialised_is_normal (value);
+    }
+
+    return true;
+}
+
+static csize cvs_variable_sized_maybe_n_children (CVariantSerialised value)
+{
+    return (value.size > 0) ? 1 : 0;
+}
+
+static CVariantSerialised cvs_variable_sized_maybe_get_child (CVariantSerialised value, csize index_)
+{
+    value.type_info = c_variant_type_info_element (value.type_info);
+    c_variant_type_info_ref (value.type_info);
+    value.size--;
+
+    /* if it's zero-sized then it may as well be NULL */
+    if (value.size == 0) {
+        value.data = NULL;
+    }
+
+    value.depth++;
+    value.ordered_offsets_up_to = 0;
+    value.checked_offsets_up_to = 0;
+
+    return value;
+}
+
+static csize cvs_variable_sized_maybe_needed_size (CVariantTypeInfo* type_info, CVariantSerialisedFiller gvs_filler, const void** children, csize n_children)
+{
+    if (n_children) {
+        CVariantSerialised child = { 0, };
+        gvs_filler (&child, children[0]);
+
+        return child.size + 1;
+    }
+
+    return 0;
+}
+
+static void cvs_variable_sized_maybe_serialise (CVariantSerialised value, CVariantSerialisedFiller gvs_filler, const void** children, csize n_children)
+{
+    if (n_children) {
+        CVariantSerialised child = { NULL, value.data, value.size - 1, value.depth + 1, 0, 0 };
+        gvs_filler (&child, children[0]);
+        value.data[child.size] = '\0';
+    }
+}
+
+static bool cvs_variable_sized_maybe_is_normal (CVariantSerialised value)
+{
+    if (value.size == 0) {
+        return true;
+    }
+
+    if (value.data[value.size - 1] != '\0') {
+        return false;
+    }
+
+    value.type_info = c_variant_type_info_element (value.type_info);
+    value.size--;
+    value.depth++;
+    value.ordered_offsets_up_to = 0;
+    value.checked_offsets_up_to = 0;
+
+    return c_variant_serialised_is_normal (value);
+}
+
+static csize cvs_fixed_sized_array_n_children (CVariantSerialised value)
+{
+    csize element_fixed_size;
+
+    c_variant_type_info_query_element (value.type_info, NULL, &element_fixed_size);
+
+    if (value.size % element_fixed_size == 0) {
+        return value.size / element_fixed_size;
+    }
+
+    return 0;
+}
+
+static CVariantSerialised cvs_fixed_sized_array_get_child (CVariantSerialised value, csize index_)
+{
+    CVariantSerialised child = { 0, };
+
+    child.type_info = c_variant_type_info_element (value.type_info);
+    c_variant_type_info_query (child.type_info, NULL, &child.size);
+    child.data = value.data + (child.size * index_);
+    c_variant_type_info_ref (child.type_info);
+    child.depth = value.depth + 1;
+
+    return child;
+}
+
+static csize cvs_fixed_sized_array_needed_size (CVariantTypeInfo* type_info, CVariantSerialisedFiller gvs_filler, const void** children, csize n_children)
+{
+    csize element_fixed_size;
+
+    c_variant_type_info_query_element (type_info, NULL, &element_fixed_size);
+
+    return element_fixed_size * n_children;
+}
+
+static void cvs_fixed_sized_array_serialise (CVariantSerialised value, CVariantSerialisedFiller gvs_filler, const void** children, csize n_children)
+{
+    CVariantSerialised child = { 0, };
+    csize i;
+
+    child.type_info = c_variant_type_info_element (value.type_info);
+    c_variant_type_info_query (child.type_info, NULL, &child.size);
+    child.data = value.data;
+    child.depth = value.depth + 1;
+
+    for (i = 0; i < n_children; i++) {
+        gvs_filler (&child, children[i]);
+        child.data += child.size;
+    }
+}
+
+static bool cvs_fixed_sized_array_is_normal (CVariantSerialised value)
+{
+    CVariantSerialised child = { 0, };
+
+    child.type_info = c_variant_type_info_element (value.type_info);
+    c_variant_type_info_query (child.type_info, NULL, &child.size);
+    child.depth = value.depth + 1;
+
+    if (value.size % child.size != 0) {
+        return false;
+    }
+
+    for (child.data = value.data; child.data < value.data + value.size; child.data += child.size) {
+        if (!c_variant_serialised_is_normal (child)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+static cuint cvs_get_offset_size (csize size)
+{
+    if (size > C_MAX_UINT32) {
+        return 8;
+    }
+    else if (size > C_MAX_UINT16) {
+        return 4;
+    }
+    else if (size > C_MAX_UINT8) {
+        return 2;
+    }
+    else if (size > 0) {
+        return 1;
+    }
+
+    return 0;
+}
+
+static csize cvs_calculate_total_size (csize body_size, csize offsets)
+{
+    if (body_size + 1 * offsets <= C_MAX_UINT8) {
+        return body_size + 1 * offsets;
+    }
+
+    if (body_size + 2 * offsets <= C_MAX_UINT16) {
+        return body_size + 2 * offsets;
+    }
+
+    if (body_size + 4 * offsets <= C_MAX_UINT32) {
+        return body_size + 4 * offsets;
+    }
+
+    return body_size + 8 * offsets;
+}
+
+static csize cvs_offsets_get_offset_n (struct Offsets *offsets, csize n)
+{
+    return cvs_read_unaligned_le (offsets->array + (offsets->offset_size * n), offsets->offset_size);
+}
+
+static struct Offsets cvs_variable_sized_array_get_frame_offsets (CVariantSerialised value)
+{
+    struct Offsets out = { 0, };
+    csize offsets_array_size;
+    csize last_end;
+
+    if (value.size == 0) {
+        out.is_normal = true;
+        return out;
+    }
+
+    out.offset_size = cvs_get_offset_size (value.size);
+    last_end = cvs_read_unaligned_le (value.data + value.size - out.offset_size, out.offset_size);
+
+    if (last_end > value.size) {
+        return out;  /* offsets not normal */
+    }
+
+    offsets_array_size = value.size - last_end;
+
+    if (offsets_array_size % out.offset_size) {
+        return out;  /* offsets not normal */
+    }
+
+    out.data_size = last_end;
+    out.array = value.data + last_end;
+    out.length = offsets_array_size / out.offset_size;
+
+    if (out.length > 0 && cvs_calculate_total_size (last_end, out.length) != value.size) {
+        return out;  /* offset size not minimal */
+    }
+
+    out.is_normal = true;
+
+    return out;
+}
+
+static csize cvs_variable_sized_array_n_children (CVariantSerialised value)
+{
+    return cvs_variable_sized_array_get_frame_offsets (value).length;
+}
+
+
+#define DEFINE_FIND_UNORDERED(type, le_to_native) \
+    static csize find_unordered_##type (const cuint8 *data, csize start, csize len) \
+    { \
+        csize off; \
+        type current_le, previous_le, current, previous; \
+    \
+        memcpy (&previous_le, data + start * sizeof (current), sizeof (current)); \
+        previous = le_to_native (previous_le); \
+        for (off = (start + 1) * sizeof (current); off < len * sizeof (current); off += sizeof (current)) { \
+            memcpy (&current_le, data + off, sizeof (current)); \
+            current = le_to_native (current_le); \
+            if (current < previous) { \
+                break; \
+            } \
+            previous = current; \
+        } \
+        return off / sizeof (current) - 1; \
+    }
+
+#define NO_CONVERSION(x) (x)
+DEFINE_FIND_UNORDERED (cuint8, NO_CONVERSION);
+DEFINE_FIND_UNORDERED (cuint16, C_UINT16_FROM_LE);
+DEFINE_FIND_UNORDERED (cuint32, C_UINT32_FROM_LE);
+DEFINE_FIND_UNORDERED (cuint64, C_UINT64_FROM_LE);
+
+static CVariantSerialised cvs_variable_sized_array_get_child (CVariantSerialised value, csize index_)
+{
+    CVariantSerialised child = { 0, };
+
+    struct Offsets offsets = cvs_variable_sized_array_get_frame_offsets (value);
+
+    csize start;
+    csize end;
+
+    child.type_info = c_variant_type_info_element (value.type_info);
+    c_variant_type_info_ref (child.type_info);
+    child.depth = value.depth + 1;
+
+    if (offsets.array != NULL
+        && index_ > value.checked_offsets_up_to
+        && value.ordered_offsets_up_to == value.checked_offsets_up_to) {
+        switch (offsets.offset_size) {
+            case 1: {
+                value.ordered_offsets_up_to = find_unordered_guint8 (offsets.array, value.checked_offsets_up_to, index_ + 1);
+                break;
+            }
+            case 2: {
+                value.ordered_offsets_up_to = find_unordered_guint16 (offsets.array, value.checked_offsets_up_to, index_ + 1);
+                break;
+            }
+            case 4: {
+                value.ordered_offsets_up_to = find_unordered_guint32 (offsets.array, value.checked_offsets_up_to, index_ + 1);
+                break;
+            }
+            case 8: {
+                value.ordered_offsets_up_to = find_unordered_guint64 (offsets.array, value.checked_offsets_up_to, index_ + 1);
+                break;
+            }
+            default: {
+                c_assert_not_reached ();
+            }
+        }
+        value.checked_offsets_up_to = index_;
+    }
+
+    if (index_ > value.ordered_offsets_up_to) {
+        return child;
+    }
+
+    if (index_ > 0) {
+        cuint alignment;
+        start = cvs_offsets_get_offset_n (&offsets, index_ - 1);
+        c_variant_type_info_query (child.type_info, &alignment, NULL);
+        start += (-start) & alignment;
+    }
+    else {
+        start = 0;
+    }
+
+    end = cvs_offsets_get_offset_n (&offsets, index_);
+
+    if (start < end && end <= value.size && end <= offsets.data_size) {
+        child.data = value.data + start;
+        child.size = end - start;
+    }
+
+    return child;
+}
+
+static csize cvs_variable_sized_array_needed_size (CVariantTypeInfo* type_info, CVariantSerialisedFiller gvs_filler, const void** children, csize n_children)
+{
+    cuint alignment;
+    csize offset;
+    csize i;
+
+    c_variant_type_info_query (type_info, &alignment, NULL);
+    offset = 0;
+
+    for (i = 0; i < n_children; i++) {
+        CVariantSerialised child = { 0, };
+        offset += (-offset) & alignment;
+        gvs_filler (&child, children[i]);
+        offset += child.size;
+    }
+
+    return cvs_calculate_total_size (offset, n_children);
+}
+
+static void cvs_variable_sized_array_serialise (CVariantSerialised value, CVariantSerialisedFiller gvs_filler, const void** children, csize n_children)
+{
+    cuchar *offset_ptr;
+    csize offset_size;
+    cuint alignment;
+    csize offset;
+    csize i;
+
+    c_variant_type_info_query (value.type_info, &alignment, NULL);
+    offset_size = cvs_get_offset_size (value.size);
+    offset = 0;
+
+    offset_ptr = value.data + value.size - offset_size * n_children;
+
+    for (i = 0; i < n_children; i++) {
+        CVariantSerialised child = { 0, };
+        while (offset & alignment) {
+            value.data[offset++] = '\0';
+        }
+
+        child.data = value.data + offset;
+        gvs_filler (&child, children[i]);
+        offset += child.size;
+
+        cvs_write_unaligned_le (offset_ptr, offset, offset_size);
+        offset_ptr += offset_size;
+    }
+}
+
+static bool cvs_variable_sized_array_is_normal (CVariantSerialised value)
+{
+    CVariantSerialised child = { 0, };
+    cuint alignment;
+    csize offset;
+    csize i;
+
+    struct Offsets offsets = cvs_variable_sized_array_get_frame_offsets (value);
+    if (!offsets.is_normal) {
+        return false;
+    }
+
+    if (value.size != 0 && offsets.length == 0) {
+        return false;
+    }
+
+    c_assert (value.size != 0 || offsets.length == 0);
+
+    child.type_info = c_variant_type_info_element (value.type_info);
+    c_variant_type_info_query (child.type_info, &alignment, NULL);
+    child.depth = value.depth + 1;
+    offset = 0;
+
+    for (i = 0; i < offsets.length; i++) {
+        csize this_end;
+        this_end = cvs_read_unaligned_le (offsets.array + offsets.offset_size * i, offsets.offset_size);
+
+        if (this_end < offset || this_end > offsets.data_size) {
+            return false;
+        }
+
+        while (offset & alignment) {
+            if (!(offset < this_end && value.data[offset] == '\0')) {
+                return false;
+            }
+            offset++;
+        }
+
+        child.data = value.data + offset;
+        child.size = this_end - offset;
+
+        if (child.size == 0) {
+            child.data = NULL;
+        }
+
+        if (!c_variant_serialised_is_normal (child)) {
+            return false;
+        }
+        offset = this_end;
+    }
+
+    c_assert (offset == offsets.data_size);
+
+    /* All offsets have now been checked. */
+    value.ordered_offsets_up_to = C_MAX_SIZE;
+    value.checked_offsets_up_to = C_MAX_SIZE;
+
+    return true;
+}
+
+static void cvs_tuple_get_member_bounds (CVariantSerialised value, csize index_, csize offset_size, csize* out_member_start, csize* out_member_end)
+{
+    const CVariantMemberInfo *member_info;
+    csize member_start, member_end;
+
+    member_info = c_variant_type_info_member_info (value.type_info, index_);
+
+    if (member_info->i + 1 && offset_size * (member_info->i + 1) <= value.size) {
+        member_start = cvs_read_unaligned_le (value.data + value.size -
+                                              offset_size * (member_info->i + 1),
+                                              offset_size);
+    }
+    else {
+        member_start = 0;
+    }
+
+    member_start += member_info->a;
+    member_start &= member_info->b;
+    member_start |= member_info->c;
+
+    if (member_info->ending_type == C_VARIANT_MEMBER_ENDING_LAST && offset_size * (member_info->i + 1) <= value.size) {
+        member_end = value.size - offset_size * (member_info->i + 1);
+    }
+    else if (member_info->ending_type == C_VARIANT_MEMBER_ENDING_FIXED) {
+        csize fixed_size;
+
+        c_variant_type_info_query (member_info->type_info, NULL, &fixed_size);
+        member_end = member_start + fixed_size;
+    }
+    else if (member_info->ending_type == C_VARIANT_MEMBER_ENDING_OFFSET && offset_size * (member_info->i + 2) <= value.size) {
+        member_end = cvs_read_unaligned_le (value.data + value.size -
+                                            offset_size * (member_info->i + 2),
+                                            offset_size);
+    }
+    else {
+        member_end = C_MAX_SIZE;
+    }
+
+    if (out_member_start != NULL)
+        *out_member_start = member_start;
+    if (out_member_end != NULL)
+        *out_member_end = member_end;
+}
+
+static csize cvs_tuple_n_children (CVariantSerialised value)
+{
+    return c_variant_type_info_n_members (value.type_info);
+}
+
+static CVariantSerialised cvs_tuple_get_child (CVariantSerialised value, csize index_)
+{
+    const CVariantMemberInfo *member_info;
+    CVariantSerialised child = { 0, };
+    csize offset_size;
+    csize start, end, last_end;
+
+    member_info = c_variant_type_info_member_info (value.type_info, index_);
+    child.type_info = c_variant_type_info_ref (member_info->type_info);
+    child.depth = value.depth + 1;
+    offset_size = cvs_get_offset_size (value.size);
+
+    if (member_info->ending_type == C_VARIANT_MEMBER_ENDING_FIXED)
+        c_variant_type_info_query (child.type_info, NULL, &child.size);
+
+    if C_UNLIKELY (value.data == NULL && value.size != 0) {
+        c_assert (child.size != 0);
+        child.data = NULL;
+
+        return child;
+    }
+
+    if (index_ > value.checked_offsets_up_to && value.ordered_offsets_up_to == value.checked_offsets_up_to) {
+        csize i, prev_i_end = 0;
+
+        if (value.checked_offsets_up_to > 0)
+            cvs_tuple_get_member_bounds (value, value.checked_offsets_up_to - 1, offset_size, NULL, &prev_i_end);
+
+        for (i = value.checked_offsets_up_to; i <= index_; i++) {
+            csize i_start, i_end;
+
+            cvs_tuple_get_member_bounds (value, i, offset_size, &i_start, &i_end);
+
+            if (i_start > i_end || i_start < prev_i_end || i_end > value.size)
+                break;
+
+            prev_i_end = i_end;
+        }
+
+        value.ordered_offsets_up_to = i - 1;
+        value.checked_offsets_up_to = index_;
+    }
+
+    if (index_ > value.ordered_offsets_up_to) {
+        return child;
+    }
+
+    if (member_info->ending_type == C_VARIANT_MEMBER_ENDING_OFFSET) {
+        if (offset_size * (member_info->i + 2) > value.size)
+            return child;
+    }
+    else {
+        if (offset_size * (member_info->i + 1) > value.size)
+            return child;
+    }
+
+    /* The child should not extend into the offset table. */
+    cvs_tuple_get_member_bounds (value, index_, offset_size, &start, &end);
+    cvs_tuple_get_member_bounds (value, c_variant_type_info_n_members (value.type_info) - 1, offset_size, NULL, &last_end);
+
+    if (start < end && end <= value.size && end <= last_end) {
+        child.data = value.data + start;
+        child.size = end - start;
+    }
+
+    return child;
+}
+
+static csize cvs_tuple_needed_size (CVariantTypeInfo* type_info, CVariantSerialisedFiller gvs_filler, const void** children, csize n_children)
+{
+    const CVariantMemberInfo *member_info = NULL;
+    csize fixed_size;
+    csize offset;
+    csize i;
+
+    c_variant_type_info_query (type_info, NULL, &fixed_size);
+
+    if (fixed_size)
+        return fixed_size;
+
+    offset = 0;
+
+    c_assert (n_children > 0);
+
+    for (i = 0; i < n_children; i++) {
+        cuint alignment;
+
+        member_info = c_variant_type_info_member_info (type_info, i);
+        c_variant_type_info_query (member_info->type_info,
+                                 &alignment, &fixed_size);
+        offset += (-offset) & alignment;
+
+        if (fixed_size)
+            offset += fixed_size;
+        else {
+            CVariantSerialised child = { 0, };
+
+            gvs_filler (&child, children[i]);
+            offset += child.size;
+        }
+    }
+
+    return cvs_calculate_total_size (offset, member_info->i + 1);
+}
+
+static void cvs_tuple_serialise (CVariantSerialised value, CVariantSerialisedFiller gvs_filler, const void** children, csize n_children)
+{
+    csize offset_size;
+    csize offset;
+    csize i;
+
+    offset_size = cvs_get_offset_size (value.size);
+    offset = 0;
+
+    for (i = 0; i < n_children; i++) {
+        const CVariantMemberInfo *member_info;
+        CVariantSerialised child = { 0, };
+        cuint alignment;
+
+        member_info = c_variant_type_info_member_info (value.type_info, i);
+        c_variant_type_info_query (member_info->type_info, &alignment, NULL);
+
+        while (offset & alignment)
+            value.data[offset++] = '\0';
+
+        child.data = value.data + offset;
+        gvs_filler (&child, children[i]);
+        offset += child.size;
+
+        if (member_info->ending_type == C_VARIANT_MEMBER_ENDING_OFFSET) {
+            value.size -= offset_size;
+            cvs_write_unaligned_le (value.data + value.size,
+                                  offset, offset_size);
+        }
+    }
+
+  while (offset < value.size)
+    value.data[offset++] = '\0';
+}
+
+static bool cvs_tuple_is_normal (CVariantSerialised value)
+{
+    cuint offset_size;
+    csize offset_ptr;
+    csize length;
+    csize offset;
+    csize i;
+    csize offset_table_size;
+
+    /* as per the comment in gvs_tuple_get_child() */
+    if C_UNLIKELY (value.data == NULL && value.size != 0)
+        return false;
+
+    offset_size = cvs_get_offset_size (value.size);
+    length = c_variant_type_info_n_members (value.type_info);
+    offset_ptr = value.size;
+    offset = 0;
+
+    for (i = 0; i < length; i++) {
+        const CVariantMemberInfo *member_info;
+        CVariantSerialised child = { 0, };
+        csize fixed_size;
+        cuint alignment;
+        csize end;
+
+        member_info = c_variant_type_info_member_info (value.type_info, i);
+        child.type_info = member_info->type_info;
+        child.depth = value.depth + 1;
+
+        c_variant_type_info_query (child.type_info, &alignment, &fixed_size);
+
+        while (offset & alignment) {
+            if (offset > value.size || value.data[offset] != '\0') {
+                return false;
+            }
+            offset++;
+        }
+
+        child.data = value.data + offset;
+
+        switch (member_info->ending_type) {
+            case C_VARIANT_MEMBER_ENDING_FIXED:
+                end = offset + fixed_size;
+                break;
+            case C_VARIANT_MEMBER_ENDING_LAST:
+                end = offset_ptr;
+                break;
+            case C_VARIANT_MEMBER_ENDING_OFFSET:
+                if (offset_ptr < offset_size)
+                    return false;
+                offset_ptr -= offset_size;
+                if (offset_ptr < offset)
+                    return false;
+                end = cvs_read_unaligned_le (value.data + offset_ptr, offset_size);
+                break;
+            default:
+                c_assert_not_reached ();
+        }
+
+        if (end < offset || end > offset_ptr)
+            return false;
+
+        child.size = end - offset;
+
+        if (child.size == 0)
+            child.data = NULL;
+
+        if (!c_variant_serialised_is_normal (child)) {
+            return false;
+        }
+        offset = end;
+    }
+
+    value.ordered_offsets_up_to = C_MAX_SIZE;
+    value.checked_offsets_up_to = C_MAX_SIZE;
+
+    {
+        csize fixed_size;
+        cuint alignment;
+
+        c_variant_type_info_query (value.type_info, &alignment, &fixed_size);
+        if (fixed_size) {
+            c_assert (fixed_size == value.size);
+            c_assert (offset_ptr == value.size);
+
+            if (i == 0) {
+                if (value.data[offset++] != '\0')
+                    return false;
+            }
+            else {
+                while (offset & alignment)
+                    if (value.data[offset++] != '\0')
+                        return false;
+            }
+            c_assert (offset == value.size);
+        }
+    }
+
+    if (offset_ptr != offset)
+        return false;
+
+    offset_table_size = value.size - offset_ptr;
+    if (value.size > 0 && cvs_calculate_total_size (offset, offset_table_size / offset_size) != value.size) {
+        return false;  /* offset size not minimal */
+    }
+
+    return true;
 }
