@@ -29,6 +29,14 @@ C_BEGIN_EXTERN_C
 #define C_VARIANT_MEMBER_ENDING_LAST    1
 #define C_VARIANT_MEMBER_ENDING_OFFSET  2
 
+#define C_VARIANT_MAX_RECURSION_DEPTH ((csize) 128)
+
+#if SIZEOF_VOID_P == 8
+# define C_VARIANT_MAX_PREALLOCATED 64
+#else
+# define C_VARIANT_MAX_PREALLOCATED 32
+#endif
+
 
 typedef struct _CVariant CVariant;
 typedef struct _CVariantType CVariantType;
@@ -500,7 +508,13 @@ CVariantSerialised      c_variant_serialised_get_child      (CVariantSerialised 
 void                    c_variant_serialiser_serialise      (CVariantSerialised serialised, CVariantSerialisedFiller gvs_filler, const void** children, csize n_children);
 csize                   c_variant_serialiser_needed_size    (CVariantTypeInfo* type_info, CVariantSerialisedFiller gvs_filler, const void** children, csize n_children);
 void                    c_variant_serialised_byteswap       (CVariantSerialised serialised);
-bool                    c_variant_serialised_is_normal (CVariantSerialised serialised);
+bool                    c_variant_serialised_is_normal      (CVariantSerialised serialised);
+bool                    c_variant_serialiser_is_string      (const void* data, csize size);
+bool                    c_variant_serialiser_is_object_path (const void* data, csize size);
+bool                    c_variant_serialiser_is_signature   (const void* data, csize size);
+
+bool                    c_variant_format_string_scan        (const cchar* str, const cchar* limit, const cchar** endPtr);
+CVariantType*           c_variant_format_string_scan_type   (const cchar* str, const cchar* limit, const cchar** endPtr);
 
 C_END_EXTERN_C
 

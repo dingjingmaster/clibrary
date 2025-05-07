@@ -16,15 +16,16 @@
 
 #include "variant.h"
 
-#include "array.h"
-#include "atomic.h"
-#include "bytes.h"
-#include "cstring.h"
-#include "hash-table.h"
 #include "log.h"
 #include "str.h"
+#include "array.h"
+#include "bytes.h"
+#include "atomic.h"
 #include "thread.h"
+#include "cstring.h"
 #include "unicode.h"
+#include "bit-lock.h"
+#include "hash-table.h"
 
 #define STATE_LOCKED     1
 #define STATE_SERIALISED 2
@@ -33,7 +34,7 @@
 
 #define TYPE_CHECK(value, TYPE, val) \
     if C_UNLIKELY (!c_variant_is_of_type (value, TYPE)) { \
-        c_return_if_fail("c_variant_is_of_type (" #value ", " #TYPE ")"); \
+        c_warn_if_fail("c_variant_is_of_type (" #value ", " #TYPE ")"); \
         return val; \
     }
 
@@ -80,6 +81,8 @@
           before ## variant ## after                            \
         }                                                       \
     }
+
+typedef struct _AST AST;
 
 struct _CVariant
 {
@@ -153,6 +156,45 @@ struct Offsets
     bool  is_normal;
 };
 
+typedef struct
+{
+    cint start, end;
+} SourceRef;
+
+typedef struct
+{
+    cchar *    (*get_pattern)    (AST* ast, CError** error);
+    CVariant * (*get_value)      (AST* ast, const CVariantType* type, CError** error);
+    CVariant * (*get_base_value) (AST* ast, const CVariantType* type, CError** error);
+    void       (*free)           (AST* ast);
+} ASTClass;
+
+struct _AST
+{
+    const ASTClass *class;
+    SourceRef source_ref;
+};
+
+typedef struct
+{
+    AST ast;
+    AST **children;
+    cint n_children;
+} Array;
+
+typedef struct
+{
+    AST ast;
+    AST **children;
+    cint n_children;
+} Tuple;
+
+typedef struct
+{
+    AST ast;
+    AST *child;
+} Maybe;
+
 /* == array == */
 #define CV_ARRAY_INFO_CLASS 'a'
 static void array_info_free (CVariantTypeInfo *info);
@@ -170,6 +212,72 @@ static ContainerInfo * tuple_info_new (const CVariantType *type);
 static bool tuple_get_item (TupleInfo* info, CVariantMemberInfo* item, csize* d, csize* e);
 static void tuple_table_append (CVariantMemberInfo **items, csize i, csize a, csize b, csize c);
 static void tuple_allocate_members (const CVariantType* type, CVariantMemberInfo **members, csize* n_members);
+
+// dict
+struct stack_dict
+{
+    CHashTable *values;
+    csize magic;
+};
+C_STATIC_ASSERT (sizeof (struct stack_dict) <= sizeof (CVariantDict));
+
+struct heap_dict
+{
+    struct stack_dict dict;
+    cint ref_count;
+    csize magic;
+};
+typedef struct
+{
+    const cchar *start;
+    const cchar *stream;
+    const cchar *end;
+    const cchar *this;
+} TokenStream;
+
+
+C_DEFINE_QUARK (c-variant-parse-error-quark, c_variant_parse_error)
+
+#define CVSD(d)                 ((struct stack_dict *) (d))
+#define CVHD(d)                 ((struct heap_dict *) (d))
+#define CVSD_MAGIC              ((csize) 2579507750u)
+#define CVSD_MAGIC_PARTIAL      ((csize) 3488698669u)
+#define CVHD_MAGIC              ((csize) 2450270775u)
+#define is_valid_dict(d)        (CVSD(d)->magic == CVSD_MAGIC)
+#define is_valid_heap_dict(d)   (CVHD(d)->magic == CVHD_MAGIC)
+
+#define return_if_invalid_dict(d) C_STMT_START { \
+    bool valid_dict C_UNUSED = ensure_valid_dict (d); \
+    c_return_if_fail (valid_dict); \
+} C_STMT_END
+
+#define return_val_if_invalid_dict(d, val) C_STMT_START { \
+    bool valid_dict C_UNUSED = ensure_valid_dict (d); \
+    c_return_val_if_fail (valid_dict, val); \
+} C_STMT_END
+
+static bool ensure_valid_dict (CVariantDict *dict);
+static void token_stream_next (TokenStream *stream);
+static cchar* token_stream_get (TokenStream *stream);
+static bool token_stream_prepare (TokenStream *stream);
+static void pattern_copy (cchar** out, const cchar** in);
+static bool token_stream_is_keyword (TokenStream *stream);
+static bool token_stream_is_numeric (TokenStream *stream);
+static void add_last_line (CString* err, const cchar* str);
+static bool token_stream_peek (TokenStream *stream, cchar first_char);
+static void token_stream_end_ref (TokenStream* stream, SourceRef* ref);
+static cchar* pattern_coalesce (const cchar *left, const cchar *right);
+static void token_stream_start_ref (TokenStream *stream, SourceRef* ref);
+static void token_stream_assert (TokenStream* stream, const cchar* token);
+static bool token_stream_consume (TokenStream *stream, const cchar *token);
+static bool parse_num (const cchar *num, const cchar* limit, cuint* result);
+static bool token_stream_peek_string (TokenStream *stream, const cchar *token);
+static bool token_stream_peek2 (TokenStream *stream, cchar first_char, cchar second_char);
+static AST* array_parse (TokenStream* stream, cuint max_depth, va_list* app, CError** error);
+static bool token_stream_require (TokenStream* stream, const cchar* token, const cchar* purpose, CError** error);
+static void token_stream_set_error (TokenStream* stream, CError** error, bool this_token, cint code, const cchar  *format, ...);
+static void add_lines_from_range (CString* err, const cchar *str, const cchar *start1, const cchar *end1, const cchar *start2, const cchar *end2);
+
 
 /* == new/ref/unref == */
 static CRecMutex c_variant_type_info_lock;
@@ -373,7 +481,7 @@ static inline csize cvs_variant_needed_size (CVariantTypeInfo* type_info, CVaria
     CVariantSerialised child = { 0, };
     const cchar *type_string;
 
-    gvs_filler (&child, children[0]);
+    gvs_filler (&child, (void*) children[0]);
     type_string = c_variant_type_info_get_type_string (child.type_info);
 
     return child.size + 1 + strlen (type_string);
@@ -386,7 +494,7 @@ static inline void cvs_variant_serialise (CVariantSerialised value, CVariantSeri
 
     child.data = value.data;
 
-    gvs_filler (&child, children[0]);
+    gvs_filler (&child, (void*) children[0]);
     type_string = c_variant_type_info_get_type_string (child.type_info);
     value.data[child.size] = '\0';
     memcpy (value.data + child.size + 1, type_string, strlen (type_string));
@@ -1095,7 +1203,7 @@ CVariant *c_variant_maybe_get_child_value(CVariant *value, csize index_)
 }
 
 
-NUMERIC_TYPE(BYTE, byte, cuint8)
+NUMERIC_TYPE (BYTE, byte, cuint8)
 NUMERIC_TYPE (INT16, int16, cint16)
 NUMERIC_TYPE (UINT16, uint16, cuint16)
 NUMERIC_TYPE (INT32, int32, cint32)
@@ -2095,7 +2203,7 @@ CString *c_variant_print_string(CVariant *value, CString *string, bool type_anno
             else {
                 c_variant_print_string (element, string, false);
             }
-            c_clear_pointer (&element, c_variant_unref);
+            c_clear_pointer ((void**) &element, (CDestroyNotify) c_variant_unref);
         }
         else {
             c_string_append (string, "nothing");
@@ -2523,6 +2631,7 @@ CVariant *c_variant_new_from_data(const CVariantType *type, const void *data, cs
                                   CDestroyNotify notify, void *user_data)
 {
 }
+
 CVariantIter *c_variant_iter_new(CVariant *value) {}
 csize c_variant_iter_init(CVariantIter *iter, CVariant *value) {}
 CVariantIter *c_variant_iter_copy(CVariantIter *iter) {}
@@ -2553,21 +2662,318 @@ CVariant *c_variant_parse(const CVariantType *type, const cchar *text, const cch
 {
 }
 CVariant *c_variant_new_parsed(const cchar *format, ...) {}
-CVariant *c_variant_new_parsed_va(const cchar *format, va_list *app) {}
-cchar *c_variant_parse_error_print_context(CError *error, const cchar *sourceStr) {}
-cint c_variant_compare(const void *one, const void *two) {}
-CVariantDict *c_variant_dict_new(CVariant *fromAsv) {}
-void c_variant_dict_init(CVariantDict *dict, CVariant *fromAsv) {}
-bool c_variant_dict_lookup(CVariantDict *dict, const cchar *key, const cchar *formatStr, ...) {}
-CVariant *c_variant_dict_lookup_value(CVariantDict *dict, const cchar *key, const CVariantType *expectedType) {}
-bool c_variant_dict_contains(CVariantDict *dict, const cchar *key) {}
-void c_variant_dict_insert(CVariantDict *dict, const cchar *key, const cchar *formatStr, ...) {}
-void c_variant_dict_insert_value(CVariantDict *dict, const cchar *key, CVariant *value) {}
-bool c_variant_dict_remove(CVariantDict *dict, const cchar *key) {}
-void c_variant_dict_clear(CVariantDict *dict) {}
-CVariant *c_variant_dict_end(CVariantDict *dict) {}
-CVariantDict *c_variant_dict_ref(CVariantDict *dict) {}
-void c_variant_dict_unref(CVariantDict *dict) {}
+
+CVariant *c_variant_new_parsed_va(const cchar *format, va_list *app)
+{
+    TokenStream stream = { 0, };
+    CVariant *result = NULL;
+    CError *error = NULL;
+    AST *ast;
+
+    c_return_val_if_fail (format != NULL, NULL);
+    c_return_val_if_fail (app != NULL, NULL);
+
+    stream.start = format;
+    stream.stream = format;
+    stream.end = NULL;
+
+    if ((ast = parse (&stream, C_VARIANT_MAX_RECURSION_DEPTH, app, &error))) {
+        result = ast_resolve (ast, &error);
+        ast_free (ast);
+    }
+
+    if (error != NULL)
+        c_error ("g_variant_new_parsed: %s", error->message);
+
+    if (*stream.stream)
+        c_error ("g_variant_new_parsed: trailing text after value");
+
+    c_clear_error (&error);
+
+    return result;
+}
+
+cchar *c_variant_parse_error_print_context(CError *error, const cchar *sourceStr)
+{
+    const cchar *colon, *dash, *comma;
+    bool success = false;
+    CString *err;
+
+    c_return_val_if_fail (error->domain == C_VARIANT_PARSE_ERROR, false);
+
+    /**
+     * We can only have a limited number of possible types of ranges
+     * emitted from the parser:
+     *
+     *  - a:          -- usually errors from the tokeniser (eof, invalid char, etc.)
+     *  - a-b:        -- usually errors from handling one single token
+     *  - a-b,c-d:    -- errors involving two tokens (ie: type inferencing)
+     *
+     * We never see, for example "a,c".
+     */
+
+    colon = strchr (error->message, ':');
+    dash = strchr (error->message, '-');
+    comma = strchr (error->message, ',');
+
+    if (!colon) {
+        return NULL;
+    }
+
+    err = c_string_new (colon + 1);
+    c_string_append (err, ":\n");
+
+    if (dash == NULL || colon < dash) {
+        cuint point;
+        if (!parse_num (error->message, colon, &point)) {
+            goto out;
+        }
+        if (point >= strlen (sourceStr)) {
+            add_last_line (err, sourceStr);
+        }
+        else {
+            add_lines_from_range (err, sourceStr, sourceStr + point, sourceStr + point + 1, NULL, NULL);
+        }
+    }
+    else {
+        if (comma && comma < colon) {
+            cuint start1, end1, start2, end2;
+            const cchar *dash2;
+
+            dash2 = strchr (comma, '-');
+
+            if (!parse_num (error->message, dash, &start1)
+                || !parse_num (dash + 1, comma, &end1)
+                || !parse_num (comma + 1, dash2, &start2)
+                || !parse_num (dash2 + 1, colon, &end2)) {
+                goto out;
+            }
+
+            add_lines_from_range (err, sourceStr, sourceStr + start1, sourceStr + end1, sourceStr + start2, sourceStr + end2);
+        }
+        else {
+            cuint start, end;
+            /* One range */
+            if (!parse_num (error->message, dash, &start) || !parse_num (dash + 1, colon, &end)) {
+                goto out;
+            }
+            add_lines_from_range (err, sourceStr, sourceStr + start, sourceStr + end, NULL, NULL);
+        }
+    }
+
+    success = true;
+
+out:
+    return c_string_free (err, !success);
+}
+
+cint c_variant_compare(const void *one, const void *two)
+{
+    CVariant *a = (CVariant*) one;
+    CVariant *b = (CVariant*) two;
+
+    c_return_val_if_fail (c_variant_classify (a) == c_variant_classify (b), 0);
+
+    switch (c_variant_classify (a)) {
+        case C_VARIANT_CLASS_BOOLEAN:
+            return c_variant_get_boolean (a) - c_variant_get_boolean (b);
+        case C_VARIANT_CLASS_BYTE:
+            return ((cint) c_variant_get_byte (a)) - ((cint) c_variant_get_byte (b));
+        case C_VARIANT_CLASS_INT16:
+            return ((cint) c_variant_get_int16 (a)) - ((cint) c_variant_get_int16 (b));
+        case C_VARIANT_CLASS_UINT16:
+            return ((cint) c_variant_get_uint16 (a)) - ((cint) c_variant_get_uint16 (b));
+        case C_VARIANT_CLASS_INT32: {
+            cint32 a_val = c_variant_get_int32 (a);
+            cint32 b_val = c_variant_get_int32 (b);
+            return (a_val == b_val) ? 0 : (a_val > b_val) ? 1 : -1;
+        }
+        case C_VARIANT_CLASS_UINT32: {
+            cuint32 a_val = c_variant_get_uint32 (a);
+            cuint32 b_val = c_variant_get_uint32 (b);
+            return (a_val == b_val) ? 0 : (a_val > b_val) ? 1 : -1;
+        }
+        case C_VARIANT_CLASS_INT64: {
+            cint64 a_val = c_variant_get_int64 (a);
+            cint64 b_val = c_variant_get_int64 (b);
+            return (a_val == b_val) ? 0 : (a_val > b_val) ? 1 : -1;
+        }
+        case C_VARIANT_CLASS_UINT64: {
+            cuint64 a_val = c_variant_get_uint64 (a);
+            cuint64 b_val = c_variant_get_uint64 (b);
+            return (a_val == b_val) ? 0 : (a_val > b_val) ? 1 : -1;
+        }
+        case C_VARIANT_CLASS_DOUBLE: {
+            cdouble a_val = c_variant_get_double (a);
+            cdouble b_val = c_variant_get_double (b);
+            return (a_val == b_val) ? 0 : (a_val > b_val) ? 1 : -1;
+        }
+        case C_VARIANT_CLASS_STRING:
+        case C_VARIANT_CLASS_OBJECT_PATH:
+        case C_VARIANT_CLASS_SIGNATURE:
+            return strcmp (c_variant_get_string (a, NULL), c_variant_get_string (b, NULL));
+        default: {
+            c_return_val_if_fail (!c_variant_is_container (a), 0);
+            c_assert_not_reached ();
+        }
+    }
+}
+
+CVariantDict *c_variant_dict_new(CVariant *fromAsv)
+{
+    CVariantDict *dict;
+    C_STATIC_ASSERT (sizeof (CVariantDict) >= sizeof (struct heap_dict));
+
+    dict = c_malloc0 (sizeof (CVariantDict));
+    c_variant_dict_init (dict, fromAsv);
+    CVHD(dict)->magic = CVHD_MAGIC;
+    CVHD(dict)->ref_count = 1;
+
+    return dict;
+}
+
+void c_variant_dict_init(CVariantDict *dict, CVariant *fromAsv)
+{
+    CVariantIter iter;
+    cchar *key;
+    CVariant *value;
+
+    CVSD(dict)->values = c_hash_table_new_full (c_str_hash, c_str_equal, c_free0, (CDestroyNotify) c_variant_unref);
+    CVSD(dict)->magic = CVSD_MAGIC;
+
+    if (fromAsv) {
+        c_variant_iter_init (&iter, fromAsv);
+        while (c_variant_iter_next (&iter, "{sv}", &key, &value)) {
+            c_hash_table_insert (CVSD(dict)->values, key, value);
+        }
+    }
+}
+
+bool c_variant_dict_lookup(CVariantDict *dict, const cchar *key, const cchar *formatStr, ...)
+{
+    CVariant *value;
+    va_list ap;
+
+    return_val_if_invalid_dict (dict, false);
+    c_return_val_if_fail (key != NULL, false);
+    c_return_val_if_fail (formatStr != NULL, false);
+
+    value = c_hash_table_lookup (CVSD(dict)->values, key);
+    if (value == NULL || !c_variant_check_format_string (value, formatStr, false)) {
+        return false;
+    }
+
+    va_start (ap, formatStr);
+    c_variant_get_va (value, formatStr, NULL, &ap);
+    va_end (ap);
+
+    return true;
+}
+
+CVariant *c_variant_dict_lookup_value(CVariantDict *dict, const cchar *key, const CVariantType *expectedType)
+{
+    CVariant *result;
+
+    return_val_if_invalid_dict (dict, NULL);
+    c_return_val_if_fail (key != NULL, NULL);
+
+    result = c_hash_table_lookup (CVSD(dict)->values, key);
+    if (result && (!expectedType || c_variant_is_of_type (result, expectedType))) {
+        return c_variant_ref (result);
+    }
+
+    return NULL;
+}
+
+bool c_variant_dict_contains(CVariantDict *dict, const cchar *key)
+{
+    return_val_if_invalid_dict (dict, false);
+    c_return_val_if_fail (key != NULL, false);
+
+    return c_hash_table_contains (CVSD(dict)->values, key);
+}
+
+void c_variant_dict_insert(CVariantDict *dict, const cchar *key, const cchar *formatStr, ...)
+{
+    va_list ap;
+
+    return_if_invalid_dict (dict);
+    c_return_if_fail (key != NULL);
+    c_return_if_fail (formatStr != NULL);
+
+    va_start (ap, formatStr);
+    c_variant_dict_insert_value (dict, key, c_variant_new_va (formatStr, NULL, &ap));
+    va_end (ap);
+}
+
+void c_variant_dict_insert_value(CVariantDict *dict, const cchar *key, CVariant *value)
+{
+    return_if_invalid_dict (dict);
+    c_return_if_fail (key != NULL);
+    c_return_if_fail (value != NULL);
+
+    c_hash_table_insert (CVSD(dict)->values, c_strdup (key), c_variant_ref_sink (value));
+}
+
+bool c_variant_dict_remove(CVariantDict *dict, const cchar *key)
+{
+    return_val_if_invalid_dict (dict, false);
+    c_return_val_if_fail (key != NULL, false);
+
+    return c_hash_table_remove (CVSD(dict)->values, key);
+}
+
+void c_variant_dict_clear(CVariantDict *dict)
+{
+    if (CVSD(dict)->magic == 0) {
+        return;
+    }
+
+    return_if_invalid_dict (dict);
+
+    c_hash_table_unref (CVSD(dict)->values);
+    CVSD(dict)->values = NULL;
+    CVSD(dict)->magic = 0;
+}
+
+CVariant *c_variant_dict_end(CVariantDict *dict)
+{
+    CVariantBuilder builder;
+    CHashTableIter iter;
+    void* key;
+    void* value;
+
+    return_val_if_invalid_dict (dict, NULL);
+
+    c_variant_builder_init_static (&builder, C_VARIANT_TYPE_VARDICT);
+
+    c_hash_table_iter_init (&iter, CVSD(dict)->values);
+    while (c_hash_table_iter_next (&iter, &key, &value)) {
+        c_variant_builder_add (&builder, "{sv}", (const cchar*) key, (CVariant*) value);
+    }
+    c_variant_dict_clear (dict);
+
+    return c_variant_builder_end (&builder);
+}
+
+CVariantDict *c_variant_dict_ref(CVariantDict *dict)
+{
+    c_return_val_if_fail (is_valid_heap_dict (dict), NULL);
+
+    CVHD(dict)->ref_count++;
+
+    return dict;
+}
+
+void c_variant_dict_unref(CVariantDict *dict)
+{
+    c_return_if_fail (is_valid_heap_dict (dict));
+
+    if (--CVHD(dict)->ref_count == 0) {
+        c_variant_dict_clear (dict);
+        c_free0(dict);
+    }
+}
 
 CVariant *c_variant_new_take_bytes(const CVariantType *type, CBytes *bytes, bool trusted)
 {
@@ -2622,7 +3028,7 @@ CVariant *c_variant_new_take_bytes(const CVariantType *type, CBytes *bytes, bool
     value->contents.serialised.ordered_offsets_up_to = trusted ? C_MAX_SIZE : 0;
     value->contents.serialised.checked_offsets_up_to = trusted ? C_MAX_SIZE : 0;
 
-    c_clear_pointer (&owned_bytes, c_bytes_unref);
+    c_clear_pointer ((void**) &owned_bytes, (CDestroyNotify) c_bytes_unref);
 
     return value;
 }
@@ -2744,51 +3150,304 @@ void c_variant_serialised_byteswap(CVariantSerialised serialised)
     csize fixed_size;
     cuint alignment;
 
-    c_assert (c_variant_serialised_check (serialised));
+    c_assert(c_variant_serialised_check(serialised));
 
     if (!serialised.data)
         return;
 
-    c_variant_type_info_query (serialised.type_info, &alignment, &fixed_size);
+    c_variant_type_info_query(serialised.type_info, &alignment, &fixed_size);
     if (!alignment)
         return;
 
     if (alignment + 1 == fixed_size) {
         switch (fixed_size) {
         case 2: {
-            cuint16 *ptr = (cuint16 *) serialised.data;
-            c_assert_cmpint (serialised.size, ==, 2);
-            *ptr = C_UINT16_SWAP_LE_BE (*ptr);
+            cuint16 *ptr = (cuint16 *)serialised.data;
+            c_assert_cmpint(serialised.size, ==, 2);
+            *ptr = C_UINT16_SWAP_LE_BE(*ptr);
             return;
         }
         case 4: {
-            cuint32 *ptr = (cuint32*) serialised.data;
-            c_assert_cmpint (serialised.size, ==, 4);
-            *ptr = C_UINT32_SWAP_LE_BE (*ptr);
+            cuint32 *ptr = (cuint32 *)serialised.data;
+            c_assert_cmpint(serialised.size, ==, 4);
+            *ptr = C_UINT32_SWAP_LE_BE(*ptr);
             return;
         }
         case 8: {
-            cuint64 *ptr = (cuint64*) serialised.data;
-            c_assert_cmpint (serialised.size, ==, 8);
-            *ptr = C_UINT64_SWAP_LE_BE (*ptr);
+            cuint64 *ptr = (cuint64 *)serialised.data;
+            c_assert_cmpint(serialised.size, ==, 8);
+            *ptr = C_UINT64_SWAP_LE_BE(*ptr);
             return;
         }
         default:
-            c_assert_not_reached ();
+            c_assert_not_reached();
         }
     }
     else {
         csize children, i;
-        children = c_variant_serialised_n_children (serialised);
+        children = c_variant_serialised_n_children(serialised);
         for (i = 0; i < children; i++) {
             CVariantSerialised child;
-            child = c_variant_serialised_get_child (serialised, i);
-            c_variant_serialised_byteswap (child);
-            c_variant_type_info_unref (child.type_info);
+            child = c_variant_serialised_get_child(serialised, i);
+            c_variant_serialised_byteswap(child);
+            c_variant_type_info_unref(child.type_info);
         }
     }
 }
 
+bool c_variant_serialised_is_normal(CVariantSerialised serialised)
+{
+    if (serialised.depth >= C_VARIANT_MAX_RECURSION_DEPTH) {
+        return false;
+    }
+
+    DISPATCH_CASES (serialised.type_info, return cvs_/**/,/**/_is_normal (serialised);)
+
+    if (serialised.data == NULL) {
+        return false;
+    }
+
+    /* some hard-coded terminal cases */
+    switch (c_variant_type_info_get_type_char (serialised.type_info)) {
+        case 'b': /* boolean */
+            return serialised.data[0] < 2;
+        case 's': /* string */
+            return c_variant_serialiser_is_string (serialised.data, serialised.size);
+        case 'o':
+            return c_variant_serialiser_is_object_path (serialised.data, serialised.size);
+        case 'g':
+            return c_variant_serialiser_is_signature (serialised.data, serialised.size);
+        default:
+            /**
+             * all of the other types are fixed-sized numerical types for
+             * which all possible values are valid (including various NaN
+             * representations for floating point values).
+             */
+            return true;
+    }
+}
+
+bool c_variant_serialiser_is_string(const void *data, csize size)
+{
+    const cchar *expected_end;
+    const cchar *end;
+
+    /* Strings must end with a nul terminator. */
+    if (size == 0) {
+        return false;
+    }
+
+    expected_end = ((cchar*) data) + size - 1;
+
+    if (*expected_end != '\0') {
+        return false;
+    }
+
+    c_utf8_validate_len (data, size, &end);
+
+    return end == expected_end;
+}
+
+bool c_variant_serialiser_is_object_path(const void *data, csize size)
+{
+    const cchar *str = data;
+    csize i;
+
+    if (!c_variant_serialiser_is_string (data, size)) {
+        return false;
+    }
+
+    /* The path must begin with an ASCII '/' (integer 47) character */
+    if (str[0] != '/') {
+        return false;
+    }
+
+    for (i = 1; str[i]; i++) {
+        /**
+         * Each element must only contain the ASCII characters
+         * "[A-Z][a-z][0-9]_"
+         */
+        if (c_ascii_isalnum (str[i]) || str[i] == '_')
+            ;
+            /* must consist of elements separated by slash characters. */
+        else if (str[i] == '/') {
+            /* No element may be the empty string. */
+            /* Multiple '/' characters cannot occur in sequence. */
+            if (str[i - 1] == '/') {
+                return false;
+            }
+        }
+        else {
+            return false;
+        }
+    }
+    /**
+     * A trailing '/' character is not allowed unless the path is the
+     * root path (a single '/' character).
+     */
+    if (i > 1 && str[i - 1] == '/') {
+        return false;
+    }
+
+    return true;
+}
+
+bool c_variant_serialiser_is_signature(const void *data, csize size)
+{
+    const cchar *str = data;
+    csize first_invalid;
+
+    if (!c_variant_serialiser_is_string (data, size)) {
+        return false;
+    }
+
+    /* make sure no non-definite characters appear */
+    first_invalid = strspn (str, "ybnqiuxthdvasog(){}");
+    if (str[first_invalid]) {
+        return false;
+    }
+
+    /* make sure each type string is well-formed */
+    while (*str) {
+        if (!c_variant_type_string_scan (str, NULL, &str)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool c_variant_format_string_scan(const cchar *str, const cchar *limit, const cchar **endPtr)
+{
+#define next_char() (str == limit ? '\0' : *(str++))
+#define peek_char() (str == limit ? '\0' : *str)
+    char c;
+
+    switch (next_char()) {
+        case 'b': case 'y': case 'n': case 'q': case 'i': case 'u':
+        case 'x': case 't': case 'h': case 'd': case 's': case 'o':
+        case 'g': case 'v': case '*': case '?': case 'r':
+            break;
+        case 'm':
+            return c_variant_format_string_scan (str, limit, endPtr);
+        case 'a':
+        case '@':
+            return c_variant_type_string_scan (str, limit, endPtr);
+        case '(':
+            while (peek_char() != ')') {
+                if (!c_variant_format_string_scan (str, limit, &str)) {
+                    return false;
+                }
+            }
+            next_char(); /* consume ')' */
+            break;
+        case '{':
+            c = next_char();
+            if (c == '&') {
+                c = next_char ();
+                if (c != 's' && c != 'o' && c != 'g') {
+                    return false;
+                }
+            }
+            else {
+                if (c == '@') {
+                    c = next_char ();
+                }
+                /* ISO/IEC 9899:1999 (C99) §7.21.5.2:
+                 * The terminating null character is considered to be
+                 * part of the string.
+                 */
+                if (c != '\0' && strchr ("bynqiuxthdsog?", c) == NULL) {
+                    return false;
+                }
+            }
+            if (!c_variant_format_string_scan (str, limit, &str)) {
+                return false;
+            }
+            if (next_char() != '}') {
+                return false;
+            }
+            break;
+        case '^':
+            if ((c = next_char()) == 'a') {
+                if ((c = next_char()) == '&') {
+                    if ((c = next_char()) == 'a') {
+                        if ((c = next_char()) == 'y') {
+                            break;      /* '^a&ay' */
+                        }
+                    }
+                    else if (c == 's' || c == 'o') {
+                        break;          /* '^a&s', '^a&o' */
+                    }
+                }
+                else if (c == 'a') {
+                    if ((c = next_char()) == 'y') {
+                        break;          /* '^aay' */
+                    }
+                }
+                else if (c == 's' || c == 'o') {
+                    break;              /* '^as', '^ao' */
+                }
+                else if (c == 'y') {
+                    break;              /* '^ay' */
+                }
+            }
+            else if (c == '&') {
+                if ((c = next_char()) == 'a') {
+                    if ((c = next_char()) == 'y') {
+                        break;          /* '^&ay' */
+                    }
+                }
+            }
+            return false;
+        case '&':
+            c = next_char();
+            if (c != 's' && c != 'o' && c != 'g') {
+                return false;
+            }
+            break;
+        default:
+            return false;
+    }
+
+  if (endPtr != NULL) {
+      *endPtr = str;
+  }
+
+#undef next_char
+#undef peek_char
+
+    return true;
+}
+
+CVariantType *c_variant_format_string_scan_type(const cchar *str, const cchar *limit, const cchar **endPtr)
+{
+    const cchar *my_end;
+    csize i;
+    cchar *new;
+
+    if (endPtr == NULL) {
+        endPtr = &my_end;
+    }
+
+    if (!c_variant_format_string_scan (str, limit, endPtr)) {
+        return NULL;
+    }
+
+    new = c_malloc0 (*endPtr - str + 1);
+    i = 0;
+    while (str != *endPtr) {
+        if (*str != '@' && *str != '&' && *str != '^') {
+            new[i++] = *str;
+        }
+        str++;
+    }
+    new[i++] = '\0';
+
+    c_assert (c_variant_type_string_is_valid (new));
+
+    return (CVariantType*) new;
+}
 
 static bool variant_type_string_scan_internal(const cchar *string, const cchar *limit, const cchar **endptr,
                                               csize *depth, csize depth_limit)
@@ -2997,7 +3656,6 @@ static ArrayInfo * CV_ARRAY_INFO (CVariantTypeInfo *info)
     return (ArrayInfo *) info;
 }
 
-
 static void array_info_free (CVariantTypeInfo *info)
 {
     ArrayInfo *array_info;
@@ -3189,7 +3847,6 @@ static void cc_while_locked (void)
     }
 }
 
-//
 static CVariant* c_variant_new_from_trusted (const CVariantType* type, const void* data, csize size)
 {
     if (size <= C_VARIANT_MAX_PREALLOCATED) {
@@ -3256,7 +3913,7 @@ static void c_variant_ensure_size (CVariant *value)
 
         children = (void**) value->contents.tree.children;
         n_children = value->contents.tree.n_children;
-        value->size = c_variant_serialiser_needed_size (value->type_info, c_variant_fill_gvs, children, n_children);
+        value->size = c_variant_serialiser_needed_size (value->type_info, c_variant_fill_gvs, (const void**)children, n_children);
     }
 }
 
@@ -3279,7 +3936,7 @@ static void c_variant_serialise (CVariant *value, void* data)
     children = (void**) value->contents.tree.children;
     n_children = value->contents.tree.n_children;
 
-    c_variant_serialiser_serialise (serialised, c_variant_fill_gvs, children, n_children);
+    c_variant_serialiser_serialise (serialised, c_variant_fill_gvs, (const void**) children, n_children);
 }
 
 static void c_variant_fill_gvs (CVariantSerialised *serialised, void* data)
@@ -3374,6 +4031,8 @@ static CVariantSerialised cvs_fixed_sized_maybe_get_child (CVariantSerialised va
     value.ordered_offsets_up_to = 0;
     value.checked_offsets_up_to = 0;
 
+    (void) index_;
+
     return value;
 }
 
@@ -3392,7 +4051,7 @@ static void cvs_fixed_sized_maybe_serialise (CVariantSerialised value, CVariantS
 {
     if (n_children) {
         CVariantSerialised child = { NULL, value.data, value.size, value.depth + 1, 0, 0 };
-        gvs_filler (&child, children[0]);
+        gvs_filler (&child, (void*) children[0]);
     }
 }
 
@@ -3444,7 +4103,7 @@ static csize cvs_variable_sized_maybe_needed_size (CVariantTypeInfo* type_info, 
 {
     if (n_children) {
         CVariantSerialised child = { 0, };
-        gvs_filler (&child, children[0]);
+        gvs_filler (&child, (void*) children[0]);
 
         return child.size + 1;
     }
@@ -3456,7 +4115,7 @@ static void cvs_variable_sized_maybe_serialise (CVariantSerialised value, CVaria
 {
     if (n_children) {
         CVariantSerialised child = { NULL, value.data, value.size - 1, value.depth + 1, 0, 0 };
-        gvs_filler (&child, children[0]);
+        gvs_filler (&child, (void*) children[0]);
         value.data[child.size] = '\0';
     }
 }
@@ -3526,7 +4185,7 @@ static void cvs_fixed_sized_array_serialise (CVariantSerialised value, CVariantS
     child.depth = value.depth + 1;
 
     for (i = 0; i < n_children; i++) {
-        gvs_filler (&child, children[i]);
+        gvs_filler (&child, (void*) children[i]);
         child.data += child.size;
     }
 }
@@ -3678,19 +4337,19 @@ static CVariantSerialised cvs_variable_sized_array_get_child (CVariantSerialised
         && value.ordered_offsets_up_to == value.checked_offsets_up_to) {
         switch (offsets.offset_size) {
             case 1: {
-                value.ordered_offsets_up_to = find_unordered_guint8 (offsets.array, value.checked_offsets_up_to, index_ + 1);
+                value.ordered_offsets_up_to = find_unordered_cuint8 (offsets.array, value.checked_offsets_up_to, index_ + 1);
                 break;
             }
             case 2: {
-                value.ordered_offsets_up_to = find_unordered_guint16 (offsets.array, value.checked_offsets_up_to, index_ + 1);
+                value.ordered_offsets_up_to = find_unordered_cuint16 (offsets.array, value.checked_offsets_up_to, index_ + 1);
                 break;
             }
             case 4: {
-                value.ordered_offsets_up_to = find_unordered_guint32 (offsets.array, value.checked_offsets_up_to, index_ + 1);
+                value.ordered_offsets_up_to = find_unordered_cuint32 (offsets.array, value.checked_offsets_up_to, index_ + 1);
                 break;
             }
             case 8: {
-                value.ordered_offsets_up_to = find_unordered_guint64 (offsets.array, value.checked_offsets_up_to, index_ + 1);
+                value.ordered_offsets_up_to = find_unordered_cuint64 (offsets.array, value.checked_offsets_up_to, index_ + 1);
                 break;
             }
             default: {
@@ -3736,7 +4395,7 @@ static csize cvs_variable_sized_array_needed_size (CVariantTypeInfo* type_info, 
     for (i = 0; i < n_children; i++) {
         CVariantSerialised child = { 0, };
         offset += (-offset) & alignment;
-        gvs_filler (&child, children[i]);
+        gvs_filler (&child, (void*) children[i]);
         offset += child.size;
     }
 
@@ -3764,7 +4423,7 @@ static void cvs_variable_sized_array_serialise (CVariantSerialised value, CVaria
         }
 
         child.data = value.data + offset;
-        gvs_filler (&child, children[i]);
+        gvs_filler (&child, (void*) children[i]);
         offset += child.size;
 
         cvs_write_unaligned_le (offset_ptr, offset, offset_size);
@@ -3978,7 +4637,7 @@ static csize cvs_tuple_needed_size (CVariantTypeInfo* type_info, CVariantSeriali
         else {
             CVariantSerialised child = { 0, };
 
-            gvs_filler (&child, children[i]);
+            gvs_filler (&child, (void*) children[i]);
             offset += child.size;
         }
     }
@@ -4007,7 +4666,7 @@ static void cvs_tuple_serialise (CVariantSerialised value, CVariantSerialisedFil
             value.data[offset++] = '\0';
 
         child.data = value.data + offset;
-        gvs_filler (&child, children[i]);
+        gvs_filler (&child, (void*) children[i]);
         offset += child.size;
 
         if (member_info->ending_type == C_VARIANT_MEMBER_ENDING_OFFSET) {
@@ -4128,4 +4787,539 @@ static bool cvs_tuple_is_normal (CVariantSerialised value)
     }
 
     return true;
+}
+
+static bool ensure_valid_dict (CVariantDict *dict)
+{
+    if (dict == NULL) {
+        return false;
+    }
+    else if (is_valid_dict (dict)) {
+        return true;
+    }
+
+    if (dict->u.s.partial_magic == CVSD_MAGIC_PARTIAL) {
+        static CVariantDict cleared_dict;
+        if (memcmp (cleared_dict.u.s.y, dict->u.s.y, sizeof cleared_dict.u.s.y)) {
+            return false;
+        }
+        c_variant_dict_init (dict, dict->u.s.asv);
+    }
+
+    return is_valid_dict (dict);
+}
+
+static bool parse_num (const cchar *num, const cchar* limit, cuint* result)
+{
+    cchar *endptr;
+    cint64 bignum;
+
+    bignum = c_ascii_strtoll (num, &endptr, 10);
+    if (endptr != limit) {
+        return false;
+    }
+
+    if (bignum < 0 || bignum > C_MAX_INT32) {
+        return false;
+    }
+
+    *result = (cuint) bignum;
+
+    return true;
+}
+
+static void add_last_line (CString* err, const cchar* str)
+{
+    const cchar *last_nl;
+    cchar *chomped;
+    cint i;
+
+    /* This is an error at the end of input.  If we have a file
+     * with newlines, that's probably the empty string after the
+     * last newline, which is not the most useful thing to show.
+     *
+     * Instead, show the last line of non-whitespace that we have
+     * and put the pointer at the end of it.
+     */
+    chomped = c_strchomp (c_strdup (str));
+    last_nl = strrchr (chomped, '\n');
+    if (last_nl == NULL) {
+        last_nl = chomped;
+    }
+    else {
+        last_nl++;
+    }
+
+    /* Print the last line like so:
+     *
+     *   [1, 2, 3,
+     *            ^
+     */
+    c_string_append (err, "  ");
+    if (last_nl[0]) {
+        c_string_append (err, last_nl);
+    }
+    else {
+        c_string_append (err, "(empty input)");
+    }
+    c_string_append (err, "\n  ");
+    for (i = 0; last_nl[i]; i++) {
+        c_string_append_c (err, ' ');
+    }
+    c_string_append (err, "^\n");
+    c_free (chomped);
+}
+
+static void add_lines_from_range (CString* err, const cchar *str, const cchar *start1, const cchar *end1, const cchar *start2, const cchar *end2)
+{
+    while (str < end1 || str < end2) {
+        const cchar *nl;
+        nl = str + strcspn (str, "\n");
+        if ((start1 < nl && str < end1) || (start2 < nl && str < end2)) {
+            const cchar *s;
+            c_string_append (err, "  ");
+            c_string_append_len (err, str, nl - str);
+            c_string_append (err, "\n  ");
+
+            /* And add underlines... */
+            for (s = str; s < nl; s++) {
+                if ((start1 <= s && s < end1) || (start2 <= s && s < end2)) {
+                    c_string_append_c (err, '^');
+                }
+                else {
+                    c_string_append_c (err, ' ');
+                }
+            }
+            c_string_append_c (err, '\n');
+        }
+
+        if (!*nl) {
+            break;
+        }
+        str = nl + 1;
+    }
+}
+
+static AST* parse (TokenStream* stream, cuint max_depth, va_list* app, CError** error)
+{
+    SourceRef source_ref;
+    AST *result;
+
+    if (max_depth == 0) {
+        token_stream_set_error (stream, error, false, C_VARIANT_PARSE_ERROR_RECURSION, "variant nested too deeply");
+        return NULL;
+    }
+
+    token_stream_prepare (stream);
+    token_stream_start_ref (stream, &source_ref);
+
+    if (token_stream_peek (stream, '[')) {
+        result = array_parse (stream, max_depth, app, error);
+    }
+    else if (token_stream_peek (stream, '(')) {
+        result = tuple_parse (stream, max_depth, app, error);
+    }
+    else if (token_stream_peek (stream, '<')) {
+        result = variant_parse (stream, max_depth, app, error);
+    }
+    else if (token_stream_peek (stream, '{')) {
+        result = dictionary_parse (stream, max_depth, app, error);
+    }
+    else if (app && token_stream_peek (stream, '%')) {
+        result = positional_parse (stream, app, error);
+    }
+    else if (token_stream_consume (stream, "true")) {
+        result = boolean_new (true);
+    }
+    else if (token_stream_consume (stream, "false")) {
+        result = boolean_new (false);
+    }
+    else if (token_stream_is_numeric (stream)
+        || token_stream_peek_string (stream, "inf")
+        || token_stream_peek_string (stream, "nan")) {
+        result = number_parse (stream, app, error);
+    }
+    else if (token_stream_peek (stream, 'n')
+        || token_stream_peek (stream, 'j')) {
+        result = maybe_parse (stream, max_depth, app, error);
+    }
+    else if (token_stream_peek (stream, '@')
+        || token_stream_is_keyword (stream)) {
+        result = typedecl_parse (stream, max_depth, app, error);
+    }
+    else if (token_stream_peek (stream, '\'')
+        || token_stream_peek (stream, '"')) {
+        result = string_parse (stream, app, error);
+    }
+    else if (token_stream_peek2 (stream, 'b', '\'')
+        || token_stream_peek2 (stream, 'b', '"')) {
+        result = bytestring_parse (stream, app, error);
+    }
+    else {
+        token_stream_set_error (stream, error, false, C_VARIANT_PARSE_ERROR_VALUE_EXPECTED, "expected value");
+        return NULL;
+    }
+
+    if (result != NULL) {
+        token_stream_end_ref (stream, &source_ref);
+        result->source_ref = source_ref;
+    }
+
+    return result;
+}
+
+static void token_stream_set_error (TokenStream* stream, CError** error, bool this_token, cint code, const cchar  *format, ...)
+{
+    SourceRef ref;
+    va_list ap;
+
+    ref.start = stream->this - stream->start;
+
+    if (this_token)
+        ref.end = stream->stream - stream->start;
+    else
+        ref.end = ref.start;
+
+    va_start (ap, format);
+    parser_set_error_va (error, &ref, NULL, code, format, ap);
+    va_end (ap);
+}
+
+static bool token_stream_prepare (TokenStream *stream)
+{
+    cint brackets = 0;
+    const cchar *end;
+
+    if (stream->this != NULL)
+        return true;
+
+    while (stream->stream != stream->end && c_ascii_isspace (*stream->stream))
+        stream->stream++;
+
+    if (stream->stream == stream->end || *stream->stream == '\0') {
+        stream->this = stream->stream;
+        return false;
+    }
+
+    switch (stream->stream[0]) {
+        case '-': case '+': case '.': case '0': case '1': case '2':
+        case '3': case '4': case '5': case '6': case '7': case '8':
+        case '9':
+            for (end = stream->stream; end != stream->end; end++) {
+                if (!c_ascii_isalnum (*end) && *end != '-' && *end != '+' && *end != '.') {
+                    break;
+                }
+            }
+            break;
+        case 'b':
+            if (stream->stream + 1 != stream->end && (stream->stream[1] == '\'' || stream->stream[1] == '"')) {
+                for (end = stream->stream + 2; end != stream->end; end++) {
+                    if (*end == stream->stream[1] || *end == '\0' || (*end == '\\' && (++end == stream->end || *end == '\0'))) {
+                        break;
+                    }
+                }
+                if (end != stream->end && *end) {
+                    end++;
+                }
+                break;
+            }
+            C_FALLTHROUGH;
+        case 'a': /* 'b' */ case 'c': case 'd': case 'e': case 'f':
+        case 'g': case 'h': case 'i': case 'j': case 'k': case 'l':
+        case 'm': case 'n': case 'o': case 'p': case 'q': case 'r':
+        case 's': case 't': case 'u': case 'v': case 'w': case 'x':
+        case 'y': case 'z':
+            for (end = stream->stream; end != stream->end; end++)
+                if (!c_ascii_isalnum (*end))
+                    break;
+            break;
+
+        case '\'': case '"':
+            for (end = stream->stream + 1; end != stream->end; end++)
+                if (*end == stream->stream[0] || *end == '\0' || (*end == '\\' && (++end == stream->end || *end == '\0')))
+                    break;
+            if (end != stream->end && *end)
+                end++;
+            break;
+        case '@': case '%':
+            for (end = stream->stream + 1;
+                end != stream->end && *end != '\0' && *end != ',' &&
+                *end != ':' && *end != '>' && *end != ']' && !c_ascii_isspace (*end); end++)
+                if (*end == '(' || *end == '{')
+                    brackets++;
+                else if ((*end == ')' || *end == '}') && !brackets--)
+                    break;
+            break;
+        default:
+            end = stream->stream + 1;
+            break;
+    }
+
+  stream->this = stream->stream;
+  stream->stream = end;
+
+  /* We must have at least one byte in a token. */
+  c_assert (stream->stream - stream->this >= 1);
+
+  return true;
+}
+
+static void token_stream_next (TokenStream *stream)
+{
+    stream->this = NULL;
+}
+
+static bool token_stream_peek (TokenStream *stream, cchar first_char)
+{
+    if (!token_stream_prepare (stream))
+        return false;
+
+    return stream->stream - stream->this >= 1 &&
+         stream->this[0] == first_char;
+}
+
+static bool token_stream_peek2 (TokenStream *stream, cchar first_char, cchar second_char)
+{
+    if (!token_stream_prepare (stream))
+        return false;
+
+    return stream->stream - stream->this >= 2 &&
+         stream->this[0] == first_char &&
+         stream->this[1] == second_char;
+}
+
+static bool token_stream_is_keyword (TokenStream *stream)
+{
+    if (!token_stream_prepare (stream))
+        return false;
+
+    return stream->stream - stream->this >= 2 &&
+         c_ascii_isalpha (stream->this[0]) &&
+         c_ascii_isalpha (stream->this[1]);
+}
+
+static bool token_stream_is_numeric (TokenStream *stream)
+{
+    if (!token_stream_prepare (stream)) {
+        return false;
+    }
+
+    return (stream->stream - stream->this >= 1
+        && (c_ascii_isdigit (stream->this[0]) || stream->this[0] == '-' || stream->this[0] == '+' || stream->this[0] == '.'));
+}
+
+static bool token_stream_peek_string (TokenStream *stream, const cchar *token)
+{
+    size_t length = strlen (token);
+
+    return token_stream_prepare (stream)
+        && (size_t) (stream->stream - stream->this) == length
+        && memcmp (stream->this, token, length) == 0;
+}
+
+static bool token_stream_consume (TokenStream *stream, const cchar *token)
+{
+    if (!token_stream_peek_string (stream, token)) {
+        return false;
+    }
+
+    token_stream_next (stream);
+    return true;
+}
+
+static bool token_stream_require (TokenStream* stream, const cchar* token, const cchar* purpose, CError** error)
+{
+    if (!token_stream_consume (stream, token)) {
+        token_stream_set_error (stream, error, false, C_VARIANT_PARSE_ERROR_UNEXPECTED_TOKEN, "expected '%s'%s", token, purpose);
+        return false;
+    }
+
+    return true;
+}
+
+static void token_stream_assert (TokenStream* stream, const cchar* token)
+{
+    bool correct_token C_UNUSED  /* when compiling with G_DISABLE_ASSERT */;
+
+    correct_token = token_stream_consume (stream, token);
+    c_assert (correct_token);
+}
+
+static cchar* token_stream_get (TokenStream *stream)
+{
+    cchar *result;
+
+    if (!token_stream_prepare (stream)) {
+        return NULL;
+    }
+
+    result = c_strndup (stream->this, stream->stream - stream->this);
+
+    return result;
+}
+
+static void token_stream_start_ref (TokenStream *stream, SourceRef* ref)
+{
+    token_stream_prepare (stream);
+    ref->start = stream->this - stream->start;
+}
+
+static void token_stream_end_ref (TokenStream* stream, SourceRef* ref)
+{
+    ref->end = stream->stream - stream->start;
+}
+
+/* This is guaranteed to write exactly as many bytes to `out` as it consumes
+ * from `in`. i.e. The `out` buffer doesn’t need to be any longer than `in`. */
+static void pattern_copy (cchar** out, const cchar** in)
+{
+  cint brackets = 0;
+
+  while (**in == 'a' || **in == 'm' || **in == 'M')
+    *(*out)++ = *(*in)++;
+
+  do
+    {
+      if (**in == '(' || **in == '{')
+        brackets++;
+
+      else if (**in == ')' || **in == '}')
+        brackets--;
+
+      *(*out)++ = *(*in)++;
+    }
+  while (brackets);
+}
+
+/* Returns the most general pattern that is subpattern of left and subpattern
+ * of right, or NULL if there is no such pattern. */
+static cchar* pattern_coalesce (const cchar *left, const cchar *right)
+{
+  cchar *result;
+  cchar *out;
+  size_t buflen;
+  size_t left_len = strlen (left), right_len = strlen (right);
+
+  /* the length of the output is loosely bound by the sum of the input
+   * lengths, not simply the greater of the two lengths.
+   *
+   *   (*(iii)) + ((iii)*) = ((iii)(iii))
+   *
+   *      8     +    8     = 12
+   *
+   * This can be proven by the fact that `out` is never incremented by more
+   * bytes than are consumed from `left` or `right` in each iteration.
+   */
+  c_assert (left_len < C_MAX_SIZE - right_len);
+  buflen = left_len + right_len + 1;
+  out = result = c_malloc0 (buflen);
+
+  while (*left && *right)
+    {
+      if (*left == *right)
+        {
+          *out++ = *left++;
+          right++;
+        }
+
+      else
+        {
+          const cchar **one = &left, **the_other = &right;
+
+         again:
+          if (**one == '*' && **the_other != ')')
+            {
+              pattern_copy (&out, the_other);
+              (*one)++;
+            }
+
+          else if (**one == 'M' && **the_other == 'm')
+            {
+              *out++ = *(*the_other)++;
+            }
+
+          else if (**one == 'M' && **the_other != 'm' && **the_other != '*')
+            {
+              (*one)++;
+            }
+
+          else if (**one == 'N' && strchr ("ynqiuxthd", **the_other))
+            {
+              *out++ = *(*the_other)++;
+              (*one)++;
+            }
+
+          else if (**one == 'S' && strchr ("sog", **the_other))
+            {
+              *out++ = *(*the_other)++;
+              (*one)++;
+            }
+
+          else if (one == &left)
+            {
+              one = &right, the_other = &left;
+              goto again;
+            }
+
+          else
+            break;
+        }
+    }
+
+  /* Need at least one byte remaining for trailing nul. */
+  c_assert (out < result + buflen);
+
+    if (*left || *right)
+    {
+      c_free (result);
+      result = NULL;
+    }
+  else
+    *out++ = '\0';
+
+  return result;
+}
+
+static AST* array_parse (TokenStream* stream, cuint max_depth, va_list* app, CError** error)
+{
+    static const ASTClass array_class = {
+        array_get_pattern,
+        maybe_wrapper, array_get_value,
+        array_free
+      };
+    bool need_comma = false;
+    Array *array;
+
+    array = c_malloc0(sizeof(Array));
+    array->ast.class = &array_class;
+    array->children = NULL;
+    array->n_children = 0;
+
+    token_stream_assert (stream, "[");
+    while (!token_stream_consume (stream, "]"))
+    {
+        AST *child;
+
+        if (need_comma &&
+            !token_stream_require (stream, ",",
+                                   " or ']' to follow array element",
+                                   error))
+            goto error;
+
+        child = parse (stream, max_depth - 1, app, error);
+
+        if (!child)
+            goto error;
+
+        ast_array_append (&array->children, &array->n_children, child);
+        need_comma = true;
+    }
+
+    return (AST *) array;
+
+error:
+    ast_array_free (array->children, array->n_children);
+    c_free0(array);
+
+    return NULL;
 }

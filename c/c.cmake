@@ -77,8 +77,8 @@ file(GLOB C_SRC
         ${CMAKE_SOURCE_DIR}/c/wakeup.h
         ${CMAKE_SOURCE_DIR}/c/wakeup.c
 
-#        ${CMAKE_SOURCE_DIR}/c/variant.h
-#        ${CMAKE_SOURCE_DIR}/c/variant.c
+        ${CMAKE_SOURCE_DIR}/c/variant.h
+        ${CMAKE_SOURCE_DIR}/c/variant.c
 
         ${CMAKE_SOURCE_DIR}/c/charset.h
         ${CMAKE_SOURCE_DIR}/c/charset.c
@@ -91,6 +91,9 @@ file(GLOB C_SRC
 
         ${CMAKE_SOURCE_DIR}/c/unicode.h
         ${CMAKE_SOURCE_DIR}/c/unicode.c
+
+        ${CMAKE_SOURCE_DIR}/c/bit-lock.h
+        ${CMAKE_SOURCE_DIR}/c/bit-lock.c
 
         ${CMAKE_SOURCE_DIR}/c/time-zone.h
         ${CMAKE_SOURCE_DIR}/c/time-zone.c

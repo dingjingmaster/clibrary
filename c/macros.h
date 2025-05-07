@@ -29,6 +29,7 @@
 #include <string.h>
 #include <assert.h>
 #include <unistd.h>
+#include <endian.h>
 #include <stdbool.h>
 #include <libintl.h>
 #include <sys/poll.h>
@@ -181,9 +182,10 @@ typedef cuint32                                                 CQuark;
 #define C_PI_4                                                  0.78539816339744830961566084581987572104929234984378
 #define C_SQRT2                                                 1.4142135623730950488016887242096980785696718753769
 
-#define C_LITTLE_ENDIAN                                         1234
-#define C_BIG_ENDIAN                                            4321
-#define C_PDP_ENDIAN                                            3412
+#define C_LITTLE_ENDIAN                                         LITTLE_ENDIAN
+#define C_BIG_ENDIAN                                            BIG_ENDIAN
+#define C_PDP_ENDIAN                                            RDP_ENDIAN
+#define C_BYTE_ORDER                                            __BYTE_ORDER
 
 #define C_POINTER(p)             ((void*) p)
 
