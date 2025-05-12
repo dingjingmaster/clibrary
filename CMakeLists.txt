@@ -25,12 +25,17 @@ endif ()
 
 include_directories(${CMAKE_SOURCE_DIR})
 add_definitions(-D__CLIB_H_INSIDE__ -DPACKAGE_NAME=\"clib\")
+add_definitions(-DPROJECT_VERSION_MAJOR=${PROJECT_VERSION_MAJOR}
+        -DPROJECT_VERSION_MINOR=${PROJECT_VERSION_MINOR}
+        -DPROJECT_VERSION_PATCH=${PROJECT_VERSION_PATCH}
+)
 
 enable_testing()
 
 find_package(PkgConfig)
 
 add_subdirectory(c)
+add_subdirectory(cx)
 add_subdirectory(test)
 
 include(data/data.cmake)
