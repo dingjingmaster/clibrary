@@ -268,14 +268,7 @@ typedef double cxreal;
 #define CX_DEPRECATED_VERSION_5(minor)      CX_DEPRECATED_VERSION_5_##minor
 #define CX_DEPRECATED_VERSION(major, minor) CX_DEPRECATED_VERSION_##major##_##minor
 
-#ifdef __cplusplus
-// A tag to help mark stuff deprecated (cf. QStringViewLiteral)
-namespace CxPrivate
-{
-enum class Deprecated_t {};
-constexpr C_DECL_UNUSED Deprecated_t Deprecated = {};
-}
-#endif
+
 
 #ifdef CX_BOOTSTRAPPED
 #  ifdef CX_SHARED
@@ -357,44 +350,6 @@ CX_CORE_EXPORT C_DECL_CONST_FUNCTION const char *cxVersion(void) C_DECL_NOEXCEPT
 # define CX_DESTRUCTOR_FUNCTION(AFUNC) CX_DESTRUCTOR_FUNCTION0(AFUNC)
 #endif
 
-namespace CxPrivate {
-    template <class T>
-    struct AlignOfHelper
-    {
-        char c;
-        T type;
-
-        AlignOfHelper();
-        ~AlignOfHelper();
-    };
-
-    template <class T>
-    struct AlignOf_Default
-    {
-        enum { Value = sizeof(AlignOfHelper<T>) - sizeof(T) };
-    };
-
-    template <class T> struct AlignOf : AlignOf_Default<T> { };
-    template <class T> struct AlignOf<T &> : AlignOf<T> {};
-    template <class T> struct AlignOf<T &&> : AlignOf<T> {};
-    template <size_t N, class T> struct AlignOf<T[N]> : AlignOf<T> {};
-
-#if defined(CX_PROCESSOR_X86_32) && !defined(CX_OS_WIN)
-    template <class T> struct AlignOf_WorkaroundForI386Abi { enum { Value = sizeof(T) }; };
-
-    // x86 ABI weirdness
-    // Alignment of naked type is 8, but inside struct has alignment 4.
-    template <> struct AlignOf<double>  : AlignOf_WorkaroundForI386Abi<double> {};
-    template <> struct AlignOf<cint64>  : AlignOf_WorkaroundForI386Abi<cint64> {};
-    template <> struct AlignOf<cuint64> : AlignOf_WorkaroundForI386Abi<cuint64> {};
-#ifdef CX_CC_CLANG
-    // GCC and Clang seem to disagree wrt to alignment of arrays
-    template <size_t N> struct AlignOf<double[N]>   : AlignOf_Default<double> {};
-    template <size_t N> struct AlignOf<cint64[N]>   : AlignOf_Default<cint64> {};
-    template <size_t N> struct AlignOf<cuint64[N]>  : AlignOf_Default<cuint64> {};
-#endif
-#endif
-} // namespace CxPrivate
 
 #define CX_EMULATED_ALIGNOF(T) \
     (size_t(CX_PREPEND_NAMESPACE(CxPrivate)::AlignOf<T>::Value))
@@ -403,21 +358,6 @@ namespace CxPrivate {
 #define CX_ALIGNOF(T) CX_EMULATED_ALIGNOF(T)
 #endif
 
-template <int> struct CXIntegerForSize;
-template <>    struct CXIntegerForSize<1> { typedef cuint8  Unsigned; typedef cint8  Signed; };
-template <>    struct CXIntegerForSize<2> { typedef cuint16 Unsigned; typedef cint16 Signed; };
-template <>    struct CXIntegerForSize<4> { typedef cuint32 Unsigned; typedef cint32 Signed; };
-template <>    struct CXIntegerForSize<8> { typedef cuint64 Unsigned; typedef cint64 Signed; };
-#if defined(CX_CC_GNU) && defined(__SIZEOF_INT128__)
-template <>    struct CXIntegerForSize<16> { __extension__ typedef unsigned __int128 Unsigned; __extension__ typedef __int128 Signed; };
-#endif
-template <class T> struct CXIntegerForSizeof: CXIntegerForSize<sizeof(T)> { };
-typedef CXIntegerForSize<C_CPU_WORDSIZE>::Signed cxregisterint;
-typedef CXIntegerForSize<C_CPU_WORDSIZE>::Unsigned cxregisteruint;
-typedef CXIntegerForSizeof<void*>::Unsigned cxuintptr;
-typedef CXIntegerForSizeof<void*>::Signed cxptrdiff;
-typedef cxptrdiff cxintptr;
-using cxsizetype = CXIntegerForSizeof<std::size_t>::Signed;
 
 /* moc compats (signals/slots) */
 #ifndef CX_MOC_COMPAT
@@ -669,13 +609,7 @@ C_NORETURN
 #endif
 CX_CORE_EXPORT void cx_assert(const char *assertion, const char *file, int line) noexcept;
 
-#if !defined(CX_ASSERT)
-#  if defined(CX_NO_DEBUG) && !defined(CX_FORCE_ASSERTS)
-#    define CX_ASSERT(cond) static_cast<void>(false && (cond))
-#  else
-#    define CX_ASSERT(cond) ((cond) ? static_cast<void>(0) : cx_assert(#cond, __FILE__, __LINE__))
-#  endif
-#endif
+
 
 #ifndef CX_CC_MSVC
 C_NORETURN

@@ -8,19 +8,4 @@
 // Created by dingjing on 25-5-12.
 //
 
-#ifndef clibrary_DEFINE_H
-#define clibrary_DEFINE_H
-
-#ifdef _MSC_VER
-#define CX_SUPPORTS(FEATURE) (!defined CX_NO_##FEATURE)
-#else
-#define CX_SUPPORTS(FEATURE) (!defined(CX_NO_##FEATURE))
-#endif
-
-#define CX_VERSION                                  CX_VERSION_CHECK(PROJECT_VERSION_MAJOR,PROJECT_VERSION_MINOR,PROJECT_VERSION_PATCH)
-#define CX_VERSION_CHECK(major, minor, patch)       ((major<<16)|(minor<<8)|(patch))
-
-#define CX_BEGIN_NAMESPACE namespace cx {
-#define CX_END_NAMESPACE };
-
-#endif // clibrary_DEFINE_H
+#include "string.h"
