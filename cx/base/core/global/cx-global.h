@@ -29,9 +29,7 @@
 #include <CxCoew/cxcore-config.h>
 #endif
 
-#define CX_VERSION                                  CX_VERSION_CHECK(PROJECT_VERSION_MAJOR,PROJECT_VERSION_MINOR,PROJECT_VERSION_PATCH)
 
-#define CX_VERSION_CHECK(major, minor, patch)       ((major<<16)|(minor<<8)|(patch))
 
 #ifdef _MSC_VER
 #define CX_SUPPORTS(FEATURE) (!defined CX_NO_##FEATURE)
@@ -54,27 +52,6 @@
 #endif
 
 #define CX_UNUSED(x) (void)x;
-
-#if defined(__cplusplus) && defined(CX_COMPILER_STATIC_ASSERT)
-#  define CX_STATIC_ASSERT(Condition) static_assert(bool(Condition), #Condition)
-#  define CX_STATIC_ASSERT_X(Condition, Message) static_assert(bool(Condition), Message)
-#elif defined(CX_COMPILER_STATIC_ASSERT)
-// C11 mode - using the _S version in case <assert.h> doesn't do the right thing
-#  define CX_STATIC_ASSERT(Condition) _Static_assert(!!(Condition), #Condition)
-#  define CX_STATIC_ASSERT_X(Condition, Message) _Static_assert(!!(Condition), Message)
-#else
-// C89 & C99 version
-#  define CX_STATIC_ASSERT_PRIVATE_JOIN(A, B) CX_STATIC_ASSERT_PRIVATE_JOIN_IMPL(A, B)
-#  define CX_STATIC_ASSERT_PRIVATE_JOIN_IMPL(A, B) A ## B
-#  ifdef __COUNTER__
-#  define CX_STATIC_ASSERT(Condition) \
-    typedef char CX_STATIC_ASSERT_PRIVATE_JOIN(cx_static_assert_result, __COUNTER__) [(Condition) ? 1 : -1];
-#  else
-#  define CX_STATIC_ASSERT(Condition) \
-    typedef char CX_STATIC_ASSERT_PRIVATE_JOIN(cx_static_assert_result, __LINE__) [(Condition) ? 1 : -1];
-#  endif /* __COUNTER__ */
-#  define CX_STATIC_ASSERT_X(Condition, Message) CX_STATIC_ASSERT(Condition)
-#endif
 
 #ifdef __cplusplus
 
@@ -172,14 +149,7 @@ CX_BEGIN_NAMESPACE
 typedef cint64  clonglong;
 typedef cuint64 culonglong;
 
-#ifndef __cplusplus
-// In C++ mode, we define below using QIntegerForSize template
-CX_STATIC_ASSERT_X(sizeof(ptrdiff_t) == sizeof(size_t), "Weird ptrdiff_t and size_t definitions");
-typedef ptrdiff_t cxptrdiff;
-typedef ptrdiff_t cxsizetype;
-typedef ptrdiff_t cxintptr;
-typedef size_t cxuintptr;
-#endif
+
 
 /*
    Useful type definitions for Qt
