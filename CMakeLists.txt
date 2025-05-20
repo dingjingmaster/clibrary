@@ -35,7 +35,7 @@ enable_testing()
 find_package(PkgConfig)
 
 add_subdirectory(c)
-add_subdirectory(cx)
+#add_subdirectory(cx)
 add_subdirectory(test)
 
 include(data/data.cmake)
