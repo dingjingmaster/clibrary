@@ -103,8 +103,8 @@ typedef unsigned short                                          cuint16;
 typedef signed int                                              cint32;
 typedef unsigned int                                            cuint32;
 
-typedef signed long                                             cint64;
-typedef unsigned long                                           cuint64;
+typedef signed long long                                        cint64;
+typedef unsigned long long                                      cuint64;
 
 typedef char                                                    cchar;
 typedef short                                                   cshort;
