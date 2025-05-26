@@ -2680,13 +2680,13 @@ CString *c_variant_print_string(CVariant *value, CString *string, bool type_anno
         if (type_annotate) {
             c_string_append(string, "int64 ");
         }
-        c_string_append_printf(string, "%ld", c_variant_get_int64(value));
+        c_string_append_printf(string, "%lld", c_variant_get_int64(value));
         break;
     case C_VARIANT_CLASS_UINT64:
         if (type_annotate) {
             c_string_append(string, "uint64 ");
         }
-        c_string_append_printf(string, "%lu", c_variant_get_uint64(value));
+        c_string_append_printf(string, "%llu", c_variant_get_uint64(value));
         break;
     case C_VARIANT_CLASS_DOUBLE: {
         cchar buffer[100];

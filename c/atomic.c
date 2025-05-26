@@ -239,7 +239,7 @@ cintptr c_atomic_pointer_add (volatile void* atomic, cssize val)
 
 cuintptr c_atomic_pointer_and (volatile void* atomic, culong val)
 {
-    cuint64* ptr = (culong*) atomic;
+    cuint64* ptr = (cuint64*) atomic;
     cuint64 oldVal;
 
     pthread_mutex_lock (&gsAtomicLock);
@@ -252,7 +252,7 @@ cuintptr c_atomic_pointer_and (volatile void* atomic, culong val)
 
 cuintptr c_atomic_pointer_or (volatile void* atomic, culong val)
 {
-    cuint64* ptr = (culong*) atomic;
+    cuint64* ptr = (cuint64*) atomic;
     cuint64 oldVal;
 
     pthread_mutex_lock (&gsAtomicLock);
@@ -265,7 +265,7 @@ cuintptr c_atomic_pointer_or (volatile void* atomic, culong val)
 
 cuintptr c_atomic_pointer_xor (volatile void* atomic, csize val)
 {
-    cuint64* ptr = (culong*) atomic;
+    cuint64* ptr = (cuint64*) atomic;
     cuint64 oldVal;
 
     pthread_mutex_lock (&gsAtomicLock);
