@@ -1,11 +1,11 @@
-prefix=/usr
+prefix=@CMAKE_INSTALL_PREFIX@
 exec_prefix=${prefix}
 libdir=${exec_prefix}/lib64
 includedir=${prefix}/include
 
 Name: clibrary-c
 Description: C Library
-Version: 0.7.6
+Version: @PROJECT_VERSION@
 Requires:
 Libs: -L${libdir} -lclibrary-c
 Cflags: -I${includedir}/clibrary/
