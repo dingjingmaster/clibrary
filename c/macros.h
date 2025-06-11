@@ -187,6 +187,7 @@ typedef cuint32                                                 CQuark;
 #define C_PDP_ENDIAN                                            RDP_ENDIAN
 #define C_BYTE_ORDER                                            __BYTE_ORDER
 
+#undef C_POINTER
 #define C_POINTER(p)             ((void*) p)
 
 #define C_INT16_TO_LE(val)       ((cint16) (val))
@@ -564,6 +565,8 @@ typedef const char*     (*CTranslateFunc)       (const char* str, void* udata);
  * @see
  *  the [GNU C documentation](https://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html#index-alloc_005fsize-function-attribute) for more details.
  */
+#undef C_ALLOC_SIZE
+#undef C_ALLOC_SIZE2
 #if c_macro__has_attribute(__alloc_size__)
 #define C_ALLOC_SIZE(x)                                         __attribute__((__alloc_size__(x)))
 #define C_ALLOC_SIZE2(x,y)                                      __attribute__((__alloc_size__(x,y)))
@@ -622,6 +625,7 @@ typedef const char*     (*CTranslateFunc)       (const char* str, void* udata);
  *  [GNU C documentation](https://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html#index-noreturn-function-attribute) for more details.
  *  
  */
+#undef C_NORETURN
 #if c_macro__has_attribute(__noreturn__)
 #define C_NORETURN                                              __attribute__ ((__noreturn__))
 #else
@@ -746,6 +750,7 @@ typedef const char*     (*CTranslateFunc)       (const char* str, void* udata);
  * @brief
  *  当前行号
  */
+#undef C_LINE
 #define C_LINE                                                  C_STRINGIFY (__LINE__)
 
 /**
@@ -843,6 +848,7 @@ typedef const char*     (*CTranslateFunc)       (const char* str, void* udata);
 #endif
 #endif
 
+#undef C_ALIGNOF
 #if C_C_STD_CHECK_VERSION (11)
 #define C_ALIGNOF(type) _Alignof (type)
 #else
