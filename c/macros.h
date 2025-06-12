@@ -387,11 +387,21 @@ typedef const char*     (*CTranslateFunc)       (const char* str, void* udata);
 
 
 /********************************* 汉化 *****************************************/
+#ifndef _
 #define  _(str) gettext (str)
+#endif
+#ifndef Q_
 #define Q_(str) c_dpgettext (NULL, str, 0)
+#endif
+#ifndef N_
 #define N_(str) (str)
+#endif
+#ifndef C_
 #define C_(ctx,str) c_dpgettext (NULL, ctx "\004" str, strlen (ctx) + 1)
+#endif
+#ifndef NC_
 #define NC_(ctx,str) (str)
+#endif
 
 /** @NOTE **/
 /********************************* 宏定义 ***************************************/
